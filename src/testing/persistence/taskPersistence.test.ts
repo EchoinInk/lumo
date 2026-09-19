@@ -60,6 +60,25 @@ export async function testPersistVisibleTasksSoftDeletesRemovedTasks(): Promise<
   );
 }
 
+export async function testTaskStoreHydratesEmptyForNewUser(): Promise<void> {
+  resetTestState();
+  deleteKey(StorageKeys.TASKS);
+  useTaskStore.setState({ tasks: [], hasHydrated: false });
+
+  await useTaskStore.getState().hydrateTasks();
+
+  assertEqual(
+    useTaskStore.getState().tasks.length,
+    0,
+    "new users should start without demonstration tasks",
+  );
+  assertEqual(
+    useTaskStore.getState().hasHydrated,
+    true,
+    "empty task state should finish hydrating",
+  );
+}
+
 export async function testTaskStoreAddTaskPersistsSameId(): Promise<void> {
   resetTestState();
   deleteKey(StorageKeys.TASKS);

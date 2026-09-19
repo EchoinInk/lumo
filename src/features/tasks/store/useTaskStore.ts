@@ -1,5 +1,4 @@
 import { create } from "zustand";
-import { mockTasks } from "../mock/mockTasks";
 import { taskLocalRepository } from "../services/taskLocalRepository";
 import { CreateTaskInput, Task, UpdateTaskInput } from "../types/task";
 
@@ -33,7 +32,7 @@ type TaskStore = TaskState & TaskActions;
  * - Persistence happens in background via taskLocalRepository
  * - Sync is handled by repository (canonical entrypoint)
  * - Hydrates from MMKV on initialization
- * - Seeds mock data if storage is empty
+ * - Starts empty when storage is empty
  * - Soft delete architecture (deletedAt timestamp)
  *
  * Architecture:
@@ -56,20 +55,7 @@ export const useTaskStore = create<TaskStore>((set, get) => ({
       return;
     }
 
-    const seededTasks = mockTasks.map((task) => ({
-      ...task,
-      version: 1,
-      pendingSync: false,
-      syncStatus: "synced" as const,
-    }));
-
-    set({ tasks: seededTasks, hasHydrated: true });
-
-    try {
-      await taskLocalRepository.persistVisibleTasks(seededTasks);
-    } catch (err) {
-      console.error("[TaskStore] Failed to persist seeded tasks:", err);
-    }
+    set({ tasks: [], hasHydrated: true });
   },
 
   setHasHydrated: (value) => set({ hasHydrated: value }),

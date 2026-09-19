@@ -133,6 +133,11 @@ export function useAuthForm() {
         return;
       }
 
+      if (!result.data.isValid) {
+        setError("Check your email to confirm your account, then sign in.");
+        return;
+      }
+
       // Successful sign up
       const session = result.data;
       const cloudOwnerId = session.user?.id;

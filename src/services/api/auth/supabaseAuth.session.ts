@@ -9,7 +9,9 @@
  */
 
 import type { AuthChangeEvent, Session } from "@supabase/supabase-js";
+import "react-native-url-polyfill/auto";
 import { getSupabaseClient } from "./supabaseAuth.client";
+import { getAuthRedirectUrl } from "./authRedirect";
 import type {
     SupabaseAuthError,
     SupabaseAuthResult,
@@ -358,6 +360,9 @@ export async function signUpWithEmailPassword(
     const { data, error: signUpError } = await client.auth.signUp({
       email,
       password,
+      options: {
+        emailRedirectTo: getAuthRedirectUrl(),
+      },
     });
 
     if (signUpError) {
@@ -395,4 +400,55 @@ export async function signUpWithEmailPassword(
     };
     return { success: false, error };
   }
+}
+
+/** Send a password-recovery email to Lumo's mobile callback route. */
+export async function sendPasswordRecoveryEmail(email: string): Promise<SupabaseAuthResult<void>> {
+  const client = getSupabaseClient();
+  if (!client) {
+    return { success: false, error: { type: "config_missing", message: "Supabase client not available" } };
+  }
+  const { error } = await client.auth.resetPasswordForEmail(email, {
+    redirectTo: getAuthRedirectUrl(),
+  });
+  return error
+    ? { success: false, error: { type: "auth_error", message: error.message, code: error.status?.toString() } }
+    : { success: true };
+}
+
+/** Establish a session from a Supabase deep-link callback. */
+export async function establishSessionFromAuthCallback(url: string): Promise<SupabaseAuthResult<SupabaseAuthSession>> {
+  const client = getSupabaseClient();
+  if (!client) {
+    return { success: false, error: { type: "config_missing", message: "Supabase client not available" } };
+  }
+
+  const query = url.includes("#") ? url.slice(url.indexOf("#") + 1) : url.slice(url.indexOf("?") + 1);
+  const params = new URLSearchParams(query);
+  const callbackError = params.get("error_description") ?? params.get("error");
+  if (callbackError) {
+    return { success: false, error: { type: "auth_error", message: callbackError } };
+  }
+
+  const code = params.get("code");
+  const accessToken = params.get("access_token");
+  const refreshToken = params.get("refresh_token");
+  const result = code
+    ? await client.auth.exchangeCodeForSession(code)
+    : accessToken && refreshToken
+      ? await client.auth.setSession({ access_token: accessToken, refresh_token: refreshToken })
+      : { data: { session: null, user: null }, error: new Error("The sign-in link did not include a session.") };
+
+  if (result.error || !result.data.session || !result.data.user) {
+    return { success: false, error: { type: "auth_error", message: result.error?.message ?? "Unable to establish a session" } };
+  }
+  return {
+    success: true,
+    data: {
+      session: result.data.session,
+      user: result.data.user,
+      isValid: true,
+      expiresAt: result.data.session.expires_at ? result.data.session.expires_at * 1000 : null,
+    },
+  };
 }
