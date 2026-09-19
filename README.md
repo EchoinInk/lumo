@@ -41,3 +41,20 @@ npm run web
 ```
 
 Use a development build for native modules that Expo Go does not support. Do not add environment files containing secrets to source control.
+
+## Supabase email links
+
+In Supabase **Authentication → URL Configuration**, add this redirect URL exactly:
+
+```
+lumomobile://auth/callback
+```
+
+Lumo uses it for email confirmation and password recovery. Test it from an installed development build, not Expo Go:
+
+```bash
+npm run ios       # or: npm run android
+npm start -- --dev-client
+```
+
+With the app closed and then open, confirm that a signup email opens the Account screen and that a password-recovery email opens **Choose a new password**. An expired or reused recovery link must stay on the callback error state; reopening the app during recovery requires opening a fresh link.

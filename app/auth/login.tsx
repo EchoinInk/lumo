@@ -31,6 +31,10 @@ export default function LoginScreen() {
     router.push("/auth/signup" as any);
   };
 
+  const handlePasswordRecovery = () => {
+    router.push("/auth/forgot-password" as any);
+  };
+
   const handleBack = () => {
     router.back();
   };
@@ -79,6 +83,15 @@ export default function LoginScreen() {
           className="mb-4"
         >
           Sign in
+        </Button>
+
+        <Button
+          variant="ghost"
+          onPress={handlePasswordRecovery}
+          disabled={isSubmitting}
+          className="mb-4"
+        >
+          Forgot password?
         </Button>
 
         <Button

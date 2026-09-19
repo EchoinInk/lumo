@@ -10,6 +10,7 @@
 
 import type { AuthChangeEvent, Session } from "@supabase/supabase-js";
 import "react-native-url-polyfill/auto";
+import { clearRecoverySession, hasRecoverySession } from "./recoverySessionGuard";
 import { getSupabaseClient } from "./supabaseAuth.client";
 import { getAuthRedirectUrl } from "./authRedirect";
 import type {
@@ -451,4 +452,28 @@ export async function establishSessionFromAuthCallback(url: string): Promise<Sup
       expiresAt: result.data.session.expires_at ? result.data.session.expires_at * 1000 : null,
     },
   };
+}
+
+/** Identifies a callback without exposing any token values to callers or logs. */
+export { getAuthCallbackIntent } from "./authCallbackIntent";
+
+/** Updates a password only when Supabase has an active recovery/auth session. */
+export async function updatePasswordFromRecoverySession(password: string): Promise<SupabaseAuthResult<void>> {
+  const client = getSupabaseClient();
+  if (!client) return { success: false, error: { type: "config_missing", message: "Supabase client not available" } };
+  if (password.length < 6) return { success: false, error: { type: "auth_error", message: "Password must be at least 6 characters" } };
+  if (!hasRecoverySession()) {
+    return { success: false, error: { type: "auth_error", message: "Open a new recovery link before choosing a password." } };
+  }
+
+  const { data: sessionData, error: sessionError } = await client.auth.getSession();
+  if (sessionError || !sessionData.session) {
+    return { success: false, error: { type: "auth_error", message: "Your recovery link has expired. Please request a new one." } };
+  }
+  const { error } = await client.auth.updateUser({ password });
+  if (error) {
+    return { success: false, error: { type: "auth_error", message: error.message, code: error.status?.toString() } };
+  }
+  clearRecoverySession();
+  return { success: true };
 }

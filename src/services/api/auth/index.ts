@@ -19,8 +19,8 @@ export {
 
 // Re-export auth session operations
 export {
-    getCurrentSession,
-    refreshSession, restorePersistedSession, signInWithEmailPassword, signOutSession, signUpWithEmailPassword, subscribeToAuthChanges
+    establishSessionFromAuthCallback, getAuthCallbackIntent, getCurrentSession,
+    refreshSession, restorePersistedSession, sendPasswordRecoveryEmail, signInWithEmailPassword, signOutSession, signUpWithEmailPassword, subscribeToAuthChanges, updatePasswordFromRecoverySession
 } from "./supabaseAuth.session";
 
 // Re-export auth mappers
@@ -34,4 +34,3 @@ export type {
     SupabaseAuthConfig, SupabaseAuthError,
     SupabaseAuthResult, SupabaseAuthSession
 } from "./supabaseAuth.types";
-
