@@ -7,37 +7,39 @@
 
 import { useCalmModeStore } from '../store/useCalmModeStore';
 
+type CalmModeStoreState = ReturnType<typeof useCalmModeStore.getState>;
+
 /**
  * Select whether calm mode is enabled.
  */
-export const selectIsCalmModeEnabled = () => useCalmModeStore((state) => state.isCalmModeEnabled);
+export const selectIsCalmModeEnabled = (state: CalmModeStoreState) => state.isCalmModeEnabled;
 
 /**
  * Select the current environmental intensity.
  */
-export const selectEnvironmentalIntensity = () => useCalmModeStore((state) => state.environmentalIntensity);
+export const selectEnvironmentalIntensity = (state: CalmModeStoreState) => state.environmentalIntensity;
 
 /**
  * Select whether reduced motion is enabled.
  */
-export const selectReducedMotionEnabled = () => useCalmModeStore((state) => state.reducedMotionEnabled);
+export const selectReducedMotionEnabled = (state: CalmModeStoreState) => state.reducedMotionEnabled;
 
 /**
  * Select whether softened gradients are enabled.
  */
-export const selectSoftenedGradientsEnabled = () => useCalmModeStore((state) => state.softenedGradientsEnabled);
+export const selectSoftenedGradientsEnabled = (state: CalmModeStoreState) => state.softenedGradientsEnabled;
 
 /**
  * Select whether decorative elements are reduced.
  */
-export const selectReducedDecorativeElements = () => useCalmModeStore((state) => state.reducedDecorativeElements);
+export const selectReducedDecorativeElements = (state: CalmModeStoreState) => state.reducedDecorativeElements;
 
 /**
  * Select whether reduced contrast mode is enabled.
  */
-export const selectReducedContrastMode = () => useCalmModeStore((state) => state.reducedContrastMode);
+export const selectReducedContrastMode = (state: CalmModeStoreState) => state.reducedContrastMode;
 
 /**
  * Select the last enabled timestamp.
  */
-export const selectLastEnabledAt = () => useCalmModeStore((state) => state.lastEnabledAt);
+export const selectLastEnabledAt = (state: CalmModeStoreState) => state.lastEnabledAt;

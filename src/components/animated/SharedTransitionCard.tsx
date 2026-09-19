@@ -8,7 +8,7 @@
 import { Colors } from "@/theme/colors";
 import React from "react";
 import { StyleSheet, ViewStyle } from "react-native";
-import Animated, { SharedTransition } from "react-native-reanimated";
+import Animated from "react-native-reanimated";
 
 interface SharedTransitionCardProps {
   children: React.ReactNode;
@@ -23,18 +23,6 @@ export const SharedTransitionCard: React.FC<SharedTransitionCardProps> = ({
   sharedTransitionTag,
   testID,
 }) => {
-  const sharedTransition = SharedTransition.custom((values) => {
-    "worklet";
-
-    return {
-      duration: 300,
-      easing: (t: number) => {
-        // Gentle easing function
-        return t < 0.5 ? 2 * t * t : -1 + (4 - 2 * t) * t;
-      },
-    };
-  });
-
   const cardStyle = [
     styles.card,
     {

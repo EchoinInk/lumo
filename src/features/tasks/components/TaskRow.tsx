@@ -60,6 +60,8 @@ export const TaskRow = React.memo<TaskRowProps>(
       <Card
         variant={isFocusTask ? "gradient" : "elevated"}
         padding="lg"
+        pressable={Boolean(onPress)}
+        onPress={handlePress}
         style={isFocusTask ? styles.focusTask : undefined}
       >
         <View style={styles.header}>
@@ -177,6 +179,8 @@ export const TaskRow = React.memo<TaskRowProps>(
     );
   },
 );
+
+TaskRow.displayName = "TaskRow";
 
 const styles = StyleSheet.create({
   header: {
