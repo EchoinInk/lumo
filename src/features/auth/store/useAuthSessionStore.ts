@@ -28,6 +28,10 @@ import {
     signOutSession,
 } from "@/services/api/auth/supabaseAuth.session";
 import { createPersistStorage } from "@/store/createPersistStorage";
+import {
+    createAuthenticatedSessionSnapshot,
+    isAuthSessionLoading,
+} from "../utils/authSessionState";
 import { create } from "zustand";
 import { createJSONStorage, persist } from "zustand/middleware";
 import type {
@@ -95,6 +99,7 @@ interface AuthSessionActions {
   setAuthenticatedSession: (
     localOwnerId: LocalOwnerId,
     cloudOwnerId: CloudOwnerId,
+    authUser: AuthUser,
   ) => void;
 
   /**
@@ -185,14 +190,8 @@ export const useAuthSessionStore = create<AuthSessionStore>()(
           transitionStatus: "idle",
         }),
 
-      setAuthenticatedSession: (localOwnerId, cloudOwnerId) =>
-        set({
-          accountMode: "authenticated",
-          localOwnerId,
-          cloudOwnerId,
-          sessionStatus: "authenticated",
-          transitionStatus: "idle",
-        }),
+      setAuthenticatedSession: (localOwnerId, cloudOwnerId, authUser) =>
+        set(createAuthenticatedSessionSnapshot(localOwnerId, cloudOwnerId, authUser)),
 
       beginAccountTransition: () =>
         set({
@@ -418,7 +417,7 @@ export const selectIsMigrating = (state: AuthSessionStoreState): boolean =>
 
 /** True when the session has not yet hydrated from storage. */
 export const selectIsLoading = (state: AuthSessionStoreState): boolean =>
-  !state.hasHydrated || state.sessionStatus === "initializing";
+  isAuthSessionLoading(state.hasHydrated, state.sessionStatus);
 
 /** True when the session is settled (not loading or transitioning). */
 export const selectIsSettled = (state: AuthSessionStoreState): boolean =>

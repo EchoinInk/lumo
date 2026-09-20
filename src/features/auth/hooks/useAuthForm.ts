@@ -11,17 +11,22 @@ import {
     signInWithEmailPassword,
     signUpWithEmailPassword,
 } from "../../../services/api/auth/supabaseAuth.session";
+import { mapSupabaseSessionToAuthUser } from "../../../services/api/auth/supabaseAuth.mapper";
 import {
     beginGuestUpgrade,
     finalizeGuestUpgrade,
 } from "../services/authTransitionOrchestrator";
 import { useAuthSessionStore } from "../store/useAuthSessionStore";
+import { normalizeAuthError } from "../utils/authErrorMessages";
+import { validateEmailPassword } from "../utils/authFormValidation";
+import { getSignupOutcome } from "../utils/signupOutcome";
 
 export function useAuthForm() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [confirmationMessage, setConfirmationMessage] = useState<string | null>(null);
   const [success, setSuccess] = useState(false);
 
   const setAuthenticatedSession = useAuthSessionStore(
@@ -29,45 +34,25 @@ export function useAuthForm() {
   );
   const localOwnerId = useAuthSessionStore((s) => s.localOwnerId);
 
-  const validateForm = (): boolean => {
-    if (!email || email.trim().length === 0) {
-      setError("Please enter your email");
-      return false;
-    }
-
-    if (!email.includes("@")) {
-      setError("Please enter a valid email");
-      return false;
-    }
-
-    if (!password || password.length < 6) {
-      setError("Password must be at least 6 characters");
-      return false;
-    }
-
-    return true;
+  const setEmailValue = (value: string) => {
+    setEmail(value);
+    setError(null);
+    setConfirmationMessage(null);
   };
 
-  const normalizeError = (message: string): string => {
-    // Normalize Supabase errors into calm user-facing messages
-    if (message.includes("Invalid login credentials")) {
-      return "We couldn't sign you in. Please check your email and password.";
-    }
+  const setPasswordValue = (value: string) => {
+    setPassword(value);
+    setError(null);
+    setConfirmationMessage(null);
+  };
 
-    if (message.includes("User already registered")) {
-      return "An account with this email already exists. Please sign in instead.";
+  const validateForm = (): boolean => {
+    const validationError = validateEmailPassword(email, password);
+    if (validationError) {
+      setError(validationError);
+      return false;
     }
-
-    if (message.includes("Email not confirmed")) {
-      return "Please confirm your email address before signing in.";
-    }
-
-    if (message.includes("Password should be")) {
-      return "Password must be at least 6 characters.";
-    }
-
-    // Default fallback
-    return "Something went wrong. Please try again.";
+    return true;
   };
 
   const signIn = async () => {
@@ -77,6 +62,7 @@ export function useAuthForm() {
 
     setIsSubmitting(true);
     setError(null);
+    setConfirmationMessage(null);
     setSuccess(false);
 
     try {
@@ -84,24 +70,26 @@ export function useAuthForm() {
 
       if (!result.success || !result.data || !result.data.user) {
         const errorMessage = result.error?.message || "Sign in failed";
-        setError(normalizeError(errorMessage));
+        setError(normalizeAuthError(errorMessage));
         return;
       }
 
       // Successful sign in
       const session = result.data;
       const cloudOwnerId = session.user?.id;
+      const effectiveLocalOwnerId = localOwnerId || "guest";
+      const authUser = mapSupabaseSessionToAuthUser(session, effectiveLocalOwnerId);
 
-      if (!cloudOwnerId) {
+      if (!cloudOwnerId || !authUser) {
         setError("Sign in failed. Please try again.");
         return;
       }
 
       // Begin guest upgrade transition
-      beginGuestUpgrade(localOwnerId || "guest", cloudOwnerId);
+      beginGuestUpgrade(effectiveLocalOwnerId, cloudOwnerId);
 
       // Update auth session store
-      setAuthenticatedSession(localOwnerId || "guest", cloudOwnerId);
+      setAuthenticatedSession(effectiveLocalOwnerId, cloudOwnerId, authUser);
 
       // Finalize guest upgrade transition
       finalizeGuestUpgrade();
@@ -109,7 +97,7 @@ export function useAuthForm() {
       setSuccess(true);
     } catch (err) {
       const message = err instanceof Error ? err.message : String(err);
-      setError(normalizeError(message));
+      setError(normalizeAuthError(message));
     } finally {
       setIsSubmitting(false);
     }
@@ -122,36 +110,39 @@ export function useAuthForm() {
 
     setIsSubmitting(true);
     setError(null);
+    setConfirmationMessage(null);
     setSuccess(false);
 
     try {
       const result = await signUpWithEmailPassword(email, password);
 
-      if (!result.success || !result.data || !result.data.user) {
-        const errorMessage = result.error?.message || "Sign up failed";
-        setError(normalizeError(errorMessage));
+      const outcome = getSignupOutcome(result);
+      if (outcome.status === "failed") {
+        setError(normalizeAuthError(outcome.message));
         return;
       }
 
-      if (!result.data.isValid) {
-        setError("Check your email to confirm your account, then sign in.");
+      if (outcome.status === "confirmation_required") {
+        setConfirmationMessage("Check your email to confirm your account, then sign in.");
         return;
       }
 
       // Successful sign up
-      const session = result.data;
+      const session = outcome.session;
       const cloudOwnerId = session.user?.id;
+      const effectiveLocalOwnerId = localOwnerId || "guest";
+      const authUser = mapSupabaseSessionToAuthUser(session, effectiveLocalOwnerId);
 
-      if (!cloudOwnerId) {
+      if (!cloudOwnerId || !authUser) {
         setError("Sign up failed. Please try again.");
         return;
       }
 
       // Begin guest upgrade transition
-      beginGuestUpgrade(localOwnerId || "guest", cloudOwnerId);
+      beginGuestUpgrade(effectiveLocalOwnerId, cloudOwnerId);
 
       // Update auth session store
-      setAuthenticatedSession(localOwnerId || "guest", cloudOwnerId);
+      setAuthenticatedSession(effectiveLocalOwnerId, cloudOwnerId, authUser);
 
       // Finalize guest upgrade transition
       finalizeGuestUpgrade();
@@ -159,7 +150,7 @@ export function useAuthForm() {
       setSuccess(true);
     } catch (err) {
       const message = err instanceof Error ? err.message : String(err);
-      setError(normalizeError(message));
+      setError(normalizeAuthError(message));
     } finally {
       setIsSubmitting(false);
     }
@@ -169,6 +160,7 @@ export function useAuthForm() {
     setEmail("");
     setPassword("");
     setError(null);
+    setConfirmationMessage(null);
     setSuccess(false);
     setIsSubmitting(false);
   };
@@ -176,10 +168,11 @@ export function useAuthForm() {
   return {
     email,
     password,
-    setEmail,
-    setPassword,
+    setEmail: setEmailValue,
+    setPassword: setPasswordValue,
     isSubmitting,
     error,
+    confirmationMessage,
     success,
     signIn,
     signUp,

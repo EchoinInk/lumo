@@ -15,9 +15,9 @@ export default function SignupScreen() {
     setPassword,
     isSubmitting,
     error,
+    confirmationMessage,
     success,
     signUp,
-    reset,
   } = useAuthForm();
 
   useEffect(() => {
@@ -63,7 +63,7 @@ export default function SignupScreen() {
           onChangeText={setPassword}
           secureTextEntry
           autoComplete="password-new"
-          helperText="Must be at least 6 characters"
+          helperText="At least 6 characters with uppercase, lowercase, number, and symbol"
           className="mb-4"
         />
 
@@ -73,8 +73,14 @@ export default function SignupScreen() {
           </Text>
         )}
 
+        {confirmationMessage && (
+          <Text variant="small" color="textSecondary" className="mb-4">
+            {confirmationMessage}
+          </Text>
+        )}
+
         <Button
-          onPress={signUp}
+          onPress={() => void signUp()}
           loading={isSubmitting}
           disabled={isSubmitting}
           className="mb-4"

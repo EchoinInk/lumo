@@ -24,7 +24,7 @@
     "expo": "~55.0.0",
     "expo-blur": "~55.0.14",
     "expo-constants": "~55.0.16",
-    "expo-dev-client": "~55.0.35",
+    "expo-dev-client": "~55.0.40",
     "expo-haptics": "~55.0.14",
     "expo-linear-gradient": "~55.0.14",
     "expo-linking": "~55.0.15",

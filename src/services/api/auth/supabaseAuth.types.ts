@@ -9,6 +9,7 @@
  */
 
 import type { Session, User } from "@supabase/supabase-js";
+import type { AuthCallbackIntent } from "./authCallbackIntent";
 
 /**
  * Internal Supabase session wrapper.
@@ -23,6 +24,10 @@ export interface SupabaseAuthSession {
   isValid: boolean;
   /** Session expiration timestamp */
   expiresAt: number | null;
+  /** True when Supabase created a user but requires email confirmation first. */
+  requiresEmailConfirmation?: boolean;
+  /** Intent resolved from the authenticated email callback, when applicable. */
+  callbackIntent?: AuthCallbackIntent;
 }
 
 /**

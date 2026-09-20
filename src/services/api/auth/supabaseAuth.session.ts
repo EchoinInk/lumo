@@ -13,6 +13,12 @@ import "react-native-url-polyfill/auto";
 import { clearRecoverySession, hasRecoverySession } from "./recoverySessionGuard";
 import { getSupabaseClient } from "./supabaseAuth.client";
 import { getAuthRedirectUrl } from "./authRedirect";
+import {
+  getAuthCallbackIntent,
+  getAuthCallbackParameters,
+} from "./authCallbackIntent";
+import { validatePassword } from "./passwordPolicy";
+import { mapSignupResponse } from "./signupResponse";
 import type {
     SupabaseAuthError,
     SupabaseAuthResult,
@@ -375,24 +381,7 @@ export async function signUpWithEmailPassword(
       return { success: false, error };
     }
 
-    const session = data.session;
-    const user = session?.user ?? null;
-
-    const isValid =
-      session !== null &&
-      session.expires_at !== undefined &&
-      session.expires_at !== null
-        ? session.expires_at * 1000 > Date.now()
-        : session !== null;
-
-    const authSession: SupabaseAuthSession = {
-      session,
-      user,
-      isValid,
-      expiresAt: session?.expires_at ? session.expires_at * 1000 : null,
-    };
-
-    return { success: true, data: authSession };
+    return { success: true, data: mapSignupResponse(data) };
   } catch (err) {
     const message = err instanceof Error ? err.message : String(err);
     const error: SupabaseAuthError = {
@@ -424,21 +413,26 @@ export async function establishSessionFromAuthCallback(url: string): Promise<Sup
     return { success: false, error: { type: "config_missing", message: "Supabase client not available" } };
   }
 
-  const query = url.includes("#") ? url.slice(url.indexOf("#") + 1) : url.slice(url.indexOf("?") + 1);
-  const params = new URLSearchParams(query);
-  const callbackError = params.get("error_description") ?? params.get("error");
-  if (callbackError) {
-    return { success: false, error: { type: "auth_error", message: callbackError } };
+  const callback = getAuthCallbackParameters(url);
+  if (callback.errorMessage) {
+    return { success: false, error: { type: "auth_error", message: callback.errorMessage } };
   }
 
-  const code = params.get("code");
-  const accessToken = params.get("access_token");
-  const refreshToken = params.get("refresh_token");
-  const result = code
-    ? await client.auth.exchangeCodeForSession(code)
-    : accessToken && refreshToken
-      ? await client.auth.setSession({ access_token: accessToken, refresh_token: refreshToken })
-      : { data: { session: null, user: null }, error: new Error("The sign-in link did not include a session.") };
+  let authEvent: AuthChangeEvent | null = null;
+  const { data: listener } = client.auth.onAuthStateChange((event) => {
+    if (event === "PASSWORD_RECOVERY") authEvent = event;
+  });
+
+  let result;
+  try {
+    result = callback.code
+      ? await client.auth.exchangeCodeForSession(callback.code)
+      : callback.accessToken && callback.refreshToken
+        ? await client.auth.setSession({ access_token: callback.accessToken, refresh_token: callback.refreshToken })
+        : { data: { session: null, user: null }, error: new Error("The sign-in link did not include a session.") };
+  } finally {
+    listener.subscription.unsubscribe();
+  }
 
   if (result.error || !result.data.session || !result.data.user) {
     return { success: false, error: { type: "auth_error", message: result.error?.message ?? "Unable to establish a session" } };
@@ -450,6 +444,7 @@ export async function establishSessionFromAuthCallback(url: string): Promise<Sup
       user: result.data.user,
       isValid: true,
       expiresAt: result.data.session.expires_at ? result.data.session.expires_at * 1000 : null,
+      callbackIntent: getAuthCallbackIntent(url, authEvent),
     },
   };
 }
@@ -461,7 +456,10 @@ export { getAuthCallbackIntent } from "./authCallbackIntent";
 export async function updatePasswordFromRecoverySession(password: string): Promise<SupabaseAuthResult<void>> {
   const client = getSupabaseClient();
   if (!client) return { success: false, error: { type: "config_missing", message: "Supabase client not available" } };
-  if (password.length < 6) return { success: false, error: { type: "auth_error", message: "Password must be at least 6 characters" } };
+  const passwordError = validatePassword(password);
+  if (passwordError) {
+    return { success: false, error: { type: "auth_error", message: passwordError } };
+  }
   if (!hasRecoverySession()) {
     return { success: false, error: { type: "auth_error", message: "Open a new recovery link before choosing a password." } };
   }

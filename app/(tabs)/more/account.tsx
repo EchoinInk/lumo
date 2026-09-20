@@ -8,6 +8,7 @@ import {
     finalizeLogoutTransition,
 } from "@/features/auth/services/authTransitionOrchestrator";
 import { useAuthSessionStore } from "@/features/auth/store/useAuthSessionStore";
+import { getAccountEmailDisplay } from "@/features/auth/utils/accountEmailDisplay";
 import { signOutSession } from "@/services/api/auth/supabaseAuth.session";
 import { router } from "expo-router";
 import { useState } from "react";
@@ -123,7 +124,7 @@ function AccountContent() {
             Signed in as
           </Text>
           <Text variant="body" className="mb-1">
-            {authUser?.email || "No email"}
+            {getAccountEmailDisplay(authUser)}
           </Text>
           <Text variant="small" color="textTertiary">
             Account ID: {cloudOwnerId?.slice(0, 8)}...
