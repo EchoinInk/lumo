@@ -1,4 +1,3 @@
-import { useAuthSessionStore } from "@/features/auth/store/useAuthSessionStore";
 import { Card } from "@/src/components/ui/Card";
 import { Screen } from "@/src/components/ui/Screen";
 import { SectionHeader } from "@/src/components/ui/SectionHeader";
@@ -12,14 +11,12 @@ import {
     Dumbbell,
     Layers,
     Home,
-    LogIn,
     Moon,
     Scale,
     Settings,
     ShoppingCart,
     Sparkles,
     Sunrise,
-    User,
     Utensils,
     Wallet,
 } from "lucide-react-native";
@@ -59,24 +56,7 @@ function FeatureCard({ title, icon, color, onPress }: FeatureCardProps) {
 }
 
 export default function MoreScreen() {
-  const accountMode = useAuthSessionStore((s) => s.accountMode);
-  const authUser = useAuthSessionStore((s) => s.authUser);
-
-  // Account feature - conditionally shown based on auth state
-  const accountFeature = {
-    title: accountMode === "authenticated" ? "Account" : "Sign in",
-    icon:
-      accountMode === "authenticated" ? (
-        <User size={22} color={Colors.primary} />
-      ) : (
-        <LogIn size={22} color={Colors.primary} />
-      ),
-    color: Colors.primary,
-    route: "/(tabs)/more/account",
-  };
-
   const features = [
-    accountFeature,
     {
       title: "Budget Tracker",
       icon: <Wallet size={22} color={Colors.success} />,

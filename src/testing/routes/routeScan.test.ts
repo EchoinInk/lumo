@@ -62,6 +62,29 @@ export function testSrcAppDoesNotExist(): void {
   );
 }
 
+export function testDeferredAccountRoutesStayOutOfLocalRelease(): void {
+  const routes = collectRouteFiles(appDir).map((file) =>
+    path.relative(appDir, file),
+  );
+  const moreScreen = fs.readFileSync(
+    path.join(appDir, "(tabs)", "more", "index.tsx"),
+    "utf8",
+  );
+
+  assertEqual(
+    routes.some(
+      (route) => route.startsWith("auth/") || route === "(tabs)/more/account.tsx",
+    ),
+    false,
+    "deferred account screens must not be Expo Router routes",
+  );
+  assertEqual(
+    moreScreen.includes("more/account"),
+    false,
+    "local More menu must not link to the deferred account surface",
+  );
+}
+
 export function testAppRouteCountIsStable(): void {
   const routes = collectRouteFiles(appDir);
   assertEqual(routes.length >= 35, true, "app route files should remain present");

@@ -1,0 +1,77 @@
+## WP1.1 - Verified
+
+WP1.1 is complete. Native Hermes production exports now pass for both platforms, and local startup no longer imports or initializes Supabase.
+
+## Completion record
+
+**Audit IDs addressed**
+
+- **B01:** Closed - the audited iOS and Android Hermes failures were reproduced, then resolved.
+- **B20:** Account surface excluded from the local release.
+- **B34:** Added route-graph regression coverage.
+- **S40 / S43:** Deferred cloud/account implementation remains isolated and unexposed.
+
+**Architectural change**
+
+- Removed auth bootstrap and callback handling from [app/_layout.tsx](/Users/echoin.ink/Developer/lumo/app/_layout.tsx:7).
+- Removed account state, Sign in/Account menu entry, and account-route link from [More](/Users/echoin.ink/Developer/lumo/app/(tabs)/more/index.tsx:58).
+- Moved the account screen and all six `/auth/*` route files outside Expo Router's `app/` tree into `src/features/auth/deferred-routes/`.
+- Documented the isolation boundary in [README.md](/Users/echoin.ink/Developer/lumo/src/features/auth/deferred-routes/README.md:1).
+- Added regression coverage in [routeScan.test.ts](/Users/echoin.ink/Developer/lumo/src/testing/routes/routeScan.test.ts:65).
+- No persistence implementation, storage key, local data, Hermes setting, dependency version, or navigation structure was changed.
+
+This follows Expo SDK 55's behavior: native production async routes are disabled, so route files remain part of the native graph. Hermes bytecode generation remains enabled as recommended. [Expo Router SDK 55](https://docs.expo.dev/versions/v55.0.0/sdk/router/), [Hermes documentation](https://docs.expo.dev/guides/using-hermes/).
+
+**Validation**
+
+- Pre-change iOS export: failed at Supabase's computed dynamic `import(OTEL_PKG)`.
+- Pre-change Android export without dotenv/Supabase variables: failed at the same expression.
+- TypeScript: passed.
+- Existing and new tests: **106 passed, 0 failed**.
+- Focused ESLint: **0 errors**, 5 existing warnings in preserved deferred screens.
+- Web production export without dotenv/Supabase variables: passed.
+- iOS Hermes production export without dotenv/Supabase variables: passed.
+- Android Hermes production export without dotenv/Supabase variables: passed.
+- Generated web/iOS/Android artifacts and native source maps contain no `@supabase`, `supabaseAuth`, deferred route, `/auth`, or account-route markers.
+- `git diff --check`: passed.
+
+**Manual verification performed**
+
+- Served the exported web production application locally with Supabase configuration disabled.
+- Confirmed Dashboard opened directly as the local application.
+- Opened More and confirmed no Account or Sign in entry was exposed.
+- Manually inspected the live route tree and generated native source maps to confirm account routes and Supabase were absent.
+
+A native device installation/cold-launch was not claimed; that belongs to WP1.3.
+
+**Remaining risks**
+
+- Supabase and deferred auth code remain installed and preserved. Reintroducing those modules into `app/` would restore the current Hermes incompatibility.
+- Deferred screens retain five lint warnings.
+- Native installation, process restart, and airplane-mode device testing remain outstanding for WP1.3.
+- Dependency compatibility/security disposition remains WP1.2 scope.
+
+**Status**
+
+- **WP1.1:** Complete.
+- **G1 impact:** B01/export portion closed. G1 overall remains open pending WP1.2 dependency disposition and WP1.3 installable native/offline-launch verification.
+
+---
+
+## WP1.2 - Verified
+
+WP1.2 is complete. The repository now uses a Doctor-aligned Expo SDK 55 dependency set, the npm lockfile reproduces under normal peer enforcement, and all serious dependency advisories have been remediated or explicitly triaged.
+
+## Completion record
+
+| Field | Record |
+|---|---|
+| **Package** | **WP1.2 — Resolve compatibility and security findings** |
+| **Audit coverage** | **B33:** compatibility and advisory backlog resolved/triaged. Supports the dependency-disposition portion of **G1**. WP1.1 findings were not reopened. |
+| **Changes** | Updated all 11 Doctor-reported Expo/RN patches; declared directly imported `expo-image`, `expo-symbols` and `globals`; installed the required `expo-font` native peer/plugin; moved `lucide-react-native` to its first checked React 19-compatible line; aligned Zustand 5 with the manifest's previous intended resolution; removed `legacy-peer-deps`, the contradictory Yarn-only `resolutions` entry and an unusable legacy Webpack config; refreshed only compatible vulnerable transitive packages. MMKV/Nitro, Reanimated/Worklets, Metro and related Expo infrastructure remain installed and verified. |
+| **Data compatibility** | No storage keys, persisted shapes, migrations or application data were changed. Zustand's used `create`, `persist` and `createJSONStorage` APIs remain covered by the full test suite. |
+| **Automated checks** | `npm ci` passed; `npm install --package-lock-only --dry-run` passed with normal peer enforcement; Expo Doctor **20/20**; production audit **0 critical, 0 high, 13 moderate, 0 low**; TypeScript passed; tests **106 passed, 0 failed**; lint **0 errors, 88 existing warnings**; web export passed; iOS Hermes production export passed; Android Hermes production export passed; `npm ls --all` exited successfully; `git diff --check` passed. All three exports ran with dotenv disabled. |
+| **Manual verification** | Inspected each remaining advisory's installed path and call site. Confirmed Expo Router uses `query-string` only for stringify while its vulnerable decoder is not called, and `xcode` uses bufferless UUID v4 while the advisory affects buffered v3/v5/v6. Confirmed the installed native framework tree retains MMKV 4.3.1 -> Nitro 0.35.9, Reanimated 4.2.1 -> Worklets 0.7.4 and Expo Metro 55.1.2 -> Metro 0.83.8. No device install or cold-launch claim is made; that remains WP1.3. |
+| **Outstanding work** | The 13 moderate audit entries are two accepted upstream transitive risks documented in [dependency-security-triage.md](/Users/echoin.ink/Developer/lumo/docs/dependency-security-triage.md): an unreachable SDK 55 Router decoder path and a build-only Expo/Xcode UUID path whose affected API is not invoked. Recheck when Expo publishes compatible patches. Existing lint warnings remain outside this dependency package. |
+| **Status** | **Verified** |
+| **Gate effect** | WP1.2's compatibility/security dependency requirement for **G1** is satisfied. G1 remains open only for WP1.3 installable native builds and device/offline-launch evidence. WP1.3 has not begun. |
