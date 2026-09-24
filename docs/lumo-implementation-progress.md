@@ -75,3 +75,24 @@ WP1.2 is complete. The repository now uses a Doctor-aligned Expo SDK 55 dependen
 | **Outstanding work** | The 13 moderate audit entries are two accepted upstream transitive risks documented in [dependency-security-triage.md](/Users/echoin.ink/Developer/lumo/docs/dependency-security-triage.md): an unreachable SDK 55 Router decoder path and a build-only Expo/Xcode UUID path whose affected API is not invoked. Recheck when Expo publishes compatible patches. Existing lint warnings remain outside this dependency package. |
 | **Status** | **Verified** |
 | **Gate effect** | WP1.2's compatibility/security dependency requirement for **G1** is satisfied. G1 remains open only for WP1.3 installable native builds and device/offline-launch evidence. WP1.3 has not begun. |
+
+---
+
+## WP1.3 - Implemented; device acceptance blocked
+
+The repeatable native build baseline is implemented. G1 remains open because this validation host has no Java runtime or `adb`, and no physical devices are attached, so Android compilation and the required physical-device cold-launch and airplane-mode evidence cannot be completed here.
+
+## Completion record
+
+| Field | Record |
+|---|---|
+| **Package** | **WP1.3 — Establish installable builds and native validation gates** |
+| **Audit coverage** | Implements the missing release/build identity and native-validation portions of **B32**, and extends the automated gate coverage associated with **B34**. No Phase 2 work was started. |
+| **Build configuration** | Added tracked iOS build number, Android version code, application icons, local version sourcing, and EAS `development`, `development-simulator`, `preview`, `preview-simulator`, and reserved `production` profiles. Development profiles create development clients; preview profiles create installable internal-distribution artifacts; production remains store-distributed but has no submission configuration. |
+| **Local-first guard** | Config and export scripts set `EXPO_NO_DOTENV=1` and remove Lumo's public API/Supabase variables. The config gate also rejects an EAS Update URL and checks that no backend variable name is exposed in resolved public config. No update channel, runtime version, submit profile, backend secret, account bootstrap, or cloud runtime dependency was added. |
+| **Commands and runbook** | Exact clean-generation, export, local compilation, EAS build, and physical-device smoke-test commands are recorded in [native-build-validation.md](/Users/echoin.ink/Developer/lumo/docs/native-build-validation.md). |
+| **Automated evidence (2026-09-24)** | Credential-free config resolution passed; TypeScript passed; tests **106 passed, 0 failed**; lint **0 errors, 88 existing warnings**; Expo Doctor **20/20**; web export passed; iOS Hermes export passed; Android Hermes export passed; clean `expo prebuild --clean --no-install` passed in an isolated copy; iOS CocoaPods resolution passed. |
+| **Native compile evidence (2026-09-24)** | iOS unsigned Release simulator compilation **passed** from the clean generated project with Xcode 26.6 and CocoaPods 1.17.0. The artifact installed on an iPhone 17 Pro / iOS 26.5 simulator; initial cold launch and terminate/relaunch both succeeded, the process remained active, and visual inspection confirmed the guest Dashboard without an account prompt. Android `:app:assembleRelease` was attempted and is blocked before Gradle starts because this host has no Java runtime; `adb` is also unavailable. |
+| **Unavailable acceptance evidence** | **Blocking:** no physical iOS or Android device is attached, so install, cold launch, process restart, airplane-mode reopen, and confirmation of account-free guest startup on real devices remain unverified. **Blocking:** Android native compilation requires a supported JDK and Android SDK/ADB. The successful iOS simulator run is useful evidence but is not treated as a substitute for the required physical-device checks. |
+| **Status** | **Implementation complete; acceptance blocked** |
+| **Gate effect** | **G1 remains open.** Close WP1.3 only after Android Release compilation succeeds and the documented preview/release smoke checklist passes on physical iOS and Android devices. |

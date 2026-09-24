@@ -13,8 +13,18 @@
     "typecheck": "tsc --noEmit",
     "lint": "eslint .",
     "doctor": "npx expo-doctor",
-    "export:web": "expo export --platform web --output-dir dist",
-    "validate": "npm run typecheck && npm run test && npm run lint && npm run doctor && npm run export:web"
+    "config:check": "node scripts/validate-native-config.js",
+    "export:web": "node scripts/run-local-first.js expo export --platform web --output-dir dist/web --clear",
+    "export:ios": "node scripts/run-local-first.js expo export --platform ios --output-dir dist/ios --clear",
+    "export:android": "node scripts/run-local-first.js expo export --platform android --output-dir dist/android --clear",
+    "export:native": "npm run export:ios && npm run export:android",
+    "native:prebuild": "node scripts/run-local-first.js expo prebuild --clean",
+    "native:ios:development": "node scripts/run-local-first.js expo run:ios",
+    "native:android:development": "node scripts/run-local-first.js expo run:android",
+    "native:ios:release": "node scripts/run-local-first.js expo run:ios --configuration Release --no-bundler",
+    "native:android:release": "node scripts/run-local-first.js expo run:android --variant release --no-bundler",
+    "validate:native": "npm run config:check && npm run export:native",
+    "validate": "npm run config:check && npm run typecheck && npm run test && npm run lint && npm run doctor && npm run export:web && npm run export:native"
   },
   "dependencies": {
     "@react-native-community/netinfo": "11.5.2",
