@@ -1,9 +1,10 @@
 import { create } from "zustand";
-import { createJSONStorage, persist } from "zustand/middleware";
 import { migrateSettingsStorage } from "../services/storage/canonicalMigrations";
-import { createPersistStorage } from "./createPersistStorage";
-
-migrateSettingsStorage();
+import {
+  defaultAppSettings,
+  settingsStorageDefinition,
+} from "../services/storage/domainSchemas";
+import { loadVersionedData, saveVersionedData } from "../services/storage/versionedStorage";
 
 export interface AppSettings {
   theme: "light" | "dark" | "system";
@@ -24,6 +25,7 @@ type SettingsState = {
 };
 
 type SettingsActions = {
+  hydrateSettings: () => Promise<void>;
   updateSettings: (updates: Partial<AppSettings>) => void;
   resetSettings: () => void;
   setOnboardingCompleted: (completed: boolean) => void;
@@ -31,49 +33,48 @@ type SettingsActions = {
   setHasHydrated: (value: boolean) => void;
 };
 
-const defaultSettings: AppSettings = {
-  theme: "system",
-  language: "en",
-  notificationsEnabled: true,
-  soundEnabled: true,
-  hapticFeedbackEnabled: true,
-  onboardingCompleted: false,
-  reducedMotion: false,
-  simplifiedMode: false,
-};
-
 type SettingsStore = SettingsState & SettingsActions;
 
-export const useSettingsStore = create<SettingsStore>()(
-  persist(
-    (set) => ({
-      settings: defaultSettings,
+export const useSettingsStore = create<SettingsStore>()((set, get) => ({
+      settings: defaultAppSettings,
       isLoading: false,
       error: null,
       hasHydrated: false,
 
-      updateSettings: (updates) =>
-        set((state) => ({
-          settings: { ...state.settings, ...updates },
-        })),
+      hydrateSettings: async () => {
+        set({ isLoading: true, error: null });
+        try {
+          migrateSettingsStorage();
+          const settings = loadVersionedData(settingsStorageDefinition).data;
+          set({ settings, hasHydrated: true, isLoading: false });
+        } catch (error) {
+          set({
+            hasHydrated: true,
+            isLoading: false,
+            error: "Settings need recovery before they can be used.",
+          });
+          throw error;
+        }
+      },
 
-      resetSettings: () => set({ settings: defaultSettings }),
+      updateSettings: (updates) => {
+        const settings = { ...get().settings, ...updates };
+        saveVersionedData(settingsStorageDefinition, settings);
+        set({ settings });
+      },
 
-      setOnboardingCompleted: (completed) =>
-        set((state) => ({
-          settings: { ...state.settings, onboardingCompleted: completed },
-        })),
+      resetSettings: () => {
+        saveVersionedData(settingsStorageDefinition, defaultAppSettings);
+        set({ settings: defaultAppSettings });
+      },
+
+      setOnboardingCompleted: (completed) => {
+        const settings = { ...get().settings, onboardingCompleted: completed };
+        saveVersionedData(settingsStorageDefinition, settings);
+        set({ settings });
+      },
 
       setError: (error) => set({ error }),
 
       setHasHydrated: (value) => set({ hasHydrated: value }),
-    }),
-    {
-      name: "settings-storage",
-      storage: createJSONStorage(() => createPersistStorage()),
-      onRehydrateStorage: () => (state) => {
-        state?.setHasHydrated(true);
-      },
-    },
-  ),
-);
+}));

@@ -7,6 +7,7 @@ import {
 import { deleteKey, setString } from "@/services/storage/mmkv";
 import { StorageKeys } from "@/services/storage/storageKeys";
 import { assertEqual, resetTestState } from "../testUtils";
+import { PersistenceLoadError } from "@/services/storage/versionedStorage";
 
 export async function testSanitizeReminderSettingsFallsBackToDefaults(): Promise<void> {
   const settings = sanitizeReminderSettings({
@@ -36,19 +37,35 @@ export async function testSanitizeRemindersFiltersInvalidRecords(): Promise<void
   assertEqual(reminders[0]?.title, "Stretch", "valid reminder should remain");
 }
 
-export async function testLoadReminderSettingsHandlesCorruptJson(): Promise<void> {
+export async function testLoadReminderSettingsRejectsCorruptJson(): Promise<void> {
   resetTestState();
   setString(StorageKeys.REMINDER_SETTINGS, "{bad");
 
-  const settings = loadReminderSettings();
-  assertEqual(settings.tone, "gentle", "corrupt settings should use defaults");
-  assertEqual(settings.remindersEnabled, true, "corrupt settings should keep safe defaults");
+  try {
+    loadReminderSettings();
+    throw new Error("corrupt reminder settings should not load as defaults");
+  } catch (error) {
+    assertEqual(
+      error instanceof PersistenceLoadError && error.kind,
+      "malformed-data",
+      "corrupt reminder settings should be recoverable",
+    );
+  }
 }
 
-export async function testLoadRemindersHandlesCorruptJson(): Promise<void> {
+export async function testLoadRemindersRejectsCorruptJson(): Promise<void> {
   resetTestState();
   deleteKey(StorageKeys.REMINDERS);
   setString(StorageKeys.REMINDERS, "[]]");
 
-  assertEqual(loadReminders().length, 0, "corrupt reminders json should return []");
+  try {
+    loadReminders();
+    throw new Error("corrupt reminders should not load as empty");
+  } catch (error) {
+    assertEqual(
+      error instanceof PersistenceLoadError && error.kind,
+      "malformed-data",
+      "corrupt reminders should be recoverable",
+    );
+  }
 }

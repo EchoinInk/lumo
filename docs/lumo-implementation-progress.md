@@ -118,3 +118,26 @@ WP2.1 is complete. Tasks, habits, settings and onboarding each have one authorit
 | **Data preservation** | Existing canonical namespaces and keys are preserved. No migration deletes a source record, no incompatible collections are blindly merged, and no new database or persistence framework was introduced. |
 | **Status** | **Verified** |
 | **Gate effect** | WP2.1 is satisfied. **WP2.2 has not begun.** Phase 2 remains active. Final G1 physical-device evidence is still required before G8 release qualification. |
+
+---
+
+## WP2.2 - Verified
+
+WP2.2 is complete. Every active local domain now has a versioned schema and strict load validation; invalid or incompatible data produces an actionable recovery state, remains preserved, and cannot be converted into an empty-state overwrite.
+
+## Completion record
+
+| Field | Record |
+|---|---|
+| **Package** | **WP2.2 — Add validated schemas and corrupted-data recovery** |
+| **Dependency gate** | WP2.1 was verified before implementation in this record and in `.project-continuity/state.json`. Canonical ownership and key precedence were retained. |
+| **Schema coverage** | Added version-1 envelopes and domain validators for tasks, habits, settings, onboarding, brain dump, reminders, reminder settings and daily planning. The executable registry and recovery contract are documented in [local-data-schema-recovery.md](/Users/echoin.ink/Developer/lumo/docs/local-data-schema-recovery.md). |
+| **Failure classification** | Loads distinguish absent/valid-empty data, unreadable storage, malformed JSON or invalid shape/fields, unsupported schema versions, migration failure and interrupted migration. Collections validate atomically before becoming application state. |
+| **Preservation and migration** | Existing valid unversioned records migrate in place only after their exact raw value is copied to a domain recovery key. Migration uses a marker plus read-back verification. Invalid/current-future records are never rewritten during load, and interrupted markers become actionable errors. |
+| **Destructive-write guard** | Every domain save performs the same validated load first. A failed load therefore cannot fall through to a default/empty save. Explicit fresh-start recovery archives the exact invalid raw value and resets only the selected domain; namespace-wide clearing is not used. |
+| **Hydration and recovery UI** | The root data gate eagerly hydrates all active domains and renders routes only after all settle. Failures reuse `RecoverySheet` with a non-mutating retry and, where the raw value is readable, an explicit domain-only archive/reset decision. Unreadable storage offers retry only. |
+| **Automated checks (2026-09-25)** | TypeScript passed; tests **124 passed, 0 failed**; lint **0 errors, 86 existing warnings**; Expo Doctor **20/20**; credential-free config validation passed; web export passed; iOS Hermes production export passed; Android Hermes production export passed; `git diff --check` passed. Tests cover malformed JSON, wrong JSON shape, invalid fields, unknown schema versions, unreadable storage, migration failure, interrupted migration, failed-load write blocking, raw-data archiving and unaffected-domain preservation. |
+| **Manual verification** | Served the production web export locally and confirmed a clean installation reached Dashboard after the new all-domain hydration gate with no browser console errors. Corruption and recovery decisions were exercised deterministically through raw-storage fixtures; no physical-device corruption injection is claimed. |
+| **Scope preserved** | No SQLite/database framework, storage key replacement, screen redesign, cross-domain reset, or WP2.3 mutation-serialization work was introduced. WP2.4 date semantics remain unchanged. |
+| **Status** | **Verified** |
+| **Gate effect** | WP2.2 is satisfied. **WP2.3 has not begun.** Phase 2 remains active. |

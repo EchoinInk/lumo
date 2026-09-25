@@ -1,7 +1,13 @@
 import type { RepositoryContext } from "@/features/auth/types/auth.types";
-import { deleteKey, getString, setString } from "@/services/storage/mmkv";
+import { deleteKey } from "@/services/storage/mmkv";
+import { taskStorageDefinition } from "@/services/storage/domainSchemas";
 import { StorageKeys } from "@/services/storage/storageKeys";
 import { getEntityStorageKey } from "@/services/storage/storagePartition";
+import {
+  loadVersionedData,
+  saveVersionedData,
+  type VersionedStorageDefinition,
+} from "@/services/storage/versionedStorage";
 import { CreateTaskInput, Task, UpdateTaskInput } from "../types/task";
 import { ITaskRepository } from "./taskRepository.types";
 
@@ -52,19 +58,16 @@ export class TaskLocalRepository implements ITaskRepository {
 
   // ── Private helpers ──────────────────────────────────────────────────────
 
-  /**
-   * Load all tasks from MMKV.
-   * Returns an empty array on missing key or parse failure — never throws.
-   */
+  private getStorageDefinition(): VersionedStorageDefinition<Task[]> {
+    return {
+      ...taskStorageDefinition,
+      key: this.getStorageKey(),
+    };
+  }
+
+  /** Load and validate all tasks. Invalid raw data remains untouched. */
   private loadTasks(): Task[] {
-    try {
-      const raw = getString(this.getStorageKey());
-      if (!raw) return [];
-      return JSON.parse(raw) as Task[];
-    } catch (err) {
-      console.error("[TaskLocalRepository] Failed to parse stored tasks:", err);
-      return [];
-    }
+    return loadVersionedData(this.getStorageDefinition()).data;
   }
 
   /**
@@ -73,7 +76,7 @@ export class TaskLocalRepository implements ITaskRepository {
    */
   private persistTasks(tasks: Task[]): void {
     try {
-      setString(this.getStorageKey(), JSON.stringify(tasks));
+      saveVersionedData(this.getStorageDefinition(), tasks);
     } catch (err) {
       const message = err instanceof Error ? err.message : String(err);
       throw new Error(

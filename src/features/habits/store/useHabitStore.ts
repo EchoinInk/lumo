@@ -39,9 +39,11 @@ export const useHabitStore = create<HabitStore>((set) => ({
     } catch (error) {
       console.error("[useHabitStore] Hydration failed:", error);
       set({
-        error: "Could not load your habits. They'll appear when ready.",
+        error: "Habits need recovery before they can be used.",
+        isHydrated: true,
         isLoading: false,
       });
+      throw error;
     }
   },
 

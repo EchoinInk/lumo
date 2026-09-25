@@ -1,5 +1,8 @@
-import { getString, setString } from "@/src/services/storage/mmkv";
-import { StorageKeys } from "@/src/services/storage/storageKeys";
+import {
+  reminderSettingsStorageDefinition,
+  reminderStorageDefinition,
+} from "@/src/services/storage/domainSchemas";
+import { loadVersionedData, saveVersionedData } from "@/src/services/storage/versionedStorage";
 import type {
   Reminder,
   ReminderSettings,
@@ -93,29 +96,17 @@ export function sanitizeReminders(raw: unknown): Reminder[] {
 }
 
 export function loadReminders(): Reminder[] {
-  try {
-    const raw = getString(StorageKeys.REMINDERS);
-    if (!raw) return [];
-    return sanitizeReminders(JSON.parse(raw));
-  } catch {
-    return [];
-  }
+  return loadVersionedData(reminderStorageDefinition).data;
 }
 
 export function loadReminderSettings(): ReminderSettings {
-  try {
-    const raw = getString(StorageKeys.REMINDER_SETTINGS);
-    if (!raw) return defaultReminderSettings;
-    return sanitizeReminderSettings(JSON.parse(raw));
-  } catch {
-    return defaultReminderSettings;
-  }
+  return loadVersionedData(reminderSettingsStorageDefinition).data;
 }
 
 export function persistReminders(reminders: Reminder[]): void {
-  setString(StorageKeys.REMINDERS, JSON.stringify(reminders));
+  saveVersionedData(reminderStorageDefinition, reminders);
 }
 
 export function persistReminderSettings(settings: ReminderSettings): void {
-  setString(StorageKeys.REMINDER_SETTINGS, JSON.stringify(settings));
+  saveVersionedData(reminderSettingsStorageDefinition, settings);
 }

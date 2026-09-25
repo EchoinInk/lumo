@@ -5,6 +5,7 @@ import { CreateTaskInput, Task, UpdateTaskInput } from "../types/task";
 type TaskState = {
   tasks: Task[];
   hasHydrated: boolean;
+  hydrationError: string | null;
 };
 
 type TaskActions = {
@@ -45,17 +46,17 @@ export const useTaskStore = create<TaskStore>((set, get) => ({
   // ── Initial State ────────────────────────────────────────────────────────
   tasks: [],
   hasHydrated: false,
+  hydrationError: null,
 
   // ── Hydration ────────────────────────────────────────────────────────────
   hydrateTasks: async () => {
-    const storedTasks = await taskLocalRepository.getTasks();
-
-    if (storedTasks.length > 0) {
-      set({ tasks: storedTasks, hasHydrated: true });
-      return;
+    try {
+      const storedTasks = await taskLocalRepository.getTasks();
+      set({ tasks: storedTasks, hasHydrated: true, hydrationError: null });
+    } catch (error) {
+      set({ hasHydrated: true, hydrationError: "Tasks need recovery before they can be used." });
+      throw error;
     }
-
-    set({ tasks: [], hasHydrated: true });
   },
 
   setHasHydrated: (value) => set({ hasHydrated: value }),

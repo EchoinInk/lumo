@@ -3,9 +3,12 @@
  * Phase 11.9 - Onboarding Foundation
  */
 
-import { getString, setString } from "@/src/services/storage/mmkv";
 import { migrateOnboardingStorage } from "@/src/services/storage/canonicalMigrations";
-import { StorageKeys } from "@/src/services/storage/storageKeys";
+import {
+  onboardingStorageDefinition,
+  type OnboardingRecord,
+} from "@/src/services/storage/domainSchemas";
+import { loadVersionedData, saveVersionedData } from "@/src/services/storage/versionedStorage";
 import { create } from "zustand";
 import {
   FocusArea,
@@ -24,6 +27,7 @@ const defaultPreferences: OnboardingPreferences = {
 export const useOnboardingStore = create<OnboardingStore>((set, get) => ({
   // State
   isHydrated: false,
+  hydrationError: null,
   isComplete: false,
   preferences: defaultPreferences,
   completedAt: null,
@@ -32,17 +36,12 @@ export const useOnboardingStore = create<OnboardingStore>((set, get) => ({
   hydrate: async () => {
     try {
       migrateOnboardingStorage();
-      const stored = getString(StorageKeys.ONBOARDING);
-      if (stored) {
-        const parsed = JSON.parse(stored);
-        set({
-          isComplete: parsed.isComplete ?? false,
-          preferences: parsed.preferences ?? defaultPreferences,
-          completedAt: parsed.completedAt ?? null,
-        });
-      }
+      const stored = loadVersionedData(onboardingStorageDefinition).data;
+      set({ ...stored, hydrationError: null });
     } catch (error) {
       console.error("Error hydrating onboarding state:", error);
+      set({ hydrationError: "Onboarding data needs recovery." });
+      throw error;
     } finally {
       set({ isHydrated: true });
     }
@@ -60,14 +59,7 @@ export const useOnboardingStore = create<OnboardingStore>((set, get) => ({
     set(newState);
     // Persist to storage
     try {
-      setString(
-        StorageKeys.ONBOARDING,
-        JSON.stringify({
-          isComplete: newState.isComplete,
-          preferences: newState.preferences,
-          completedAt: newState.completedAt,
-        })
-      );
+      saveVersionedData(onboardingStorageDefinition, toRecord(newState));
     } catch (error) {
       console.error("Error saving struggle areas:", error);
     }
@@ -84,14 +76,7 @@ export const useOnboardingStore = create<OnboardingStore>((set, get) => ({
     };
     set(newState);
     try {
-      setString(
-        StorageKeys.ONBOARDING,
-        JSON.stringify({
-          isComplete: newState.isComplete,
-          preferences: newState.preferences,
-          completedAt: newState.completedAt,
-        })
-      );
+      saveVersionedData(onboardingStorageDefinition, toRecord(newState));
     } catch (error) {
       console.error("Error saving planning style:", error);
     }
@@ -108,14 +93,7 @@ export const useOnboardingStore = create<OnboardingStore>((set, get) => ({
     };
     set(newState);
     try {
-      setString(
-        StorageKeys.ONBOARDING,
-        JSON.stringify({
-          isComplete: newState.isComplete,
-          preferences: newState.preferences,
-          completedAt: newState.completedAt,
-        })
-      );
+      saveVersionedData(onboardingStorageDefinition, toRecord(newState));
     } catch (error) {
       console.error("Error saving focus areas:", error);
     }
@@ -131,14 +109,7 @@ export const useOnboardingStore = create<OnboardingStore>((set, get) => ({
     };
     set(newState);
     try {
-      setString(
-        StorageKeys.ONBOARDING,
-        JSON.stringify({
-          isComplete: true,
-          preferences: newState.preferences,
-          completedAt,
-        })
-      );
+      saveVersionedData(onboardingStorageDefinition, toRecord(newState));
     } catch (error) {
       console.error("Error completing onboarding:", error);
     }
@@ -148,22 +119,24 @@ export const useOnboardingStore = create<OnboardingStore>((set, get) => ({
   resetOnboarding: () => {
     const newState = {
       isHydrated: true,
+      hydrationError: null,
       isComplete: false,
       preferences: defaultPreferences,
       completedAt: null,
     };
     set(newState);
     try {
-      setString(
-        StorageKeys.ONBOARDING,
-        JSON.stringify({
-          isComplete: false,
-          preferences: defaultPreferences,
-          completedAt: null,
-        })
-      );
+      saveVersionedData(onboardingStorageDefinition, toRecord(newState));
     } catch (error) {
       console.error("Error resetting onboarding:", error);
     }
   },
 }));
+
+function toRecord(state: Pick<OnboardingRecord, "isComplete" | "preferences" | "completedAt">): OnboardingRecord {
+  return {
+    isComplete: state.isComplete,
+    preferences: state.preferences,
+    completedAt: state.completedAt,
+  };
+}

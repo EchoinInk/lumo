@@ -1,5 +1,5 @@
-import { getString, setString } from "@/src/services/storage/mmkv";
-import { StorageKeys } from "@/src/services/storage/storageKeys";
+import { brainDumpStorageDefinition } from "@/src/services/storage/domainSchemas";
+import { loadVersionedData, saveVersionedData } from "@/src/services/storage/versionedStorage";
 import type {
   BrainDumpConversionTarget,
   BrainDumpEntry,
@@ -63,15 +63,9 @@ export function sanitizeBrainDumpEntries(raw: unknown): BrainDumpEntry[] {
 }
 
 export function loadBrainDumpEntries(): BrainDumpEntry[] {
-  try {
-    const raw = getString(StorageKeys.BRAIN_DUMP_ENTRIES);
-    if (!raw) return [];
-    return sanitizeBrainDumpEntries(JSON.parse(raw));
-  } catch {
-    return [];
-  }
+  return loadVersionedData(brainDumpStorageDefinition).data;
 }
 
 export function persistBrainDumpEntries(entries: BrainDumpEntry[]): void {
-  setString(StorageKeys.BRAIN_DUMP_ENTRIES, JSON.stringify(entries));
+  saveVersionedData(brainDumpStorageDefinition, entries);
 }

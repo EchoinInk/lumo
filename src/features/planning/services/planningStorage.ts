@@ -1,5 +1,5 @@
-import { getString, setString } from "@/src/services/storage/mmkv";
-import { StorageKeys } from "@/src/services/storage/storageKeys";
+import { planningStorageDefinition } from "@/src/services/storage/domainSchemas";
+import { loadVersionedData, saveVersionedData } from "@/src/services/storage/versionedStorage";
 import type { DailyPlanningSummary, PlanningEnergyLevel } from "../types/planning";
 
 const VALID_ENERGY_LEVELS = new Set<PlanningEnergyLevel>([
@@ -44,25 +44,18 @@ export function normalizeDailyPlanningSummary(
 }
 
 export function loadDailyPlanningSummary(): DailyPlanningSummary | null {
-  try {
-    const raw = getString(StorageKeys.PLANNING_SUMMARY);
-    if (!raw) return null;
-    const summary = normalizeDailyPlanningSummary(
-      JSON.parse(raw) as DailyPlanningSummary,
-    );
-    if (summary.date !== todayIso()) {
-      return createEmptyDailySummary();
-    }
-    return summary;
-  } catch {
-    return null;
+  const result = loadVersionedData(planningStorageDefinition);
+  if (result.status === "empty") return null;
+  if (result.data.date !== todayIso()) {
+    return createEmptyDailySummary();
   }
+  return result.data;
 }
 
 export function persistDailyPlanningSummary(
   summary: DailyPlanningSummary,
 ): void {
-  setString(StorageKeys.PLANNING_SUMMARY, JSON.stringify(summary));
+  saveVersionedData(planningStorageDefinition, summary);
 }
 
 export function createEmptyDailySummary(): DailyPlanningSummary {

@@ -7,6 +7,7 @@ import { useBrainDumpStore } from "@/features/brain-dump/store/useBrainDumpStore
 import { deleteKey, setString } from "@/services/storage/mmkv";
 import { StorageKeys } from "@/services/storage/storageKeys";
 import { assertEqual, resetTestState } from "../testUtils";
+import { PersistenceLoadError } from "@/services/storage/versionedStorage";
 
 export async function testSanitizeBrainDumpEntriesFiltersInvalidRecords(): Promise<void> {
   const entries = sanitizeBrainDumpEntries([
@@ -19,11 +20,20 @@ export async function testSanitizeBrainDumpEntriesFiltersInvalidRecords(): Promi
   assertEqual(entries[0]?.id, "ok", "valid entry should remain");
 }
 
-export async function testLoadBrainDumpEntriesHandlesCorruptJson(): Promise<void> {
+export async function testLoadBrainDumpEntriesRejectsCorruptJson(): Promise<void> {
   resetTestState();
   setString(StorageKeys.BRAIN_DUMP_ENTRIES, "{not json");
 
-  assertEqual(loadBrainDumpEntries().length, 0, "corrupt brain dump json should return []");
+  try {
+    loadBrainDumpEntries();
+    throw new Error("corrupt brain dump data should not load as empty");
+  } catch (error) {
+    assertEqual(
+      error instanceof PersistenceLoadError && error.kind,
+      "malformed-data",
+      "corrupt brain dump data should be recoverable",
+    );
+  }
 }
 
 export async function testConvertEntryIsIdempotent(): Promise<void> {

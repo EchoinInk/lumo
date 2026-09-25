@@ -29,6 +29,7 @@ export interface OnboardingPreferences {
 
 export interface OnboardingState {
   isHydrated: boolean;
+  hydrationError: string | null;
   isComplete: boolean;
   preferences: OnboardingPreferences;
   completedAt: string | null;

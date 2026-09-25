@@ -13,6 +13,7 @@ import type {
 type BrainDumpState = {
   entries: BrainDumpEntry[];
   hasHydrated: boolean;
+  hydrationError: string | null;
 };
 
 type BrainDumpActions = {
@@ -45,10 +46,15 @@ function persist(entries: BrainDumpEntry[]): void {
 export const useBrainDumpStore = create<BrainDumpStore>((set, get) => ({
   entries: [],
   hasHydrated: false,
+  hydrationError: null,
 
   hydrate: () => {
-    if (get().hasHydrated) return;
-    set({ entries: loadBrainDumpEntries(), hasHydrated: true });
+    try {
+      set({ entries: loadBrainDumpEntries(), hasHydrated: true, hydrationError: null });
+    } catch (error) {
+      set({ hasHydrated: true, hydrationError: "Brain dump data needs recovery." });
+      throw error;
+    }
   },
 
   addEntry: (input) => {

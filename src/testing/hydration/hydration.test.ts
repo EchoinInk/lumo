@@ -3,6 +3,7 @@ import { setString } from "@/services/storage/mmkv";
 import { StorageKeys } from "@/services/storage/storageKeys";
 import { createPersistStorage } from "@/store/createPersistStorage";
 import { assertDeepEqual, assertEqual, resetTestState } from "../testUtils";
+import { PersistenceLoadError } from "@/services/storage/versionedStorage";
 
 export async function testPersistStorageHandlesMissingState(): Promise<void> {
   resetTestState();
@@ -32,7 +33,7 @@ export async function testPersistStorageRoundTripAndRemoval(): Promise<void> {
   );
 }
 
-export async function testOnboardingHydrationFallsBackOnCorruption(): Promise<void> {
+export async function testOnboardingHydrationSettlesIntoRecoveryOnCorruption(): Promise<void> {
   resetTestState();
   useOnboardingStore.getState().resetOnboarding();
   setString(StorageKeys.ONBOARDING, "{not json");
@@ -40,7 +41,16 @@ export async function testOnboardingHydrationFallsBackOnCorruption(): Promise<vo
   const originalError = console.error;
   console.error = () => undefined;
   try {
-    await useOnboardingStore.getState().hydrate();
+    try {
+      await useOnboardingStore.getState().hydrate();
+      throw new Error("corrupt onboarding data should reject hydration");
+    } catch (error) {
+      assertEqual(
+        error instanceof PersistenceLoadError && error.kind,
+        "malformed-data",
+        "corrupt onboarding should produce an actionable persistence error",
+      );
+    }
   } finally {
     console.error = originalError;
   }
@@ -48,6 +58,11 @@ export async function testOnboardingHydrationFallsBackOnCorruption(): Promise<vo
   const state = useOnboardingStore.getState();
 
   assertEqual(state.isHydrated, true, "corrupted hydration should still complete");
+  assertEqual(
+    state.hydrationError !== null,
+    true,
+    "corrupted hydration should expose recovery state",
+  );
   assertEqual(state.isComplete, false, "corrupted hydration should fail closed");
   assertDeepEqual(
     state.preferences,

@@ -1,5 +1,6 @@
 import { create } from "zustand";
 import {
+  defaultReminderSettings,
   loadReminders,
   loadReminderSettings,
   persistReminders,
@@ -11,6 +12,7 @@ type ReminderState = {
   reminders: Reminder[];
   settings: ReturnType<typeof loadReminderSettings>;
   hasHydrated: boolean;
+  hydrationError: string | null;
 };
 
 type ReminderActions = {
@@ -32,16 +34,22 @@ function createId(): string {
 export const useReminderStore = create<ReminderState & ReminderActions>(
   (set, get) => ({
     reminders: [],
-    settings: loadReminderSettings(),
+    settings: defaultReminderSettings,
     hasHydrated: false,
+    hydrationError: null,
 
     hydrate: () => {
-      if (get().hasHydrated) return;
-      set({
-        reminders: loadReminders(),
-        settings: loadReminderSettings(),
-        hasHydrated: true,
-      });
+      try {
+        set({
+          reminders: loadReminders(),
+          settings: loadReminderSettings(),
+          hasHydrated: true,
+          hydrationError: null,
+        });
+      } catch (error) {
+        set({ hasHydrated: true, hydrationError: "Reminder data needs recovery." });
+        throw error;
+      }
     },
 
     addReminder: (input) => {

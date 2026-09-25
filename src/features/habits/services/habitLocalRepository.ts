@@ -1,9 +1,7 @@
-import { getString, setString } from "@/services/storage/mmkv";
 import { migrateHabitStorage } from "@/services/storage/canonicalMigrations";
-import { StorageKeys } from "@/services/storage/storageKeys";
+import { habitStorageDefinition } from "@/services/storage/domainSchemas";
+import { loadVersionedData, saveVersionedData } from "@/services/storage/versionedStorage";
 import { CreateHabitInput, Habit, UpdateHabitInput } from "../types/habit";
-
-const HABITS_KEY = StorageKeys.HABITS;
 
 export class HabitLocalRepositoryError extends Error {
   constructor(
@@ -16,18 +14,10 @@ export class HabitLocalRepositoryError extends Error {
 }
 
 export async function getHabits(): Promise<Habit[]> {
-  try {
-    migrateHabitStorage();
-    const data = getString(HABITS_KEY);
-    if (!data) return [];
-
-    const parsed = JSON.parse(data) as Habit[];
-    // Filter out soft-deleted habits
-    return parsed.filter((h) => !h.deletedAt);
-  } catch (error) {
-    console.error("[HabitLocalRepository] Failed to get habits:", error);
-    return [];
-  }
+  migrateHabitStorage();
+  return loadVersionedData(habitStorageDefinition).data.filter(
+    (habit) => !habit.deletedAt,
+  );
 }
 
 export async function getHabitById(id: string): Promise<Habit | null> {
@@ -58,7 +48,7 @@ export async function createHabit(input: CreateHabitInput): Promise<Habit> {
     };
 
     const updated = [...habits, newHabit];
-    setString(HABITS_KEY, JSON.stringify(updated));
+    saveVersionedData(habitStorageDefinition, updated);
 
     return newHabit;
   } catch (error) {
@@ -89,7 +79,7 @@ export async function updateHabit(
 
     const updated = [...habits];
     updated[habitIndex] = updatedHabit;
-    setString(HABITS_KEY, JSON.stringify(updated));
+    saveVersionedData(habitStorageDefinition, updated);
 
     return updatedHabit;
   } catch (error) {
@@ -120,7 +110,7 @@ export async function deleteHabit(id: string): Promise<void> {
       syncStatus: "pending",
     };
 
-    setString(HABITS_KEY, JSON.stringify(updated));
+    saveVersionedData(habitStorageDefinition, updated);
   } catch (error) {
     console.error(
       `[HabitLocalRepository] Failed to delete habit ${id}:`,
@@ -134,7 +124,7 @@ export async function hardDeleteHabit(id: string): Promise<void> {
   try {
     const habits = await getHabits();
     const updated = habits.filter((h) => h.id !== id);
-    setString(HABITS_KEY, JSON.stringify(updated));
+    saveVersionedData(habitStorageDefinition, updated);
   } catch (error) {
     console.error(
       `[HabitLocalRepository] Failed to hard delete habit ${id}:`,
@@ -173,7 +163,7 @@ export async function completeHabit(id: string, date: string): Promise<Habit> {
 
     const updated = [...habits];
     updated[habitIndex] = updatedHabit;
-    setString(HABITS_KEY, JSON.stringify(updated));
+    saveVersionedData(habitStorageDefinition, updated);
 
     return updatedHabit;
   } catch (error) {
@@ -219,7 +209,7 @@ export async function uncompleteHabit(
 
     const updated = [...habits];
     updated[habitIndex] = updatedHabit;
-    setString(HABITS_KEY, JSON.stringify(updated));
+    saveVersionedData(habitStorageDefinition, updated);
 
     return updatedHabit;
   } catch (error) {

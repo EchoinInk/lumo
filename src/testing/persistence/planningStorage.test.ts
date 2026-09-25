@@ -7,6 +7,7 @@ import {
 import { deleteKey, setString } from "@/services/storage/mmkv";
 import { StorageKeys } from "@/services/storage/storageKeys";
 import { assertEqual, resetTestState } from "../testUtils";
+import { PersistenceLoadError } from "@/services/storage/versionedStorage";
 
 export async function testNormalizeDailyPlanningSummaryFallsBackSafely(): Promise<void> {
   const summary = normalizeDailyPlanningSummary({
@@ -43,11 +44,20 @@ export async function testLoadDailyPlanningSummaryRollsOverStaleDate(): Promise<
   assertEqual(loaded?.selectedFocusIds.length, 0, "rolled summary should clear focus ids");
 }
 
-export async function testLoadDailyPlanningSummaryHandlesCorruptJson(): Promise<void> {
+export async function testLoadDailyPlanningSummaryRejectsCorruptJson(): Promise<void> {
   resetTestState();
   setString(StorageKeys.PLANNING_SUMMARY, "{bad json");
 
-  assertEqual(loadDailyPlanningSummary(), null, "corrupt planning json should return null");
+  try {
+    loadDailyPlanningSummary();
+    throw new Error("corrupt planning data should not load as empty");
+  } catch (error) {
+    assertEqual(
+      error instanceof PersistenceLoadError && error.kind,
+      "malformed-data",
+      "corrupt planning data should be recoverable",
+    );
+  }
 }
 
 export async function testCreateEmptyDailySummaryUsesToday(): Promise<void> {

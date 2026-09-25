@@ -23,7 +23,7 @@ interface Props {
     onPress: () => void;
     variant?: "primary" | "ghost" | "danger";
   }>;
-  onClose: () => void;
+  onClose?: () => void;
 }
 
 export function RecoverySheet({ title, message, actions, onClose }: Props): React.JSX.Element {
@@ -49,9 +49,11 @@ export function RecoverySheet({ title, message, actions, onClose }: Props): Reac
           </Button>
         ))}
 
-        <Button onPress={onClose} variant="ghost" style={styles.action}>
-          Cancel
-        </Button>
+        {onClose ? (
+          <Button onPress={onClose} variant="ghost" style={styles.action}>
+            Cancel
+          </Button>
+        ) : null}
       </View>
     </ScrollView>
   );

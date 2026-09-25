@@ -5,6 +5,7 @@
  */
 
 import { GlobalErrorBoundary } from "@/src/components/feedback/GlobalErrorBoundary";
+import { ActiveLocalDataGate } from "@/src/components/feedback/ActiveLocalDataGate";
 import { observability } from "@/src/services/observability";
 import { SplashScreen, Stack } from "expo-router";
 import { useEffect } from "react";
@@ -21,11 +22,13 @@ function RootLayoutContent() {
   }, []);
 
   return (
-    <Stack
-      screenOptions={{
-        headerShown: false,
-      }}
-    />
+    <ActiveLocalDataGate>
+      <Stack
+        screenOptions={{
+          headerShown: false,
+        }}
+      />
+    </ActiveLocalDataGate>
   );
 }
 

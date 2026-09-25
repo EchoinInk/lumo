@@ -23,12 +23,36 @@
       "from": "task:wp2.1",
       "to": "test:wp2.1-verification",
       "type": "verified_by"
+    },
+    {
+      "created_at": "2026-09-25T05:11:37.362177Z",
+      "from": "phase:2",
+      "to": "task:wp2.2",
+      "type": "contains"
+    },
+    {
+      "created_at": "2026-09-25T05:11:37.473181Z",
+      "from": "task:wp2.2",
+      "to": "task:wp2.1",
+      "type": "depends_on"
+    },
+    {
+      "created_at": "2026-09-25T05:11:37.577891Z",
+      "from": "task:wp2.2",
+      "to": "artifact:wp2.2-schema-recovery",
+      "type": "produces"
+    },
+    {
+      "created_at": "2026-09-25T05:11:37.694175Z",
+      "from": "task:wp2.2",
+      "to": "test:wp2.2-verification",
+      "type": "verified_by"
     }
   ],
   "meta": {
     "created_at": "2026-09-24T11:53:49.499720Z",
     "schema_version": "1.0",
-    "updated_at": "2026-09-25T02:59:25.988432Z"
+    "updated_at": "2026-09-25T05:11:37.694301Z"
   },
   "nodes": {
     "artifact:wp2.1-ownership": {
@@ -44,6 +68,20 @@
       "truth": "observed",
       "type": "artifact",
       "updated_at": "2026-09-25T02:59:25.772347Z"
+    },
+    "artifact:wp2.2-schema-recovery": {
+      "id": "artifact:wp2.2-schema-recovery",
+      "sources": [
+        "docs/local-data-schema-recovery.md",
+        "src/services/storage/versionedStorage.ts",
+        "src/services/storage/domainSchemas.ts",
+        "src/components/feedback/ActiveLocalDataGate.tsx"
+      ],
+      "status": "current",
+      "title": "Versioned local-data schema and recovery contract",
+      "truth": "observed",
+      "type": "artifact",
+      "updated_at": "2026-09-25T05:11:37.128493Z"
     },
     "decision:g1-partial-acceptance": {
       "id": "decision:g1-partial-acceptance",
@@ -98,6 +136,20 @@
       "type": "task",
       "updated_at": "2026-09-25T02:59:25.710254Z"
     },
+    "task:wp2.2": {
+      "id": "task:wp2.2",
+      "sources": [
+        "docs/lumo-implementation-progress.md#wp22-verified",
+        "docs/local-data-schema-recovery.md",
+        "src/services/storage/versionedStorage.ts",
+        "src/services/storage/domainSchemas.ts"
+      ],
+      "status": "complete",
+      "title": "Add validated schemas and corrupted-data recovery",
+      "truth": "observed",
+      "type": "task",
+      "updated_at": "2026-09-25T05:11:37.010877Z"
+    },
     "test:wp2.1-verification": {
       "id": "test:wp2.1-verification",
       "results": [
@@ -117,6 +169,26 @@
       "truth": "observed",
       "type": "test",
       "updated_at": "2026-09-25T02:59:25.846941Z"
+    },
+    "test:wp2.2-verification": {
+      "id": "test:wp2.2-verification",
+      "results": [
+        "TypeScript passed",
+        "124 tests passed",
+        "lint 0 errors",
+        "Expo Doctor 20/20",
+        "web/iOS/Android exports passed",
+        "production web startup reached Dashboard without console errors"
+      ],
+      "sources": [
+        "src/testing/persistence/versionedStorageRecovery.test.ts",
+        "docs/lumo-implementation-progress.md#wp22-verified"
+      ],
+      "status": "passed",
+      "title": "WP2.2 schema and corruption-recovery verification",
+      "truth": "observed",
+      "type": "test",
+      "updated_at": "2026-09-25T05:11:37.249757Z"
     }
   },
   "project": "project:lumo"
