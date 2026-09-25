@@ -24,3 +24,41 @@ export function testReminderScheduleNoneLeavesReminderUnscheduled(): void {
     "no time should not set scheduledAt",
   );
 }
+
+export function testAucklandReminderTomorrowUsesWallClockAcrossDstStart(): void {
+  const previousTimeZone = process.env.TZ;
+  process.env.TZ = "Pacific/Auckland";
+  try {
+    const scheduledAt = getReminderScheduledAt(
+      "tomorrow",
+      new Date("2026-09-26T10:00:00.000Z"),
+    );
+    assertEqual(
+      scheduledAt,
+      "2026-09-26T20:00:00.000Z",
+      "tomorrow at 09:00 should honor Auckland's spring DST offset",
+    );
+  } finally {
+    if (previousTimeZone === undefined) delete process.env.TZ;
+    else process.env.TZ = previousTimeZone;
+  }
+}
+
+export function testAucklandReminderTomorrowUsesWallClockAcrossDstEnd(): void {
+  const previousTimeZone = process.env.TZ;
+  process.env.TZ = "Pacific/Auckland";
+  try {
+    const scheduledAt = getReminderScheduledAt(
+      "tomorrow",
+      new Date("2026-04-04T10:00:00.000Z"),
+    );
+    assertEqual(
+      scheduledAt,
+      "2026-04-04T21:00:00.000Z",
+      "tomorrow at 09:00 should honor Auckland's autumn DST offset",
+    );
+  } finally {
+    if (previousTimeZone === undefined) delete process.env.TZ;
+    else process.env.TZ = previousTimeZone;
+  }
+}

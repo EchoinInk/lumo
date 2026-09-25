@@ -2,6 +2,12 @@ import type { BrainDumpEntry } from "@/src/features/brain-dump/types/brainDump";
 import { getFocusSuggestions } from "@/src/features/dashboard/utils/focusSuggestions";
 import type { Reminder } from "@/src/features/reminders/types/reminder";
 import type { Task } from "@/src/features/tasks/types/task";
+import {
+  addLocalDays,
+  isLocalDateKey,
+  isTimestampInstant,
+  toLocalDateKey,
+} from "@/src/utils/dateTime";
 import type {
   BrainDumpQueueItem,
   CarryOverItem,
@@ -13,16 +19,6 @@ import type {
   PlanningNextStep,
   PlanningSourceType,
 } from "../types/planning";
-
-function todayIso(date = new Date()): string {
-  return date.toISOString().split("T")[0];
-}
-
-function yesterdayIso(date = new Date()): string {
-  const yesterday = new Date(date);
-  yesterday.setDate(yesterday.getDate() - 1);
-  return yesterday.toISOString().split("T")[0];
-}
 
 function isActiveTask(task: Task): boolean {
   return !task.completed && !task.deletedAt;
@@ -41,19 +37,20 @@ function taskEffort(task: Task): PlanningEffort {
 function isReminderDueToday(reminder: Reminder, today: string): boolean {
   if (reminder.completedAt || reminder.archivedAt) return false;
   if (!reminder.scheduledAt) return true;
-  return reminder.scheduledAt.split("T")[0] <= today;
+  if (!isTimestampInstant(reminder.scheduledAt)) return false;
+  return toLocalDateKey(new Date(reminder.scheduledAt)) <= today;
 }
 
 export function getGentleCarryOverItems(
   tasks: Task[],
-  today = todayIso(),
+  today: string = toLocalDateKey(),
 ): CarryOverItem[] {
-  const yesterday = yesterdayIso();
+  const yesterday = addLocalDays(today, -1);
 
   return tasks
     .filter(isActiveTask)
     .filter((task) => {
-      if (!task.dueDate) return false;
+      if (!isLocalDateKey(task.dueDate)) return false;
       return task.dueDate < today || task.dueDate === yesterday;
     })
     .slice(0, 3)
@@ -68,11 +65,15 @@ export function getGentleCarryOverItems(
 
 export function getEveningCarryOverItems(
   tasks: Task[],
-  today = todayIso(),
+  today: string = toLocalDateKey(),
 ): CarryOverItem[] {
   return tasks
     .filter(isActiveTask)
-    .filter((task) => !task.dueDate || task.dueDate <= today)
+    .filter(
+      (task) =>
+        !task.dueDate ||
+        (isLocalDateKey(task.dueDate) && task.dueDate <= today),
+    )
     .slice(0, 3)
     .map((task) => ({
       id: `evening-${task.id}`,
@@ -100,7 +101,7 @@ export function getBrainDumpReviewQueue(
 export function getLowEnergyOptions(
   input: PlanningComposerInput,
 ): LowEnergyOption[] {
-  const today = input.today ?? todayIso();
+  const today = input.today ?? toLocalDateKey();
   const options: LowEnergyOption[] = [];
 
   const tinyTask = input.tasks
@@ -188,10 +189,10 @@ function energyWeight(
 export function getSuggestedNextSteps(
   input: PlanningComposerInput,
 ): PlanningNextStep[] {
-  const today = input.today ?? todayIso();
+  const today = input.today ?? toLocalDateKey();
   const steps: PlanningNextStep[] = [];
 
-  const focusSuggestions = getFocusSuggestions(input.tasks, 3);
+  const focusSuggestions = getFocusSuggestions(input.tasks, 3, today);
   for (const suggestion of focusSuggestions) {
     steps.push({
       id: `focus-${suggestion.task.id}`,
@@ -266,7 +267,7 @@ export function composeDailyPlanningSummary(
   input: PlanningComposerInput,
   partial: Partial<DailyPlanningSummary> = {},
 ): DailyPlanningSummary {
-  const today = input.today ?? todayIso();
+  const today = input.today ?? toLocalDateKey();
   const carryOverItems = getGentleCarryOverItems(input.tasks, today);
   const brainDumpQueue = getBrainDumpReviewQueue(input.brainDumpEntries);
   const nextSteps = getSuggestedNextSteps(input);

@@ -10,6 +10,7 @@ import {
   saveVersionedData,
 } from "@/services/storage/versionedStorage";
 import { CreateHabitInput, Habit, UpdateHabitInput } from "../types/habit";
+import { addLocalDays, toLocalDateKey } from "@/src/utils/dateTime";
 
 const mutations = new SerializedMutationQueue();
 
@@ -200,21 +201,23 @@ export async function uncompleteHabit(
   });
 }
 
-function calculateStreak(completedDates: string[]): number {
+export function calculateStreak(
+  completedDates: string[],
+  today: string = toLocalDateKey(),
+): number {
   if (completedDates.length === 0) return 0;
 
   const sorted = [...completedDates].sort().reverse();
-  const today = new Date().toISOString().split("T")[0];
-  const yesterday = new Date(Date.now() - 86400000).toISOString().split("T")[0];
+  const yesterday = addLocalDays(today, -1);
   if (!sorted.includes(today) && !sorted.includes(yesterday)) return 0;
 
   let streak = 0;
-  const currentDate = new Date();
+  let currentDate = today;
+  if (!sorted.includes(currentDate)) currentDate = yesterday;
   while (true) {
-    const dateStr = currentDate.toISOString().split("T")[0];
-    if (!sorted.includes(dateStr)) break;
+    if (!sorted.includes(currentDate)) break;
     streak += 1;
-    currentDate.setDate(currentDate.getDate() - 1);
+    currentDate = addLocalDays(currentDate, -1);
   }
   return streak;
 }

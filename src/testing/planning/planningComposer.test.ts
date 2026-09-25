@@ -184,3 +184,46 @@ export function testLowEnergyNextStepsPreferRemindersAndRoutines(): void {
     "low energy should prefer tiny, reminder, or routine options",
   );
 }
+
+export function testReminderInstantUsesAucklandLocalDayWithoutUtcSlicing(): void {
+  const previousTimeZone = process.env.TZ;
+  process.env.TZ = "Pacific/Auckland";
+  try {
+    const reminder: Reminder = {
+      id: "midnight-reminder",
+      title: "After midnight",
+      scheduledAt: "2026-01-01T11:30:00.000Z",
+      tone: "gentle",
+      createdAt: "2026-01-01T00:00:00.000Z",
+      updatedAt: "2026-01-01T00:00:00.000Z",
+    };
+    const beforeLocalDay = getLowEnergyOptions({
+      tasks: [],
+      reminders: [reminder],
+      routineLabels: [],
+      brainDumpEntries: [],
+      today: "2026-01-01",
+    });
+    const onLocalDay = getLowEnergyOptions({
+      tasks: [],
+      reminders: [reminder],
+      routineLabels: [],
+      brainDumpEntries: [],
+      today: "2026-01-02",
+    });
+
+    assertEqual(
+      beforeLocalDay[0]?.id,
+      "low-reset-small-reset",
+      "a UTC January 1 instant on Auckland January 2 should not be due early",
+    );
+    assertEqual(
+      onLocalDay[0]?.id,
+      "low-reminder-midnight-reminder",
+      "the reminder should become due on its Auckland local day",
+    );
+  } finally {
+    if (previousTimeZone === undefined) delete process.env.TZ;
+    else process.env.TZ = previousTimeZone;
+  }
+}

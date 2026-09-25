@@ -1,4 +1,5 @@
 import { Task, TaskPriority, TaskFilter } from '../types/task';
+import { isLocalDateKey, toLocalDateKey } from '@/src/utils/dateTime';
 
 /**
  * Task Utility Helpers
@@ -31,13 +32,12 @@ export function groupTasksByPriority(tasks: Task[]) {
 /**
  * Group tasks by due date
  */
-export function groupTasksByDueDate(tasks: Task[]) {
-  const today = new Date().toISOString().split('T')[0];
+export function groupTasksByDueDate(tasks: Task[], today = toLocalDateKey()) {
   
   return {
-    overdue: tasks.filter((task) => task.dueDate && task.dueDate < today && !task.completed),
+    overdue: tasks.filter((task) => isLocalDateKey(task.dueDate) && task.dueDate < today && !task.completed),
     today: tasks.filter((task) => task.dueDate === today),
-    upcoming: tasks.filter((task) => task.dueDate && task.dueDate > today),
+    upcoming: tasks.filter((task) => isLocalDateKey(task.dueDate) && task.dueDate > today),
     noDate: tasks.filter((task) => !task.dueDate),
   };
 }
@@ -45,22 +45,20 @@ export function groupTasksByDueDate(tasks: Task[]) {
 /**
  * Check if a task is overdue
  */
-export function isTaskOverdue(task: Task): boolean {
-  if (!task.dueDate || task.completed) {
+export function isTaskOverdue(task: Task, today = toLocalDateKey()): boolean {
+  if (!isLocalDateKey(task.dueDate) || task.completed) {
     return false;
   }
-  const today = new Date().toISOString().split('T')[0];
   return task.dueDate < today;
 }
 
 /**
  * Check if a task is due today
  */
-export function isTaskDueToday(task: Task): boolean {
-  if (!task.dueDate) {
+export function isTaskDueToday(task: Task, today = toLocalDateKey()): boolean {
+  if (!isLocalDateKey(task.dueDate)) {
     return false;
   }
-  const today = new Date().toISOString().split('T')[0];
   return task.dueDate === today;
 }
 
@@ -98,7 +96,10 @@ export function sortTasksByDueDate(tasks: Task[]): Task[] {
     if (!a.dueDate && !b.dueDate) return 0;
     if (!a.dueDate) return 1;
     if (!b.dueDate) return -1;
-    return new Date(a.dueDate).getTime() - new Date(b.dueDate).getTime();
+    if (!isLocalDateKey(a.dueDate) && !isLocalDateKey(b.dueDate)) return 0;
+    if (!isLocalDateKey(a.dueDate)) return 1;
+    if (!isLocalDateKey(b.dueDate)) return -1;
+    return a.dueDate.localeCompare(b.dueDate);
   });
 }
 

@@ -71,12 +71,42 @@
       "from": "task:wp2.3",
       "to": "test:wp2.3-verification",
       "type": "verified_by"
+    },
+    {
+      "created_at": "2026-09-25T06:35:19.725826Z",
+      "from": "phase:2",
+      "to": "task:wp2.4",
+      "type": "contains"
+    },
+    {
+      "created_at": "2026-09-25T06:35:19.808946Z",
+      "from": "task:wp2.4",
+      "to": "task:wp2.2",
+      "type": "depends_on"
+    },
+    {
+      "created_at": "2026-09-25T06:35:19.896604Z",
+      "from": "task:wp2.4",
+      "to": "decision:local-date-time-policy",
+      "type": "decided_by"
+    },
+    {
+      "created_at": "2026-09-25T06:35:19.980983Z",
+      "from": "task:wp2.4",
+      "to": "artifact:wp2.4-date-policy",
+      "type": "produces"
+    },
+    {
+      "created_at": "2026-09-25T06:35:20.064978Z",
+      "from": "task:wp2.4",
+      "to": "test:wp2.4-verification",
+      "type": "verified_by"
     }
   ],
   "meta": {
     "created_at": "2026-09-24T11:53:49.499720Z",
     "schema_version": "1.0",
-    "updated_at": "2026-09-25T05:37:49.764237Z"
+    "updated_at": "2026-09-25T06:36:42.918418Z"
   },
   "nodes": {
     "artifact:wp2.1-ownership": {
@@ -122,6 +152,20 @@
       "type": "artifact",
       "updated_at": "2026-09-25T05:37:25.701241Z"
     },
+    "artifact:wp2.4-date-policy": {
+      "id": "artifact:wp2.4-date-policy",
+      "sources": [
+        "docs/local-date-time-policy.md",
+        "src/utils/dateTime.ts",
+        "src/utils/localDayLifecycle.ts",
+        "src/hooks/useLocalDay.ts"
+      ],
+      "status": "current",
+      "title": "Shared local date/time policy and lifecycle refresh",
+      "truth": "observed",
+      "type": "artifact",
+      "updated_at": "2026-09-25T06:35:10.249323Z"
+    },
     "decision:g1-partial-acceptance": {
       "id": "decision:g1-partial-acceptance",
       "invariants": [
@@ -138,6 +182,24 @@
       "truth": "declared",
       "type": "decision",
       "updated_at": "2026-09-24T11:53:49.584196Z"
+    },
+    "decision:local-date-time-policy": {
+      "id": "decision:local-date-time-policy",
+      "invariants": [
+        "Local days are YYYY-MM-DD civil keys and are never derived by slicing UTC instants",
+        "Wall-clock times do not imply a date or timezone",
+        "Timestamp instants include an offset and retain their absolute meaning",
+        "Civil day arithmetic never uses fixed 24-hour durations",
+        "Ambiguous legacy values are preserved without invented times"
+      ],
+      "sources": [
+        "docs/local-date-time-policy.md"
+      ],
+      "status": "accepted",
+      "title": "Use distinct civil dates, wall times and timestamp instants",
+      "truth": "observed",
+      "type": "decision",
+      "updated_at": "2026-09-25T06:35:10.154836Z"
     },
     "phase:2": {
       "gate": "G2",
@@ -203,6 +265,21 @@
       "type": "task",
       "updated_at": "2026-09-25T05:37:19.818011Z"
     },
+    "task:wp2.4": {
+      "evidence_gap": "Manual device or simulator clock and timezone resume verification around midnight is required for final G2 acceptance.",
+      "id": "task:wp2.4",
+      "sources": [
+        "docs/lumo-implementation-progress.md#wp24-implementation-complete-automated-acceptance-verified",
+        "docs/local-date-time-policy.md",
+        "src/utils/dateTime.ts",
+        "src/hooks/useLocalDay.ts"
+      ],
+      "status": "partial",
+      "title": "Define local date/time semantics",
+      "truth": "observed",
+      "type": "task",
+      "updated_at": "2026-09-25T06:35:54.933143Z"
+    },
     "test:wp2.1-verification": {
       "id": "test:wp2.1-verification",
       "results": [
@@ -262,6 +339,29 @@
       "truth": "observed",
       "type": "test",
       "updated_at": "2026-09-25T05:37:31.679034Z"
+    },
+    "test:wp2.4-verification": {
+      "id": "test:wp2.4-verification",
+      "results": [
+        "TypeScript passed",
+        "144 tests passed",
+        "lint 0 errors",
+        "Expo Doctor 20/20",
+        "web iOS Android exports passed",
+        "manual clock timezone resume evidence remains open"
+      ],
+      "sources": [
+        "src/testing/dates/dateTime.test.ts",
+        "src/testing/dates/localDayLifecycle.test.ts",
+        "src/testing/habits/habitDateSemantics.test.ts",
+        "src/testing/reminders/reminderSchedulePresets.test.ts",
+        "docs/lumo-implementation-progress.md#wp24-implementation-complete-automated-acceptance-verified"
+      ],
+      "status": "passed",
+      "title": "WP2.4 date boundary and lifecycle verification",
+      "truth": "observed",
+      "type": "test",
+      "updated_at": "2026-09-25T06:36:42.918305Z"
     }
   },
   "project": "project:lumo"

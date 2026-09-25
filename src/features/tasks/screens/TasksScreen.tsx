@@ -5,6 +5,8 @@ import { useEnvironmentalSoftening } from "@/src/features/calmMode/hooks/useEnvi
 import { useCognitiveLoad } from "@/src/features/focus/hooks/useCognitiveLoad";
 import { useFocusMode } from "@/src/features/focus/hooks/useFocusMode";
 import { Spacing } from "@/src/theme/tokens";
+import { useLocalDay } from "@/src/hooks/useLocalDay";
+import { addLocalDays } from "@/src/utils/dateTime";
 import { router } from "expo-router";
 import React, { useState } from "react";
 import { Alert, StyleSheet, View } from "react-native";
@@ -23,6 +25,7 @@ import { filterTasks } from "../utils/taskHelpers";
  * Users can add, toggle, and delete tasks with instant UI updates.
  */
 export default function TasksScreen() {
+  const today = useLocalDay();
   const [filter, setFilter] = useState<TaskFilter>("all");
   const [newTaskTitle, setNewTaskTitle] = useState("");
   const [isAdding, setIsAdding] = useState(false);
@@ -75,9 +78,7 @@ export default function TasksScreen() {
         {
           text: "Park instead",
           onPress: () => {
-            const tomorrow = new Date(Date.now() + 86400000)
-              .toISOString()
-              .split("T")[0];
+            const tomorrow = addLocalDays(today, 1);
             updateTask(id, { dueDate: tomorrow });
           },
         },

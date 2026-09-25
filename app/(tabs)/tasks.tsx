@@ -21,7 +21,9 @@ import {
   TaskPriority,
 } from "@/src/features/tasks/types/task";
 import { summarizeRecurrence } from "@/src/features/tasks/utils/recurrence";
+import { useLocalDay } from "@/src/hooks/useLocalDay";
 import { Colors, Radius, Shadows, Spacing } from "@/src/theme/tokens";
+import { addLocalDays, formatLocalDate, isLocalDateKey } from "@/src/utils/dateTime";
 import { LinearGradient } from "expo-linear-gradient";
 import { router } from "expo-router";
 import {
@@ -101,8 +103,8 @@ export default function TasksScreen() {
   };
 
   // Date helpers
-  const today = new Date().toISOString().split("T")[0];
-  const tomorrow = new Date(Date.now() + 86400000).toISOString().split("T")[0];
+  const today = useLocalDay();
+  const tomorrow = addLocalDays(today, 1);
 
   const filteredTasks = tasks.filter((task) => {
     if (activeFilter === "all") return true;
@@ -115,7 +117,7 @@ export default function TasksScreen() {
     if (activeFilter === "upcoming") {
       // Show incomplete tasks due tomorrow or later
       if (task.completed) return false;
-      return task.dueDate && task.dueDate > today;
+      return isLocalDateKey(task.dueDate) && task.dueDate > today;
     }
     return true;
   });
@@ -395,10 +397,12 @@ export default function TasksScreen() {
                             : task.dueDate === tomorrow
                               ? "Tomorrow"
                               : task.dueDate
-                                ? new Date(task.dueDate).toLocaleDateString(
-                                    undefined,
-                                    { month: "short", day: "numeric" },
-                                  )
+                                ? isLocalDateKey(task.dueDate)
+                                  ? formatLocalDate(task.dueDate, {
+                                    month: "short",
+                                    day: "numeric",
+                                  })
+                                  : task.dueDate
                                 : ""}
                           {task.dueTime
                             ? (task.dueDate ? " at " : "") + task.dueTime

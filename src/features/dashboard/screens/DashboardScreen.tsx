@@ -7,6 +7,8 @@ import { useCognitiveLoad } from "@/src/features/focus/hooks/useCognitiveLoad";
 import { useFocusMode } from "@/src/features/focus/hooks/useFocusMode";
 import { useHabits } from "@/src/features/habits";
 import { useTasks } from "@/src/features/tasks";
+import { useLocalDay } from "@/src/hooks/useLocalDay";
+import { isLocalDateKey } from "@/src/utils/dateTime";
 import { router } from "expo-router";
 import { DailyProgressCard } from "../components/DailyProgressCard";
 import { DashboardHeader } from "../components/DashboardHeader";
@@ -17,6 +19,7 @@ import { TodaysRoutinesCard } from "../components/TodaysRoutinesCard";
 import { calculateDailyProgress } from "../utils/dashboardProgress";
 
 export default function DashboardScreen() {
+  const today = useLocalDay();
   // Focus Mode hooks
   const { isFocusModeEnabled, disableFocusMode } = useFocusMode();
   const { shouldShowSection, maxVisibleCards, shouldShowDecorativeElements } =
@@ -58,14 +61,13 @@ export default function DashboardScreen() {
   );
 
   // Prioritize tasks for Today's Focus
-  const today = new Date().toISOString().split("T")[0];
   const getPriorityScore = (task: (typeof tasks)[0]) => {
     let score = 0;
     if (task.completed) score -= 1000;
     if (task.priority === "high") score += 100;
     if (task.priority === "medium") score += 50;
     if (task.dueDate === today) score += 200;
-    if (task.dueDate && task.dueDate < today) score += 150;
+    if (isLocalDateKey(task.dueDate) && task.dueDate < today) score += 150;
     score += new Date(task.createdAt).getTime() / 1000000000;
     return score;
   };

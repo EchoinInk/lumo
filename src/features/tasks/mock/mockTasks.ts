@@ -1,4 +1,7 @@
 import { Task } from "../types/task";
+import { toLocalDateKey } from "@/src/utils/dateTime";
+
+const today = toLocalDateKey();
 
 /**
  * Neurodivergent-Friendly Task Seed Data
@@ -19,7 +22,7 @@ export const mockTasks: Task[] = [
     description: "Call pharmacy for refill, 5 minutes",
     completed: false,
     priority: "high",
-    dueDate: new Date().toISOString().split("T")[0],
+    dueDate: today,
     createdAt: "2026-05-20T08:00:00Z",
     updatedAt: "2026-05-20T08:00:00Z",
   },
@@ -29,7 +32,7 @@ export const mockTasks: Task[] = [
     description: "Pick up visible items, no deep cleaning",
     completed: false,
     priority: "high",
-    dueDate: new Date().toISOString().split("T")[0],
+    dueDate: today,
     createdAt: "2026-05-20T09:00:00Z",
     updatedAt: "2026-05-20T09:00:00Z",
   },
@@ -39,7 +42,7 @@ export const mockTasks: Task[] = [
     description: "Keep response brief, ask for help if needed",
     completed: false,
     priority: "high",
-    dueDate: new Date().toISOString().split("T")[0],
+    dueDate: today,
     createdAt: "2026-05-20T10:00:00Z",
     updatedAt: "2026-05-20T10:00:00Z",
   },
@@ -51,7 +54,7 @@ export const mockTasks: Task[] = [
     description: "Drink one glass of water now",
     completed: false,
     priority: "medium",
-    dueDate: new Date().toISOString().split("T")[0],
+    dueDate: today,
     createdAt: "2026-05-20T11:00:00Z",
     updatedAt: "2026-05-20T11:00:00Z",
   },
@@ -61,7 +64,7 @@ export const mockTasks: Task[] = [
     description: "Stretch, wash face, change clothes",
     completed: false,
     priority: "medium",
-    dueDate: new Date().toISOString().split("T")[0],
+    dueDate: today,
     createdAt: "2026-05-20T07:00:00Z",
     updatedAt: "2026-05-20T07:00:00Z",
   },
@@ -73,7 +76,7 @@ export const mockTasks: Task[] = [
     description: "Pause and breathe, no rush",
     completed: false,
     priority: "low",
-    dueDate: new Date().toISOString().split("T")[0],
+    dueDate: today,
     createdAt: "2026-05-20T13:00:00Z",
     updatedAt: "2026-05-20T13:00:00Z",
   },
@@ -83,7 +86,7 @@ export const mockTasks: Task[] = [
     description: "5 minutes, headphones on",
     completed: false,
     priority: "low",
-    dueDate: new Date().toISOString().split("T")[0],
+    dueDate: today,
     createdAt: "2026-05-20T14:00:00Z",
     updatedAt: "2026-05-20T14:00:00Z",
   },

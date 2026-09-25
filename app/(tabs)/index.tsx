@@ -13,6 +13,8 @@ import {
   useDailyPlanningFlow,
 } from "@/src/features/planning";
 import { useTasks } from "@/src/features/tasks";
+import { useLocalDay } from "@/src/hooks/useLocalDay";
+import { addLocalDays } from "@/src/utils/dateTime";
 import { router } from "expo-router";
 import { StyleSheet, TouchableOpacity, View } from "react-native";
 
@@ -103,6 +105,7 @@ export default function DashboardScreen() {
     hasHydrated: tasksHydrated,
   } = useTasks();
   const { todayHabits, completedToday: completedHabits } = useHabits();
+  const today = useLocalDay();
 
   // Calculate daily progress combining tasks and habits
   const totalTasks = tasks.length;
@@ -122,12 +125,12 @@ export default function DashboardScreen() {
     completedHabitIds.length,
   );
 
-  const focusSuggestions = tasksHydrated ? getFocusSuggestions(tasks, 3) : [];
+  const focusSuggestions = tasksHydrated
+    ? getFocusSuggestions(tasks, 3, today)
+    : [];
 
   const shiftTaskDate = (taskId: string, days: number) => {
-    const target = new Date(Date.now() + days * 86400000)
-      .toISOString()
-      .split("T")[0];
+    const target = addLocalDays(today, days);
     updateTask(taskId, { dueDate: target });
   };
 

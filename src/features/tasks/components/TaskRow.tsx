@@ -2,6 +2,7 @@ import { Card } from "@/src/components/ui/Card";
 import { Text } from "@/src/components/ui/Text";
 import { UX } from "@/src/constants/ux";
 import { Colors, Spacing } from "@/src/theme/tokens";
+import { formatLocalDate } from "@/src/utils/dateTime";
 import React from "react";
 import { StyleSheet, TouchableOpacity, View } from "react-native";
 import { Task, TaskPriority } from "../types/task";
@@ -159,7 +160,7 @@ export const TaskRow = React.memo<TaskRowProps>(
             color={Colors.textTertiary}
             style={styles.dueDate}
           >
-            Due: {new Date(task.dueDate).toLocaleDateString()}
+            Due: {formatLocalDate(task.dueDate, {})}
           </Text>
         )}
       </Card>

@@ -3,7 +3,7 @@ export type ReminderTone = "gentle" | "practical" | "encouraging";
 export interface Reminder {
   id: string;
   title: string;
-  scheduledAt?: string;
+  scheduledAt?: string; // Absolute timestamp instant with an offset.
   tone: ReminderTone;
   completedAt?: string;
   archivedAt?: string;
@@ -13,8 +13,8 @@ export interface Reminder {
 
 export interface ReminderSettings {
   remindersEnabled: boolean;
-  quietHoursStart: string;
-  quietHoursEnd: string;
+  quietHoursStart: string; // Wall-clock time (HH:mm).
+  quietHoursEnd: string; // Wall-clock time (HH:mm).
   hapticsEnabled: boolean;
   tone: ReminderTone;
 }

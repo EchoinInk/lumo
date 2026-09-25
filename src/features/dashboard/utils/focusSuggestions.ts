@@ -1,4 +1,5 @@
 import type { Task } from "@/src/features/tasks/types/task";
+import { isLocalDateKey, toLocalDateKey } from "@/src/utils/dateTime";
 
 export type FocusSuggestionKind =
   | "one_next_step"
@@ -15,15 +16,15 @@ export interface FocusSuggestion {
 export function getFocusSuggestions(
   tasks: Task[],
   limit = 3,
+  today: string = toLocalDateKey(),
 ): FocusSuggestion[] {
-  const today = new Date().toISOString().split("T")[0];
-
   return tasks
     .filter(
       (task) =>
         !task.completed &&
         !task.deletedAt &&
-        (!task.dueDate || task.dueDate <= today),
+        (!task.dueDate ||
+          (isLocalDateKey(task.dueDate) && task.dueDate <= today)),
     )
     .map((task): FocusSuggestion => {
       const isQuickWin =

@@ -1,15 +1,12 @@
 import type { RecurrencePattern, Weekday } from "../types/recurrence";
+import {
+  addLocalDays,
+  addLocalMonths,
+  isLocalDateKey,
+  weekdayIndexForLocalDate,
+} from "@/src/utils/dateTime";
 
 const weekdays: Weekday[] = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
-
-function parseDateOnly(value: string): Date {
-  const [year, month, day] = value.split("-").map(Number);
-  return new Date(Date.UTC(year, month - 1, day));
-}
-
-function formatDateOnly(value: Date): string {
-  return value.toISOString().split("T")[0];
-}
 
 export function summarizeRecurrence(pattern?: RecurrencePattern): string {
   if (!pattern || pattern.type === "none") return "Does not repeat";
@@ -47,34 +44,28 @@ export function getNextOccurrence(
   pattern?: RecurrencePattern,
 ): string | null {
   if (!pattern || pattern.type === "none") return null;
-
-  const date = parseDateOnly(fromDate);
-  const next = new Date(date);
+  if (!isLocalDateKey(fromDate)) return null;
 
   if (pattern.type === "daily") {
-    next.setUTCDate(date.getUTCDate() + (pattern.interval ?? 1));
-    return formatDateOnly(next);
+    return addLocalDays(fromDate, pattern.interval ?? 1);
   }
 
   if (pattern.type === "weekly") {
     const selected = pattern.weekdays ?? [];
     if (selected.length === 0) {
-      next.setUTCDate(date.getUTCDate() + 7 * (pattern.interval ?? 1));
-      return formatDateOnly(next);
+      return addLocalDays(fromDate, 7 * (pattern.interval ?? 1));
     }
 
     for (let offset = 1; offset <= 14 * (pattern.interval ?? 1); offset++) {
-      next.setTime(date.getTime());
-      next.setUTCDate(date.getUTCDate() + offset);
-      if (selected.includes(weekdays[next.getUTCDay()])) {
-        return formatDateOnly(next);
+      const next = addLocalDays(fromDate, offset);
+      if (selected.includes(weekdays[weekdayIndexForLocalDate(next)])) {
+        return next;
       }
     }
   }
 
   if (pattern.type === "monthly") {
-    next.setUTCMonth(date.getUTCMonth() + (pattern.interval ?? 1));
-    return formatDateOnly(next);
+    return addLocalMonths(fromDate, pattern.interval ?? 1);
   }
 
   return null;

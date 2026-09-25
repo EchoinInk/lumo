@@ -1,3 +1,11 @@
+import {
+  addLocalDays,
+  localDateKeyToDate,
+  toLocalDateKey,
+  toTimestampInstant,
+  weekdayIndexForLocalDate,
+} from "@/src/utils/dateTime";
+
 export type ReminderScheduleOptionId =
   | "later_today"
   | "tomorrow"
@@ -33,12 +41,6 @@ export const reminderScheduleOptions: ReminderScheduleOption[] = [
   },
 ];
 
-function atLocalTime(date: Date, hours: number, minutes = 0): Date {
-  const next = new Date(date);
-  next.setHours(hours, minutes, 0, 0);
-  return next;
-}
-
 export function getReminderScheduledAt(
   optionId: ReminderScheduleOptionId,
   now = new Date(),
@@ -46,19 +48,18 @@ export function getReminderScheduledAt(
   if (optionId === "none") return undefined;
 
   if (optionId === "later_today") {
-    const laterToday = new Date(now);
-    laterToday.setHours(now.getHours() + 2, 0, 0, 0);
-    return laterToday.toISOString();
+    const laterToday = new Date(now.getTime() + 2 * 60 * 60 * 1000);
+    laterToday.setMinutes(0, 0, 0);
+    return toTimestampInstant(laterToday);
   }
 
+  const today = toLocalDateKey(now);
   if (optionId === "tomorrow") {
-    const tomorrow = new Date(now);
-    tomorrow.setDate(now.getDate() + 1);
-    return atLocalTime(tomorrow, 9).toISOString();
+    const tomorrow = addLocalDays(today, 1);
+    return toTimestampInstant(localDateKeyToDate(tomorrow, "09:00"));
   }
 
-  const weekend = new Date(now);
-  const daysUntilSaturday = (6 - now.getDay() + 7) % 7 || 7;
-  weekend.setDate(now.getDate() + daysUntilSaturday);
-  return atLocalTime(weekend, 10).toISOString();
+  const daysUntilSaturday = (6 - weekdayIndexForLocalDate(today) + 7) % 7 || 7;
+  const weekend = addLocalDays(today, daysUntilSaturday);
+  return toTimestampInstant(localDateKeyToDate(weekend, "10:00"));
 }

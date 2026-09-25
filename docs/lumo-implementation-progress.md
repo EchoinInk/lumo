@@ -163,3 +163,26 @@ WP2.3 is complete. Active task and habit mutations now report success only after
 | **Scope preserved** | No database replacement, storage-key migration, optimistic unsaved-state model, sync protocol redesign, screen redesign or WP2.4 local-date work was introduced. Expo SDK 55 versioned documentation was reviewed before implementation. |
 | **Status** | **Verified** |
 | **Gate effect** | WP2.3 is satisfied. **WP2.4 has not begun.** Phase 2 remains active. |
+
+---
+
+## WP2.4 - Implementation complete; automated acceptance verified
+
+WP2.4 is implemented. Tasks, calendar, habits, planning, dashboard suggestions and reminder presets now share one explicit local date/time policy; local days are no longer derived by slicing UTC timestamp strings; and mounted day-dependent state refreshes at local midnight and whenever the app returns to the foreground.
+
+## Completion record
+
+| Field | Record |
+|---|---|
+| **Package** | **WP2.4 — Define local date/time semantics** |
+| **Dependency gate** | WP2.2 was verified before implementation. Existing storage keys, schema envelopes, recovery guards and valid stored values were retained. Expo SDK 55 versioned documentation was reviewed before code changes. |
+| **Policy and representations** | [local-date-time-policy.md](/Users/echoin.ink/Developer/lumo/docs/local-date-time-policy.md) defines separate local date keys (`YYYY-MM-DD`), wall-clock times (`HH:mm`) and absolute timestamp instants (ISO 8601 with `Z` or an explicit offset). It records DST, timezone-change, month/year rollover and compatibility behavior. |
+| **Shared operations** | Added branded representation types and shared validation, formatting, local-day extraction, calendar-day/month arithmetic, weekday lookup, local date/time resolution and instant serialization in `src/utils/dateTime.ts`. Civil-day arithmetic never adds fixed 24-hour millisecond offsets; monthly recurrence clamps to the final valid target date. |
+| **Lifecycle refresh** | `useLocalDay` and its testable lifecycle subscription refresh mounted consumers at the next local midnight and on every foreground transition. Foregrounding also re-arms the midnight timer, so manual clock, DST and timezone changes cannot leave the old boundary timer active. Same-day foregrounding still rerenders clock-dependent planning state. |
+| **Affected domains** | Task filters/forms/display/parking, calendar week navigation, habit completion/weekday/streak logic, dashboard focus suggestions, daily planning rollover/carry-over, recurrence and reminder preset/due-day logic now use the shared policy. Reminder instants are converted to the current local day before classification rather than UTC-sliced. Ambiguous legacy date/time strings are neither guessed nor reinterpreted; valid existing task date/time values round-trip unchanged, and unchanged legacy form values are preserved until explicitly edited. |
+| **Automated checks (2026-09-25)** | Credential-free config validation passed; TypeScript passed; tests **144 passed, 0 failed**; lint **0 errors, 84 existing warnings**; Expo Doctor **20/20**; web export passed; iOS Hermes production export passed; Android Hermes production export passed; `git diff --check` passed. Repository scans found no remaining `toISOString().split/slice` local-day derivation, fixed 86,400,000 millisecond day movement, due-date parsing as timestamp instants, or reminder timestamp slicing in `app/` or `src/`. |
+| **Boundary coverage** | Tests cover Auckland summer and winter midnight boundaries, UTC+14 and UTC-8 dates, Auckland DST start/end, local midnight refresh, foreground refresh, timezone changes while backgrounded, month/year/leap rollover, month-end clamping, reminder instant classification and preservation of stored valid local date/wall-time values. |
+| **Manual verification gap** | **Blocking for final G2 acceptance:** the roadmap's interactive change-device-date/timezone and background/resume check around midnight was not performed. A booted iOS simulator is available, but deterministic lifecycle and timezone tests are not represented as a manual simulator or physical-device acceptance run. |
+| **Scope preserved** | No storage key or schema-version migration, database replacement, notification delivery/reconciliation implementation, arbitrary-date picker expansion, sync protocol change or WP2.5 shared-planning-store work was introduced. |
+| **Status** | **Implementation complete; automated acceptance verified; manual acceptance blocked.** |
+| **Gate effect** | WP2.4 implementation and automated Definition of Done are satisfied. Phase 2 remains active; the manual clock/timezone resume scenario blocks final G2 acceptance. **WP2.5 has not begun.** |

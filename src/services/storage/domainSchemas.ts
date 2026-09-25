@@ -16,6 +16,7 @@ import type { AppSettings } from "@/store/useSettingsStore";
 import { StorageNamespaces } from "./storageAdapter";
 import { LegacyStorageKeys, StorageKeys } from "./storageKeys";
 import type { VersionedStorageDefinition } from "./versionedStorage";
+import { toLocalDateKey } from "@/src/utils/dateTime";
 
 const isObject = (value: unknown): value is Record<string, unknown> =>
   Boolean(value && typeof value === "object" && !Array.isArray(value));
@@ -207,7 +208,7 @@ export const planningStorageDefinition: VersionedStorageDefinition<DailyPlanning
   domain: "planning",
   key: StorageKeys.PLANNING_SUMMARY,
   schemaVersion: 1,
-  empty: () => ({ date: new Date().toISOString().split("T")[0], selectedFocusIds: [], carryOverIds: [], brainDumpQueueIds: [], morningCompleted: false, eveningCompleted: false, parkedIds: [], eveningCarriedIds: [], eveningParkedIds: [], eveningBrainDumpVisited: false }),
+  empty: () => ({ date: toLocalDateKey(), selectedFocusIds: [], carryOverIds: [], brainDumpQueueIds: [], morningCompleted: false, eveningCompleted: false, parkedIds: [], eveningCarriedIds: [], eveningParkedIds: [], eveningBrainDumpVisited: false }),
   validate: isDailyPlanningSummary,
 };
 

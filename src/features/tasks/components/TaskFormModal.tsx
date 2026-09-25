@@ -2,6 +2,12 @@ import { Input } from "@/src/components/ui/Input";
 import { Text } from "@/src/components/ui/Text";
 import { Colors, Radius, Shadows, Spacing } from "@/src/theme/tokens";
 import { MutationSubmissionGuard } from "@/src/services/storage/durableMutation";
+import {
+  addLocalDays,
+  isLocalDateKey,
+  isWallClockTime,
+  toLocalDateKey,
+} from "@/src/utils/dateTime";
 import { LinearGradient } from "expo-linear-gradient";
 import { Calendar, Check, Clock, Plus, X } from "lucide-react-native";
 import { useEffect, useRef, useState } from "react";
@@ -76,16 +82,14 @@ export function TaskFormModal({
 
         // Determine date selection from dueDate
         if (initialTask.dueDate) {
-          const today = new Date().toISOString().split("T")[0];
-          const tomorrow = new Date(Date.now() + 86400000)
-            .toISOString()
-            .split("T")[0];
+          const today = toLocalDateKey();
+          const tomorrow = addLocalDays(today, 1);
           if (initialTask.dueDate === today) {
             setSelectedDate("today");
           } else if (initialTask.dueDate === tomorrow) {
             setSelectedDate("tomorrow");
           } else {
-            setSelectedDate("none");
+            setSelectedDate(initialTask.dueDate);
           }
         } else {
           setSelectedDate("none");
@@ -104,6 +108,17 @@ export function TaskFormModal({
   }, [visible, mode, initialTask, submissionGuard]);
 
   const handleSubmit = async () => {
+    const normalizedDueTime = dueTime.trim();
+    const unchangedLegacyTime =
+      mode === "edit" && normalizedDueTime === initialTask?.dueTime;
+    if (
+      normalizedDueTime &&
+      !isWallClockTime(normalizedDueTime) &&
+      !unchangedLegacyTime
+    ) {
+      setSubmitError("Use a 24-hour time like 09:30.");
+      return;
+    }
     if (!title.trim() || !submissionGuard.begin()) return;
 
     setIsSubmitting(true);
@@ -113,9 +128,13 @@ export function TaskFormModal({
     // Calculate dueDate from selection
     let dueDate: string | undefined;
     if (selectedDate === "today") {
-      dueDate = new Date().toISOString().split("T")[0];
+      dueDate = toLocalDateKey();
     } else if (selectedDate === "tomorrow") {
-      dueDate = new Date(Date.now() + 86400000).toISOString().split("T")[0];
+      dueDate = addLocalDays(toLocalDateKey(), 1);
+    } else if (isLocalDateKey(selectedDate)) {
+      dueDate = selectedDate;
+    } else if (mode === "edit" && selectedDate === initialTask?.dueDate) {
+      dueDate = initialTask.dueDate;
     }
 
     try {
@@ -126,7 +145,7 @@ export function TaskFormModal({
         energyRequired,
         recurrence,
         dueDate,
-        dueTime: dueTime.trim() || undefined,
+        dueTime: normalizedDueTime || undefined,
       });
       onClose();
     } catch {

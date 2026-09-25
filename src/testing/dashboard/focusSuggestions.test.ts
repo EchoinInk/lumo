@@ -1,6 +1,7 @@
 import { getFocusSuggestions } from "@/src/features/dashboard/utils/focusSuggestions";
 import type { Task } from "@/src/features/tasks/types/task";
 import { assertEqual } from "../testUtils";
+import { addLocalDays, toLocalDateKey } from "@/src/utils/dateTime";
 
 const baseTask: Task = {
   id: "task",
@@ -38,7 +39,8 @@ export function testFocusSuggestionsLimitVisibleComplexity(): void {
 }
 
 export function testFocusSuggestionsExcludeDeferredTasks(): void {
-  const tomorrow = new Date(Date.now() + 86400000).toISOString().split("T")[0];
+  const today = toLocalDateKey();
+  const tomorrow = addLocalDays(today, 1);
   const suggestions = getFocusSuggestions([
     { ...baseTask, id: "today", title: "Visible today" },
     {
@@ -47,7 +49,7 @@ export function testFocusSuggestionsExcludeDeferredTasks(): void {
       title: "Deferred",
       dueDate: tomorrow,
     },
-  ]);
+  ], 3, today);
 
   assertEqual(suggestions.length, 1, "deferred tasks should leave Today Focus");
   assertEqual(suggestions[0]?.task.id, "today", "today task should remain");

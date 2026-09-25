@@ -5,35 +5,33 @@ import { SectionHeader } from "@/src/components/ui/SectionHeader";
 import { Text } from "@/src/components/ui/Text";
 import { getTasksForCalendarDate } from "@/src/features/calendar/utils/calendarTasks";
 import { useTasks } from "@/src/features/tasks";
+import { useLocalDay } from "@/src/hooks/useLocalDay";
 import { Colors, Radius, Spacing } from "@/src/theme/tokens";
+import {
+  addLocalDays,
+  formatLocalDate,
+  weekdayIndexForLocalDate,
+  type LocalDateKey,
+} from "@/src/utils/dateTime";
 import {
   Calendar as CalendarIcon,
   Check,
   ChevronLeft,
   ChevronRight,
 } from "lucide-react-native";
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { ScrollView, StyleSheet, TouchableOpacity, View } from "react-native";
 
-function toDateKey(date: Date): string {
-  return date.toISOString().split("T")[0];
-}
-
-function buildVisibleWeek(anchor = new Date()) {
-  const start = new Date(anchor);
-  const day = start.getDay();
+function buildVisibleWeek(anchor: LocalDateKey, todayKey: LocalDateKey) {
+  const day = weekdayIndexForLocalDate(anchor);
   const mondayOffset = day === 0 ? -6 : 1 - day;
-  start.setDate(start.getDate() + mondayOffset);
-
-  const todayKey = toDateKey(new Date());
+  const start = addLocalDays(anchor, mondayOffset);
 
   return Array.from({ length: 7 }, (_, index) => {
-    const date = new Date(start);
-    date.setDate(start.getDate() + index);
-    const dateKey = toDateKey(date);
+    const dateKey = addLocalDays(start, index);
     return {
-      day: date.toLocaleDateString(undefined, { weekday: "short" }).slice(0, 1),
-      date: String(date.getDate()),
+      day: formatLocalDate(dateKey, { weekday: "short" }).slice(0, 1),
+      date: String(Number(dateKey.slice(8, 10))),
       dateKey,
       isToday: dateKey === todayKey,
     };
@@ -41,26 +39,36 @@ function buildVisibleWeek(anchor = new Date()) {
 }
 
 export default function CalendarScreen() {
-  const todayKey = toDateKey(new Date());
-  const [weekAnchor, setWeekAnchor] = useState(new Date());
-  const weekDays = buildVisibleWeek(weekAnchor);
-  const [selectedDate, setSelectedDate] = useState(todayKey);
+  const todayKey = useLocalDay();
+  const [weekAnchor, setWeekAnchor] = useState<LocalDateKey>(todayKey);
+  const weekDays = buildVisibleWeek(weekAnchor, todayKey);
+  const [selectedDate, setSelectedDate] = useState<LocalDateKey>(todayKey);
+  const previousToday = useRef(todayKey);
   const { tasks } = useTasks();
+
+  useEffect(() => {
+    if (previousToday.current !== todayKey) {
+      if (selectedDate === previousToday.current) {
+        setSelectedDate(todayKey);
+        setWeekAnchor(todayKey);
+      }
+      previousToday.current = todayKey;
+    }
+  }, [selectedDate, todayKey]);
   const selectedTasks = getTasksForCalendarDate(tasks, selectedDate);
   const selectedLabel =
     selectedDate === todayKey
       ? "Today's schedule"
-      : new Date(`${selectedDate}T00:00:00`).toLocaleDateString(undefined, {
+      : formatLocalDate(selectedDate, {
           weekday: "long",
           month: "short",
           day: "numeric",
         });
   const shiftWeek = (days: number) => {
     setWeekAnchor((current) => {
-      const next = new Date(current);
-      next.setDate(current.getDate() + days);
-      const nextWeek = buildVisibleWeek(next);
-      setSelectedDate(nextWeek[0]?.dateKey ?? toDateKey(next));
+      const next = addLocalDays(current, days);
+      const nextWeek = buildVisibleWeek(next, todayKey);
+      setSelectedDate(nextWeek[0]?.dateKey ?? next);
       return next;
     });
   };

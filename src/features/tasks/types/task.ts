@@ -21,8 +21,8 @@ export interface Task {
   priority: TaskPriority;
   energyRequired?: EnergyLevel;
   recurrence?: RecurrencePattern;
-  dueDate?: string;
-  dueTime?: string;
+  dueDate?: string; // Local date key (YYYY-MM-DD), never an instant.
+  dueTime?: string; // Wall-clock time (HH:mm), never an instant.
   createdAt: string;
   updatedAt: string;
   /** Soft delete timestamp for sync — null if not deleted */

@@ -8,6 +8,7 @@ import { deleteKey, setString } from "@/services/storage/mmkv";
 import { StorageKeys } from "@/services/storage/storageKeys";
 import { assertEqual, resetTestState } from "../testUtils";
 import { PersistenceLoadError } from "@/services/storage/versionedStorage";
+import { toLocalDateKey } from "@/src/utils/dateTime";
 
 export async function testNormalizeDailyPlanningSummaryFallsBackSafely(): Promise<void> {
   const summary = normalizeDailyPlanningSummary({
@@ -19,6 +20,7 @@ export async function testNormalizeDailyPlanningSummaryFallsBackSafely(): Promis
   });
 
   assertEqual(summary.selectedFocusIds.join(","), "a", "non-string ids should be filtered");
+  assertEqual(summary.date, "2026-01-01", "valid existing date keys should be preserved");
   assertEqual(summary.parkedIds.join(","), "task-1", "valid parked ids should be preserved");
   assertEqual(summary.energyLevel, undefined, "invalid energy should be cleared");
   assertEqual(summary.morningCompleted, false, "invalid booleans should default false");
@@ -37,7 +39,7 @@ export async function testLoadDailyPlanningSummaryRollsOverStaleDate(): Promise<
   );
 
   const loaded = loadDailyPlanningSummary();
-  const today = new Date().toISOString().split("T")[0];
+  const today = toLocalDateKey();
 
   assertEqual(loaded?.date, today, "stale planning summary should roll to today");
   assertEqual(loaded?.morningCompleted, false, "rolled summary should reset completion flags");
@@ -62,7 +64,7 @@ export async function testLoadDailyPlanningSummaryRejectsCorruptJson(): Promise<
 
 export async function testCreateEmptyDailySummaryUsesToday(): Promise<void> {
   const summary = createEmptyDailySummary();
-  const today = new Date().toISOString().split("T")[0];
+  const today = toLocalDateKey();
 
   assertEqual(summary.date, today, "empty summary should use today");
   assertEqual(summary.eveningCompleted, false, "empty summary should not be completed");
@@ -70,7 +72,7 @@ export async function testCreateEmptyDailySummaryUsesToday(): Promise<void> {
 
 export async function testPlanningAdjustmentsPreserveChoicesWhileReopening(): Promise<void> {
   const completed = normalizeDailyPlanningSummary({
-    date: new Date().toISOString().split("T")[0],
+    date: toLocalDateKey(),
     energyLevel: "steady",
     nextStepId: "task-1",
     morningCompleted: true,

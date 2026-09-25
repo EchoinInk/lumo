@@ -1,8 +1,11 @@
 import { useEffect, useMemo } from "react";
+import { useLocalDay } from "@/src/hooks/useLocalDay";
+import { weekdayIndexForLocalDate } from "@/src/utils/dateTime";
 import { useHabitStore } from "../store/useHabitStore";
 import { CreateHabitInput, Habit, UpdateHabitInput } from "../types/habit";
 
 export function useHabits() {
+  const today = useLocalDay();
   const {
     habits,
     isHydrated,
@@ -24,11 +27,10 @@ export function useHabits() {
     }
   }, [isHydrated, hydrate]);
 
-  const today = useMemo(() => new Date().toISOString().split("T")[0], []);
   const currentDay = useMemo(() => {
     const days = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
-    return days[new Date().getDay()];
-  }, []);
+    return days[weekdayIndexForLocalDate(today)];
+  }, [today]);
 
   // Filter habits that should be done today
   const todayHabits = useMemo(() => {

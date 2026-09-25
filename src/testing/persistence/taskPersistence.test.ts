@@ -93,3 +93,19 @@ export async function testTaskStoreAddTaskPersistsSameId(): Promise<void> {
   assertEqual(stored.length, 1, "addTask should persist one task");
   assertEqual(stored[0]?.id, created.value.id, "store and MMKV ids should match");
 }
+
+export async function testExistingTaskDateAndTimeRemainUnchanged(): Promise<void> {
+  resetTestState();
+  deleteKey(StorageKeys.TASKS);
+  const task = {
+    ...makeTask("dated", "Keep date"),
+    dueDate: "2026-12-31",
+    dueTime: "09:30",
+  };
+
+  await taskLocalRepository.persistVisibleTasks([task]);
+  const stored = await taskLocalRepository.getTasks();
+
+  assertEqual(stored[0]?.dueDate, "2026-12-31", "valid date key should survive storage");
+  assertEqual(stored[0]?.dueTime, "09:30", "wall-clock time should survive storage");
+}

@@ -16,7 +16,7 @@ export interface Habit {
   frequency: HabitFrequency;
   targetDays?: string[]; // e.g., ["Mon", "Wed", "Fri"] for weekly habits
   streakCount: number;
-  completedDates: string[]; // ISO date strings
+  completedDates: string[]; // Local date keys (YYYY-MM-DD), never timestamp instants.
   color?: HabitColor;
   icon?: string;
   createdAt: string;

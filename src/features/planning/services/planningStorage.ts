@@ -1,16 +1,13 @@
 import { planningStorageDefinition } from "@/src/services/storage/domainSchemas";
 import { loadVersionedData, saveVersionedData } from "@/src/services/storage/versionedStorage";
 import type { DailyPlanningSummary, PlanningEnergyLevel } from "../types/planning";
+import { isLocalDateKey, toLocalDateKey } from "@/src/utils/dateTime";
 
 const VALID_ENERGY_LEVELS = new Set<PlanningEnergyLevel>([
   "low",
   "medium",
   "steady",
 ]);
-
-function todayIso(): string {
-  return new Date().toISOString().split("T")[0];
-}
 
 function sanitizeStringArray(value: unknown): string[] {
   if (!Array.isArray(value)) return [];
@@ -27,7 +24,7 @@ export function normalizeDailyPlanningSummary(
       : undefined;
 
   return {
-    date: typeof summary.date === "string" ? summary.date : todayIso(),
+    date: isLocalDateKey(summary.date) ? summary.date : toLocalDateKey(),
     selectedFocusIds: sanitizeStringArray(summary.selectedFocusIds),
     carryOverIds: sanitizeStringArray(summary.carryOverIds),
     brainDumpQueueIds: sanitizeStringArray(summary.brainDumpQueueIds),
@@ -43,11 +40,13 @@ export function normalizeDailyPlanningSummary(
   };
 }
 
-export function loadDailyPlanningSummary(): DailyPlanningSummary | null {
+export function loadDailyPlanningSummary(
+  today = toLocalDateKey(),
+): DailyPlanningSummary | null {
   const result = loadVersionedData(planningStorageDefinition);
   if (result.status === "empty") return null;
-  if (result.data.date !== todayIso()) {
-    return createEmptyDailySummary();
+  if (result.data.date !== today) {
+    return createEmptyDailySummary(today);
   }
   return result.data;
 }
@@ -58,6 +57,8 @@ export function persistDailyPlanningSummary(
   saveVersionedData(planningStorageDefinition, summary);
 }
 
-export function createEmptyDailySummary(): DailyPlanningSummary {
-  return normalizeDailyPlanningSummary({ date: todayIso() });
+export function createEmptyDailySummary(
+  today = toLocalDateKey(),
+): DailyPlanningSummary {
+  return normalizeDailyPlanningSummary({ date: today });
 }

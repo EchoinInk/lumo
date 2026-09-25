@@ -3,6 +3,7 @@ import { Card } from "@/src/components/ui/Card";
 import { Input } from "@/src/components/ui/Input";
 import { Text } from "@/src/components/ui/Text";
 import { Colors, Radius, Shadows, Spacing } from "@/src/theme/tokens";
+import { toLocalDateKey } from "@/src/utils/dateTime";
 import { LinearGradient } from "expo-linear-gradient";
 import { Plus, X } from "lucide-react-native";
 import React, { useState } from "react";
@@ -51,7 +52,7 @@ export function AddTaskModal({ visible, onClose }: AddTaskModalProps) {
             title: title.trim(),
             description: notes.trim() || undefined,
             priority,
-            dueDate: new Date().toISOString().split("T")[0],
+            dueDate: toLocalDateKey(),
         });
 
         // Reset and close

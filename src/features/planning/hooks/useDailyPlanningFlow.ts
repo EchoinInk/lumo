@@ -2,6 +2,8 @@ import { useBrainDump } from "@/src/features/brain-dump";
 import { useHabits } from "@/src/features/habits";
 import { useReminders } from "@/src/features/reminders";
 import { useTasks } from "@/src/features/tasks";
+import { useLocalDay } from "@/src/hooks/useLocalDay";
+import { addLocalDays } from "@/src/utils/dateTime";
 import { useCallback, useEffect, useMemo, useState } from "react";
 import {
   composeDailyPlanningSummary,
@@ -24,15 +26,8 @@ import type {
   PlanningSourceType,
 } from "../types/planning";
 
-function todayIso(): string {
-  return new Date().toISOString().split("T")[0];
-}
-
-function shiftTaskDate(days: number): string {
-  return new Date(Date.now() + days * 86400000).toISOString().split("T")[0];
-}
-
 export function useDailyPlanningFlow(mode: PlanningFlowMode = "morning") {
+  const today = useLocalDay();
   const { tasks, updateTask, hasHydrated: tasksHydrated } = useTasks();
   const { openEntries, archiveEntry, hasHydrated: brainDumpHydrated } =
     useBrainDump();
@@ -45,10 +40,10 @@ export function useDailyPlanningFlow(mode: PlanningFlowMode = "morning") {
   const [summaryLoaded, setSummaryLoaded] = useState(false);
 
   useEffect(() => {
-    const stored = loadDailyPlanningSummary();
-    setSummary(stored ?? createEmptyDailySummary());
+    const stored = loadDailyPlanningSummary(today);
+    setSummary(stored ?? createEmptyDailySummary(today));
     setSummaryLoaded(true);
-  }, []);
+  }, [today]);
 
   const persistSummary = useCallback((next: DailyPlanningSummary) => {
     setSummary(next);
@@ -68,9 +63,9 @@ export function useDailyPlanningFlow(mode: PlanningFlowMode = "morning") {
       routineLabels,
       brainDumpEntries: openEntries,
       energyLevel,
-      today: todayIso(),
+      today,
     }),
-    [tasks, reminders, routineLabels, openEntries, energyLevel],
+    [tasks, reminders, routineLabels, openEntries, energyLevel, today],
   );
 
   const carryOverItems = useMemo(
@@ -184,18 +179,18 @@ export function useDailyPlanningFlow(mode: PlanningFlowMode = "morning") {
 
   const carryOverItem = useCallback(
     (sourceId: string) => {
-      updateTask(sourceId, { dueDate: todayIso() });
+      updateTask(sourceId, { dueDate: today });
       persistSummary({
         ...summary,
         carryOverIds: [...new Set([...summary.carryOverIds, `carry-${sourceId}`])],
       });
     },
-    [summary, updateTask, persistSummary],
+    [summary, updateTask, persistSummary, today],
   );
 
   const carryToTomorrow = useCallback(
     (sourceId: string) => {
-      updateTask(sourceId, { dueDate: shiftTaskDate(1) });
+      updateTask(sourceId, { dueDate: addLocalDays(today, 1) });
       const carriedIds = [...new Set([...summary.carryOverIds, `carry-${sourceId}`])];
       const eveningCarriedIds =
         mode === "evening"
@@ -207,7 +202,7 @@ export function useDailyPlanningFlow(mode: PlanningFlowMode = "morning") {
         eveningCarriedIds,
       });
     },
-    [summary, updateTask, persistSummary, mode],
+    [summary, updateTask, persistSummary, mode, today],
   );
 
   const parkItem = useCallback(
@@ -220,7 +215,7 @@ export function useDailyPlanningFlow(mode: PlanningFlowMode = "morning") {
             ?.sourceId === sourceId);
 
       if (sourceType === "task") {
-        updateTask(sourceId, { dueDate: shiftTaskDate(7) });
+        updateTask(sourceId, { dueDate: addLocalDays(today, 7) });
       } else if (sourceType === "brainDump") {
         archiveEntry(sourceId);
       }
@@ -251,6 +246,7 @@ export function useDailyPlanningFlow(mode: PlanningFlowMode = "morning") {
       nextStepOptions,
       lowEnergyOptions,
       persistSummary,
+      today,
     ],
   );
 

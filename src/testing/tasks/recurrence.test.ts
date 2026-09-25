@@ -60,3 +60,16 @@ export function testMonthlyRecurrenceSummaryIsReadable(): void {
     "monthly interval recurrence should be readable",
   );
 }
+
+export function testMonthlyRecurrenceClampsAtMonthAndLeapYearBoundaries(): void {
+  assertEqual(
+    getNextOccurrence("2026-01-31", { type: "monthly", interval: 1 }),
+    "2026-02-28",
+    "monthly recurrence should clamp to the last valid day",
+  );
+  assertEqual(
+    getNextOccurrence("2028-01-31", { type: "monthly", interval: 1 }),
+    "2028-02-29",
+    "monthly recurrence should preserve leap day",
+  );
+}
