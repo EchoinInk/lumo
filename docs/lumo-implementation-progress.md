@@ -78,9 +78,9 @@ WP1.2 is complete. The repository now uses a Doctor-aligned Expo SDK 55 dependen
 
 ---
 
-## WP1.3 - Implemented; device acceptance blocked
+## WP1.3 - Implementation complete; partial acceptance
 
-The repeatable native build baseline is implemented. G1 remains open because this validation host has no Java runtime or `adb`, and no physical devices are attached, so Android compilation and the required physical-device cold-launch and airplane-mode evidence cannot be completed here.
+The repeatable native build baseline is implemented. By product-owner direction on 2026-09-24, G1 is provisionally open for Phase 2 development while final device acceptance remains outstanding. This validation host has no Java runtime or `adb`, and no physical devices are attached, so Android compilation and the required physical-device cold-launch and airplane-mode evidence cannot be completed here. That evidence remains mandatory before G8 release qualification.
 
 ## Completion record
 
@@ -94,5 +94,27 @@ The repeatable native build baseline is implemented. G1 remains open because thi
 | **Automated evidence (2026-09-24)** | Credential-free config resolution passed; TypeScript passed; tests **106 passed, 0 failed**; lint **0 errors, 88 existing warnings**; Expo Doctor **20/20**; web export passed; iOS Hermes export passed; Android Hermes export passed; clean `expo prebuild --clean --no-install` passed in an isolated copy; iOS CocoaPods resolution passed. |
 | **Native compile evidence (2026-09-24)** | iOS unsigned Release simulator compilation **passed** from the clean generated project with Xcode 26.6 and CocoaPods 1.17.0. The artifact installed on an iPhone 17 Pro / iOS 26.5 simulator; initial cold launch and terminate/relaunch both succeeded, the process remained active, and visual inspection confirmed the guest Dashboard without an account prompt. Android `:app:assembleRelease` was attempted and is blocked before Gradle starts because this host has no Java runtime; `adb` is also unavailable. |
 | **Unavailable acceptance evidence** | **Blocking:** no physical iOS or Android device is attached, so install, cold launch, process restart, airplane-mode reopen, and confirmation of account-free guest startup on real devices remain unverified. **Blocking:** Android native compilation requires a supported JDK and Android SDK/ADB. The successful iOS simulator run is useful evidence but is not treated as a substitute for the required physical-device checks. |
-| **Status** | **Implementation complete; acceptance blocked** |
-| **Gate effect** | **G1 remains open.** Close WP1.3 only after Android Release compilation succeeds and the documented preview/release smoke checklist passes on physical iOS and Android devices. |
+| **Status** | **Implementation complete; partial acceptance** |
+| **Gate effect** | **G1 is provisionally open for Phase 2 development by product-owner direction.** Final acceptance still requires Android Release compilation and the documented preview/release smoke checklist on physical iOS and Android devices, and must be completed before G8 release qualification. |
+
+---
+
+## WP2.1 - Verified
+
+WP2.1 is complete. Tasks, habits, settings and onboarding each have one authoritative production owner; both historical storage facades now share a compatible namespace-aware adapter; legacy records have explicit non-destructive migration precedence; and development-web persistence is durable across reloads.
+
+## Completion record
+
+| Field | Record |
+|---|---|
+| **Package** | **WP2.1 — Establish canonical ownership and storage compatibility** |
+| **Audit coverage** | Addresses the duplicate ownership and persistence compatibility portions of **B17**, **B27** and **B35**. Schema envelopes/recovery, serialized mutation safety and local-date semantics remain assigned to WP2.2–WP2.4. |
+| **Canonical ownership** | Tasks: feature task store + `taskLocalRepository`, default namespace / `tasks`. Habits: feature habit store + `habitLocalRepository`, default namespace / `habits`. Settings: global settings store, `lumo-storage` / `settings-storage`. Onboarding: feature onboarding store, default namespace / `onboarding`. The executable registry and full inventory are recorded in [local-data-ownership.md](/Users/echoin.ink/Developer/lumo/docs/local-data-ownership.md). |
+| **Adapter compatibility** | Both former MMKV facades now use one adapter contract while preserving the default and historical `lumo-storage` namespaces. It supports both `remove` and legacy `delete`, namespace-scoped clearing, existing unprefixed default keys, and isolated named-namespace keys. Browser persistence uses `localStorage`; memory fallback is restricted to non-browser/SSR environments. |
+| **Migration precedence** | A present canonical record always wins, including an intentional empty collection. Otherwise the newest compatible known legacy source wins; incompatible collections are preserved atomically and skipped rather than partially merged. Selected, conflicting and invalid legacy records are never deleted. Re-running migration never overwrites the canonical target. Exact per-domain precedence and identifier mappings are documented and executable in `canonicalMigrations.ts`. |
+| **Obsolete paths** | Legacy task, habit and onboarding store modules are compatibility re-exports only. Generic task/habit repositories delegate to canonical feature repositories. Legacy onboarding service/hooks derive from or delegate to the canonical store and cannot silently reactivate an independent persisted source. |
+| **Automated checks (2026-09-25)** | TypeScript passed; tests **117 passed, 0 failed**; lint **0 errors, 86 warnings** (two fewer than the recorded baseline); web export passed; iOS Hermes production export passed; Android Hermes production export passed; `git diff --check` passed. New tests cover existing-key compatibility, namespace isolation, adapter recreation/web reload durability, repeatable migration, conflicting legacy fixtures, atomic rejection of incompatible collections, historical settings migration, onboarding identifier mapping and canonical delegation. |
+| **Manual upgrade evidence (2026-09-25)** | Seeded the existing iOS simulator installation with task `WP2.1 upgrade task` and habit `WP2.1 upgrade habit`, installed the rebuilt Release app over it, launched it, and confirmed both exact records remained visible. The Settings/App Preferences surface and its persisted controls remained available after upgrade. Physical-device evidence remains unavailable and is still tracked under the provisional G1 acceptance; simulator evidence is not represented as physical-device acceptance. |
+| **Data preservation** | Existing canonical namespaces and keys are preserved. No migration deletes a source record, no incompatible collections are blindly merged, and no new database or persistence framework was introduced. |
+| **Status** | **Verified** |
+| **Gate effect** | WP2.1 is satisfied. **WP2.2 has not begun.** Phase 2 remains active. Final G1 physical-device evidence is still required before G8 release qualification. |

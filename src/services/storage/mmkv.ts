@@ -1,4 +1,7 @@
-import { Platform } from "react-native";
+import {
+  getStorageAdapter,
+  StorageNamespaces,
+} from "./storageAdapter";
 
 /**
  * MMKV Storage Instance
@@ -7,86 +10,7 @@ import { Platform } from "react-native";
  * Initialized once to avoid duplication and ensure consistency.
  * Web-safe: uses localStorage fallback on web platform.
  */
-let storage: any = null;
-
-// Lazy initialization to avoid module-level execution on web
-function getStorage() {
-  if (storage !== null) {
-    return storage;
-  }
-
-  if (Platform.OS === "web") {
-    // Web fallback using localStorage
-    storage = {
-      getString: (key: string) => {
-        try {
-          return localStorage.getItem(key) ?? undefined;
-        } catch {
-          return undefined;
-        }
-      },
-      set: (key: string, value: string) => {
-        try {
-          localStorage.setItem(key, value);
-        } catch {
-          // Ignore storage errors
-        }
-      },
-      getNumber: (key: string) => {
-        try {
-          const value = localStorage.getItem(key);
-          return value !== null ? parseFloat(value) : undefined;
-        } catch {
-          return undefined;
-        }
-      },
-      getBoolean: (key: string) => {
-        try {
-          const value = localStorage.getItem(key);
-          return value !== null ? value === "true" : undefined;
-        } catch {
-          return undefined;
-        }
-      },
-      remove: (key: string) => {
-        try {
-          localStorage.removeItem(key);
-        } catch {
-          // Ignore storage errors
-        }
-      },
-      clearAll: () => {
-        try {
-          localStorage.clear();
-        } catch {
-          // Ignore storage errors
-        }
-      },
-      contains: (key: string) => {
-        try {
-          return localStorage.getItem(key) !== null;
-        } catch {
-          return false;
-        }
-      },
-      getAllKeys: () => {
-        try {
-          return Object.keys(localStorage);
-        } catch {
-          return [];
-        }
-      },
-    };
-  } else {
-    // Native MMKV
-    const { createMMKV } = require("react-native-mmkv");
-    storage = createMMKV();
-  }
-
-  return storage;
-}
-
-export const storageInstance = getStorage();
+export const storageInstance = getStorageAdapter(StorageNamespaces.DEFAULT);
 
 /**
  * Get a string value from storage

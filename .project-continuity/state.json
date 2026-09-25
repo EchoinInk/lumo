@@ -1,0 +1,123 @@
+{
+  "edges": [
+    {
+      "created_at": "2026-09-24T11:53:49.686156Z",
+      "from": "phase:2",
+      "to": "task:wp2.1",
+      "type": "contains"
+    },
+    {
+      "created_at": "2026-09-24T11:53:49.734557Z",
+      "from": "phase:2",
+      "to": "decision:g1-partial-acceptance",
+      "type": "decided_by"
+    },
+    {
+      "created_at": "2026-09-25T02:59:25.916688Z",
+      "from": "task:wp2.1",
+      "to": "artifact:wp2.1-ownership",
+      "type": "produces"
+    },
+    {
+      "created_at": "2026-09-25T02:59:25.988315Z",
+      "from": "task:wp2.1",
+      "to": "test:wp2.1-verification",
+      "type": "verified_by"
+    }
+  ],
+  "meta": {
+    "created_at": "2026-09-24T11:53:49.499720Z",
+    "schema_version": "1.0",
+    "updated_at": "2026-09-25T02:59:25.988432Z"
+  },
+  "nodes": {
+    "artifact:wp2.1-ownership": {
+      "id": "artifact:wp2.1-ownership",
+      "sources": [
+        "docs/local-data-ownership.md",
+        "src/services/storage/storageAdapter.ts",
+        "src/services/storage/canonicalOwnership.ts",
+        "src/services/storage/canonicalMigrations.ts"
+      ],
+      "status": "current",
+      "title": "Canonical local-data ownership and migration contract",
+      "truth": "observed",
+      "type": "artifact",
+      "updated_at": "2026-09-25T02:59:25.772347Z"
+    },
+    "decision:g1-partial-acceptance": {
+      "id": "decision:g1-partial-acceptance",
+      "invariants": [
+        "WP1.3 implementation remains complete with partial acceptance",
+        "Android physical smoke remains externally blocked",
+        "Final G1 device evidence is required before G8 release qualification"
+      ],
+      "sources": [
+        "user:2026-09-24-phase2-authorization",
+        "docs/lumo-implementation-progress.md"
+      ],
+      "status": "accepted",
+      "title": "Allow Phase 2 while final G1 device acceptance remains open",
+      "truth": "declared",
+      "type": "decision",
+      "updated_at": "2026-09-24T11:53:49.584196Z"
+    },
+    "phase:2": {
+      "gate": "G2",
+      "id": "phase:2",
+      "sources": [
+        "docs/lumo-launch-master-implementation-plan.md",
+        "user:2026-09-24-phase2-authorization"
+      ],
+      "status": "active",
+      "title": "Local data integrity and persistence contracts",
+      "truth": "declared",
+      "type": "phase",
+      "updated_at": "2026-09-24T11:53:49.542334Z"
+    },
+    "project:lumo": {
+      "id": "project:lumo",
+      "repository_roots": [
+        "."
+      ],
+      "title": "lumo",
+      "truth": "observed",
+      "type": "project"
+    },
+    "task:wp2.1": {
+      "id": "task:wp2.1",
+      "sources": [
+        "docs/lumo-implementation-progress.md#wp21-verified",
+        "docs/local-data-ownership.md",
+        "src/services/storage/canonicalOwnership.ts",
+        "src/services/storage/canonicalMigrations.ts"
+      ],
+      "status": "complete",
+      "title": "Establish canonical ownership and storage compatibility",
+      "truth": "observed",
+      "type": "task",
+      "updated_at": "2026-09-25T02:59:25.710254Z"
+    },
+    "test:wp2.1-verification": {
+      "id": "test:wp2.1-verification",
+      "results": [
+        "TypeScript passed",
+        "117 tests passed",
+        "lint 0 errors",
+        "web/iOS/Android exports passed",
+        "seeded iOS simulator task and habit survived Release upgrade"
+      ],
+      "sources": [
+        "src/testing/persistence/storageCompatibility.test.ts",
+        "src/testing/persistence/canonicalOwnership.test.ts",
+        "docs/lumo-implementation-progress.md#wp21-verified"
+      ],
+      "status": "passed",
+      "title": "WP2.1 automated and simulator upgrade verification",
+      "truth": "observed",
+      "type": "test",
+      "updated_at": "2026-09-25T02:59:25.846941Z"
+    }
+  },
+  "project": "project:lumo"
+}

@@ -4,6 +4,7 @@
  */
 
 import { getString, setString } from "@/src/services/storage/mmkv";
+import { migrateOnboardingStorage } from "@/src/services/storage/canonicalMigrations";
 import { StorageKeys } from "@/src/services/storage/storageKeys";
 import { create } from "zustand";
 import {
@@ -30,6 +31,7 @@ export const useOnboardingStore = create<OnboardingStore>((set, get) => ({
   // Hydrate from storage
   hydrate: async () => {
     try {
+      migrateOnboardingStorage();
       const stored = getString(StorageKeys.ONBOARDING);
       if (stored) {
         const parsed = JSON.parse(stored);

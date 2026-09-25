@@ -1,4 +1,5 @@
 import { getString, setString } from "@/services/storage/mmkv";
+import { migrateHabitStorage } from "@/services/storage/canonicalMigrations";
 import { StorageKeys } from "@/services/storage/storageKeys";
 import { CreateHabitInput, Habit, UpdateHabitInput } from "../types/habit";
 
@@ -16,6 +17,7 @@ export class HabitLocalRepositoryError extends Error {
 
 export async function getHabits(): Promise<Habit[]> {
   try {
+    migrateHabitStorage();
     const data = getString(HABITS_KEY);
     if (!data) return [];
 

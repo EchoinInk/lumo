@@ -1,41 +1,9 @@
-import { Platform } from "react-native";
+import {
+  getStorageAdapter,
+  StorageNamespaces,
+} from "../services/storage/storageAdapter";
 
-const isServer = typeof window === "undefined";
-
-let storage: any = null;
-
-// Lazy initialization to avoid module-level execution on web
-function getStorage() {
-  if (storage !== null) {
-    return storage;
-  }
-
-  if (isServer || Platform.OS === "web") {
-    // Web fallback using in-memory storage
-    const inMemoryStorage = new Map<string, string>();
-    storage = {
-      getString: (key: string) => {
-        return inMemoryStorage.get(key) ?? null;
-      },
-      set: (key: string, value: string) => {
-        inMemoryStorage.set(key, value);
-      },
-      remove: (key: string) => {
-        inMemoryStorage.delete(key);
-      },
-    };
-  } else {
-    // Native MMKV
-    const { createMMKV } = require("react-native-mmkv");
-    storage = createMMKV({
-      id: "lumo-storage",
-    });
-  }
-
-  return storage;
-}
-
-export const storageInstance = getStorage();
+export const storageInstance = getStorageAdapter(StorageNamespaces.ZUSTAND);
 
 export function getItem(key: string): string | null {
   if (!storageInstance) {

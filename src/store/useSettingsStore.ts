@@ -1,6 +1,9 @@
 import { create } from "zustand";
 import { createJSONStorage, persist } from "zustand/middleware";
+import { migrateSettingsStorage } from "../services/storage/canonicalMigrations";
 import { createPersistStorage } from "./createPersistStorage";
+
+migrateSettingsStorage();
 
 export interface AppSettings {
   theme: "light" | "dark" | "system";

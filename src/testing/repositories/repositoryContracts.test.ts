@@ -1,9 +1,12 @@
 import { HabitRepository } from "@/services/habitRepository";
 import { TaskRepository } from "@/services/taskRepository";
+import { deleteKey } from "@/services/storage/mmkv";
+import { StorageKeys } from "@/services/storage/storageKeys";
 import { isErr, isOk } from "@/types/result";
 import { assert, assertEqual, createMockRepository } from "../testUtils";
 
 export async function testTaskRepositoryCreateReturnsLocalFirstTask(): Promise<void> {
+  deleteKey(StorageKeys.TASKS);
   const repository = new TaskRepository();
 
   const result = await repository.create({
@@ -24,6 +27,7 @@ export async function testTaskRepositoryCreateReturnsLocalFirstTask(): Promise<v
 }
 
 export async function testTaskRepositorySafeFallbacks(): Promise<void> {
+  deleteKey(StorageKeys.TASKS);
   const repository = new TaskRepository();
 
   assertEqual(
@@ -43,16 +47,17 @@ export async function testTaskRepositorySafeFallbacks(): Promise<void> {
   );
 
   const updateResult = await repository.update("missing", { completed: true });
-  assert(isErr(updateResult), "unimplemented update should return err, not throw");
+  assert(isErr(updateResult), "missing canonical update should return err, not throw");
 }
 
 export async function testHabitRepositoryCreateReturnsLocalFirstHabit(): Promise<void> {
+  deleteKey(StorageKeys.HABITS);
   const repository = new HabitRepository();
 
   const result = await repository.create({
     title: "Drink water",
     frequency: "daily",
-    targetDays: [1, 2, 3],
+    targetDays: ["Mon", "Tue", "Wed"],
   });
 
   assert(isOk(result), "habit create should return ok result");
@@ -62,9 +67,9 @@ export async function testHabitRepositoryCreateReturnsLocalFirstHabit(): Promise
     "created habit should start with no completions",
   );
   assertEqual(
-    result.data?.pendingSync,
-    true,
-    "created habit should be marked pending sync",
+    result.data?.syncStatus,
+    "pending",
+    "created habit should use the canonical pending sync status",
   );
 }
 

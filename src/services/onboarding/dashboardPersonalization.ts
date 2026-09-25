@@ -1,74 +1,56 @@
-/**
- * Dashboard Personalization Service
- * 
- * Service for applying onboarding choices to dashboard configuration.
- * Translates onboarding preferences into dashboard layout and feature settings.
- */
+/** @deprecated Dashboard personalization is derived from canonical onboarding preferences. */
+import { useOnboardingStore } from "@/features/onboarding/store/useOnboardingStore";
+import type { DashboardPersonalization } from "@/types/onboarding";
 
-import { useOnboardingStore } from '@/store/useOnboardingStore';
-import type { DashboardPersonalization } from '@/types/onboarding';
-
-/**
- * Get personalized dashboard configuration
- */
 export const getPersonalizedDashboardConfig = (): DashboardPersonalization => {
-  const { personalization } = useOnboardingStore.getState();
-  return personalization;
+  const { focusAreas, planningStyle } =
+    useOnboardingStore.getState().preferences;
+  return {
+    showHabits: focusAreas.includes("habits"),
+    showTasks: focusAreas.includes("tasks"),
+    showMeals: focusAreas.includes("meals"),
+    showWellness: focusAreas.includes("wellness"),
+    showFitness: focusAreas.includes("fitness"),
+    dashboardDensity:
+      planningStyle === "minimal"
+        ? "minimal"
+        : planningStyle === "structured"
+          ? "detailed"
+          : "standard",
+    cardStyle:
+      planningStyle === "minimal"
+        ? "compact"
+        : planningStyle === "visual"
+          ? "spacious"
+          : "comfortable",
+  };
 };
 
-/**
- * Check if a feature should be visible based on personalization
- */
-export const isFeatureVisible = (feature: keyof DashboardPersonalization): boolean => {
-  const { personalization } = useOnboardingStore.getState();
-  return personalization[feature] as boolean;
-};
+export const isFeatureVisible = (
+  feature: keyof DashboardPersonalization,
+): boolean => Boolean(getPersonalizedDashboardConfig()[feature]);
 
-/**
- * Get dashboard density setting
- */
-export const getDashboardDensity = (): DashboardPersonalization['dashboardDensity'] => {
-  const { personalization } = useOnboardingStore.getState();
-  return personalization.dashboardDensity;
-};
+export const getDashboardDensity = () =>
+  getPersonalizedDashboardConfig().dashboardDensity;
 
-/**
- * Get card style setting
- */
-export const getCardStyle = (): DashboardPersonalization['cardStyle'] => {
-  const { personalization } = useOnboardingStore.getState();
-  return personalization.cardStyle;
-};
+export const getCardStyle = () =>
+  getPersonalizedDashboardConfig().cardStyle;
 
-/**
- * Update dashboard personalization
- */
-export const updateDashboardPersonalization = (
-  updates: Partial<DashboardPersonalization>
-) => {
-  useOnboardingStore.getState().updatePersonalization(updates);
-};
-
-/**
- * Get visible features list
- */
 export const getVisibleFeatures = (): string[] => {
-  const { personalization } = useOnboardingStore.getState();
-  
-  const features: string[] = [];
-  
-  if (personalization.showHabits) features.push('habits');
-  if (personalization.showTasks) features.push('tasks');
-  if (personalization.showMeals) features.push('meals');
-  if (personalization.showWellness) features.push('wellness');
-  if (personalization.showFitness) features.push('fitness');
-  
-  return features;
+  const config = getPersonalizedDashboardConfig();
+  return [
+    config.showHabits && "habits",
+    config.showTasks && "tasks",
+    config.showMeals && "meals",
+    config.showWellness && "wellness",
+    config.showFitness && "fitness",
+  ].filter((feature): feature is string => Boolean(feature));
 };
 
-/**
- * Get feature count
- */
-export const getVisibleFeatureCount = (): number => {
-  return getVisibleFeatures().length;
+export const getVisibleFeatureCount = (): number => getVisibleFeatures().length;
+
+export const updateDashboardPersonalization = (): never => {
+  throw new Error(
+    "Legacy dashboard personalization writes are retired; update canonical onboarding preferences",
+  );
 };
