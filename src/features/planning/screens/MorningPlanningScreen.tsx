@@ -14,6 +14,7 @@ import { useReminders } from "@/src/features/reminders";
 import { useTasks } from "@/src/features/tasks";
 import { router } from "expo-router";
 import { useCallback } from "react";
+import { Alert } from "react-native";
 
 export function MorningPlanningScreen() {
   const flow = useDailyPlanningFlow("morning");
@@ -23,10 +24,20 @@ export function MorningPlanningScreen() {
   const { enableFocusMode, setActiveFocusTask } = useFocusMode();
 
   const handleConvert = useCallback(
-    (entry: BrainDumpEntry, target: BrainDumpConversionTarget) => {
+    async (entry: BrainDumpEntry, target: BrainDumpConversionTarget) => {
       if (target === "task") {
-        const task = createTask({ title: entry.text, priority: "medium" });
-        convertEntry(entry.id, target, task?.id);
+        try {
+          const result = await createTask({
+            title: entry.text,
+            priority: "medium",
+          });
+          convertEntry(entry.id, target, result.value.id);
+        } catch {
+          Alert.alert(
+            "Task wasn't created",
+            "Your note is still here. Please try converting it again.",
+          );
+        }
         return;
       }
       if (target === "reminder") {

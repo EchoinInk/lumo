@@ -4,6 +4,11 @@ import { taskStorageDefinition } from "@/services/storage/domainSchemas";
 import { StorageKeys } from "@/services/storage/storageKeys";
 import { getEntityStorageKey } from "@/services/storage/storagePartition";
 import {
+  DurableMutationError,
+  type DurableMutationOperation,
+  SerializedMutationQueue,
+} from "@/services/storage/durableMutation";
+import {
   loadVersionedData,
   saveVersionedData,
   type VersionedStorageDefinition,
@@ -37,6 +42,7 @@ import { ITaskRepository } from "./taskRepository.types";
 export class TaskLocalRepository implements ITaskRepository {
   private readonly STORAGE_KEY = StorageKeys.TASKS;
   private repositoryContext?: RepositoryContext;
+  private readonly mutations = new SerializedMutationQueue();
 
   /**
    * Set the repository context for ownership-safe storage.
@@ -101,6 +107,26 @@ export class TaskLocalRepository implements ITaskRepository {
     return `${Date.now().toString(36)}-${Math.random().toString(36).substring(2, 11)}`;
   }
 
+  private mutate<T>(
+    operation: DurableMutationOperation,
+    mutation: () => T,
+  ): Promise<T> {
+    return this.mutations.run(() => {
+      try {
+        return mutation();
+      } catch (cause) {
+        if (cause instanceof DurableMutationError) throw cause;
+        throw new DurableMutationError(
+          "tasks",
+          operation,
+          "write-failed",
+          `Tasks could not be ${operation === "delete" ? "deleted" : "saved"}.`,
+          cause,
+        );
+      }
+    });
+  }
+
   // ── ITaskRepository ──────────────────────────────────────────────────────
 
   /**
@@ -108,6 +134,7 @@ export class TaskLocalRepository implements ITaskRepository {
    * Filters out soft-deleted tasks (where deletedAt is set).
    */
   async getTasks(): Promise<Task[]> {
+    await this.mutations.waitForIdle();
     const tasks = this.loadTasks();
     return tasks.filter((t) => !t.deletedAt);
   }
@@ -122,6 +149,7 @@ export class TaskLocalRepository implements ITaskRepository {
    * Used for sync operations and admin purposes.
    */
   async getAllTasksIncludingDeleted(): Promise<Task[]> {
+    await this.mutations.waitForIdle();
     return this.loadTasks();
   }
 
@@ -129,6 +157,7 @@ export class TaskLocalRepository implements ITaskRepository {
    * Get a task by ID. Returns null when not found.
    */
   async getById(id: string): Promise<Task | null> {
+    await this.mutations.waitForIdle();
     const tasks = this.loadTasks();
     return tasks.find((t) => t.id === id) ?? null;
   }
@@ -138,22 +167,24 @@ export class TaskLocalRepository implements ITaskRepository {
    * Pure local persistence — no sync logic.
    */
   async createTask(input: CreateTaskInput): Promise<Task> {
-    const tasks = this.loadTasks();
-    const now = this.now();
+    return this.mutate("create", () => {
+      const tasks = this.loadTasks();
+      const now = this.now();
 
-    const newTask: Task = {
-      ...input,
-      id: this.generateId(),
-      completed: false,
-      createdAt: now,
-      updatedAt: now,
-      syncStatus: "pending",
-      version: 1,
-      pendingSync: true,
-    };
+      const newTask: Task = {
+        ...input,
+        id: this.generateId(),
+        completed: false,
+        createdAt: now,
+        updatedAt: now,
+        syncStatus: "pending",
+        version: 1,
+        pendingSync: true,
+      };
 
-    this.persistTasks([...tasks, newTask]);
-    return newTask;
+      this.persistTasks([...tasks, newTask]);
+      return newTask;
+    });
   }
 
   /** IRepository.create — delegates to createTask. */
@@ -177,28 +208,42 @@ export class TaskLocalRepository implements ITaskRepository {
    * Pure local persistence — no sync logic.
    */
   async updateTask(id: string, input: UpdateTaskInput): Promise<Task> {
-    const tasks = this.loadTasks();
-    const index = tasks.findIndex((t) => t.id === id);
+    return this.mutate("update", () => {
+      const tasks = this.loadTasks();
+      const index = tasks.findIndex((t) => t.id === id);
 
-    if (index === -1) {
-      throw new Error(`[TaskLocalRepository] Task ${id} not found`);
-    }
+      if (index === -1) {
+        throw new DurableMutationError(
+          "tasks",
+          "update",
+          "not-found",
+          `Task ${id} was not found.`,
+        );
+      }
+      if (tasks[index].deletedAt) {
+        throw new DurableMutationError(
+          "tasks",
+          "update",
+          "conflict",
+          `Task ${id} was deleted before it could be updated.`,
+        );
+      }
 
-    const current = tasks[index];
-    const updated: Task = {
-      ...current,
-      ...input,
-      updatedAt: this.now(),
-      syncStatus: "pending",
-      version: (current.version ?? 0) + 1,
-      pendingSync: true,
-    };
+      const current = tasks[index];
+      const updated: Task = {
+        ...current,
+        ...input,
+        updatedAt: this.now(),
+        syncStatus: "pending",
+        version: (current.version ?? 0) + 1,
+        pendingSync: true,
+      };
 
-    const next = [...tasks];
-    next[index] = updated;
-    this.persistTasks(next);
-
-    return updated;
+      const next = [...tasks];
+      next[index] = updated;
+      this.persistTasks(next);
+      return updated;
+    });
   }
 
   /** IRepository.update — delegates to updateTask. */
@@ -213,21 +258,24 @@ export class TaskLocalRepository implements ITaskRepository {
    * Silently succeeds when the task does not exist (idempotent).
    */
   async deleteTask(id: string): Promise<void> {
-    const tasks = this.loadTasks();
-    const index = tasks.findIndex((t) => t.id === id);
+    return this.mutate("delete", () => {
+      const tasks = this.loadTasks();
+      const index = tasks.findIndex((t) => t.id === id);
 
-    if (index === -1) return;
+      if (index === -1 || tasks[index].deletedAt) return;
 
-    const next = [...tasks];
-    next[index] = {
-      ...next[index],
-      deletedAt: this.now(),
-      updatedAt: this.now(),
-      syncStatus: "pending",
-      version: (next[index].version ?? 0) + 1,
-      pendingSync: true,
-    };
-    this.persistTasks(next);
+      const now = this.now();
+      const next = [...tasks];
+      next[index] = {
+        ...next[index],
+        deletedAt: now,
+        updatedAt: now,
+        syncStatus: "pending",
+        version: (next[index].version ?? 0) + 1,
+        pendingSync: true,
+      };
+      this.persistTasks(next);
+    });
   }
 
   /** IRepository.delete — delegates to deleteTask (soft delete). */
@@ -240,9 +288,11 @@ export class TaskLocalRepository implements ITaskRepository {
    * Actually removes from storage. Use with caution.
    */
   async hardDeleteTask(id: string): Promise<void> {
-    const tasks = this.loadTasks();
-    const filtered = tasks.filter((t) => t.id !== id);
-    this.persistTasks(filtered);
+    return this.mutate("delete", () => {
+      const tasks = this.loadTasks();
+      const filtered = tasks.filter((t) => t.id !== id);
+      this.persistTasks(filtered);
+    });
   }
 
   /**
@@ -251,28 +301,34 @@ export class TaskLocalRepository implements ITaskRepository {
    * Pure local persistence — no sync logic.
    */
   async toggleTask(id: string): Promise<Task> {
-    const tasks = this.loadTasks();
-    const index = tasks.findIndex((t) => t.id === id);
+    return this.mutate("toggle", () => {
+      const tasks = this.loadTasks();
+      const index = tasks.findIndex((t) => t.id === id);
 
-    if (index === -1) {
-      throw new Error(`[TaskLocalRepository] Task ${id} not found`);
-    }
+      if (index === -1 || tasks[index].deletedAt) {
+        throw new DurableMutationError(
+          "tasks",
+          "toggle",
+          index === -1 ? "not-found" : "conflict",
+          `Task ${id} is no longer available.`,
+        );
+      }
 
-    const current = tasks[index];
-    const updated: Task = {
-      ...current,
-      completed: !current.completed,
-      updatedAt: this.now(),
-      syncStatus: "pending",
-      version: (current.version ?? 0) + 1,
-      pendingSync: true,
-    };
+      const current = tasks[index];
+      const updated: Task = {
+        ...current,
+        completed: !current.completed,
+        updatedAt: this.now(),
+        syncStatus: "pending",
+        version: (current.version ?? 0) + 1,
+        pendingSync: true,
+      };
 
-    const next = [...tasks];
-    next[index] = updated;
-    this.persistTasks(next);
-
-    return updated;
+      const next = [...tasks];
+      next[index] = updated;
+      this.persistTasks(next);
+      return updated;
+    });
   }
 
   /**
@@ -282,62 +338,66 @@ export class TaskLocalRepository implements ITaskRepository {
    * Silently succeeds when the task does not exist.
    */
   async markSynced(id: string): Promise<void> {
-    const tasks = this.loadTasks();
-    const index = tasks.findIndex((t) => t.id === id);
-    if (index === -1) return;
+    return this.mutate("update", () => {
+      const tasks = this.loadTasks();
+      const index = tasks.findIndex((t) => t.id === id);
+      if (index === -1) return;
 
-    const next = [...tasks];
-    next[index] = {
-      ...next[index],
-      pendingSync: false,
-      syncStatus: "synced",
-      lastSyncedAt: this.now(),
-    };
-    this.persistTasks(next);
+      const next = [...tasks];
+      next[index] = {
+        ...next[index],
+        pendingSync: false,
+        syncStatus: "synced",
+        lastSyncedAt: this.now(),
+      };
+      this.persistTasks(next);
+    });
   }
 
   /**
    * Persist visible tasks from store state without creating duplicate IDs.
    */
   async persistVisibleTasks(visibleTasks: Task[]): Promise<void> {
-    const all = this.loadTasks();
-    const visibleById = new Map(visibleTasks.map((task) => [task.id, task]));
-    const now = this.now();
-    const handled = new Set<string>();
-    const result: Task[] = [];
+    return this.mutate("replace", () => {
+      const all = this.loadTasks();
+      const visibleById = new Map(visibleTasks.map((task) => [task.id, task]));
+      const now = this.now();
+      const handled = new Set<string>();
+      const result: Task[] = [];
 
-    for (const stored of all) {
-      const visible = visibleById.get(stored.id);
-      if (visible) {
-        result.push(visible);
+      for (const stored of all) {
+        const visible = visibleById.get(stored.id);
+        if (visible) {
+          result.push(visible);
+          handled.add(stored.id);
+          continue;
+        }
+
+        if (!stored.deletedAt) {
+          result.push({
+            ...stored,
+            deletedAt: now,
+            updatedAt: now,
+            version: (stored.version ?? 0) + 1,
+            pendingSync: true,
+            syncStatus: "pending",
+          });
+          handled.add(stored.id);
+          continue;
+        }
+
+        result.push(stored);
         handled.add(stored.id);
-        continue;
       }
 
-      if (!stored.deletedAt) {
-        result.push({
-          ...stored,
-          deletedAt: now,
-          updatedAt: now,
-          version: (stored.version ?? 0) + 1,
-          pendingSync: true,
-          syncStatus: "pending",
-        });
-        handled.add(stored.id);
-        continue;
+      for (const task of visibleTasks) {
+        if (!handled.has(task.id)) {
+          result.push(task);
+        }
       }
 
-      result.push(stored);
-      handled.add(stored.id);
-    }
-
-    for (const task of visibleTasks) {
-      if (!handled.has(task.id)) {
-        result.push(task);
-      }
-    }
-
-    this.persistTasks(result);
+      this.persistTasks(result);
+    });
   }
 
   /**
@@ -345,7 +405,7 @@ export class TaskLocalRepository implements ITaskRepository {
    * Useful for testing or user-initiated data reset.
    */
   async clearAll(): Promise<void> {
-    deleteKey(this.getStorageKey());
+    return this.mutate("clear", () => deleteKey(this.getStorageKey()));
   }
 }
 

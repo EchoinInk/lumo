@@ -2,9 +2,10 @@ import { Button } from "@/src/components/ui/Button";
 import { Input } from "@/src/components/ui/Input";
 import { Text } from "@/src/components/ui/Text";
 import { Colors, Radius, Shadows, Spacing } from "@/src/theme/tokens";
+import { MutationSubmissionGuard } from "@/src/services/storage/durableMutation";
 import { LinearGradient } from "expo-linear-gradient";
 import { Check, Plus, X } from "lucide-react-native";
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useRef, useState } from "react";
 import {
     Keyboard,
     KeyboardAvoidingView,
@@ -22,7 +23,7 @@ interface HabitFormModalProps {
     visible: boolean;
     mode: "create" | "edit";
     initialHabit?: Habit;
-    onSubmit: (data: CreateHabitInput) => void;
+    onSubmit: (data: CreateHabitInput) => Promise<unknown>;
     onClose: () => void;
 }
 
@@ -56,10 +57,15 @@ export function HabitFormModal({
     const [targetDays, setTargetDays] = useState<string[]>([]);
     const [color, setColor] = useState<HabitColor>("blue");
     const [isSubmitting, setIsSubmitting] = useState(false);
+    const [submitError, setSubmitError] = useState<string | null>(null);
+    const submissionGuard = useRef(new MutationSubmissionGuard()).current;
 
     // Initialize form when modal opens
     useEffect(() => {
         if (visible) {
+            setSubmitError(null);
+            submissionGuard.end();
+            setIsSubmitting(false);
             if (mode === "edit" && initialHabit) {
                 setTitle(initialHabit.title);
                 setDescription(initialHabit.description || "");
@@ -75,12 +81,13 @@ export function HabitFormModal({
                 setColor("blue");
             }
         }
-    }, [visible, mode, initialHabit]);
+    }, [visible, mode, initialHabit, submissionGuard]);
 
     const handleSubmit = async () => {
-        if (!title.trim()) return;
+        if (!title.trim() || !submissionGuard.begin()) return;
 
         setIsSubmitting(true);
+        setSubmitError(null);
         Keyboard.dismiss();
 
         const data: CreateHabitInput = {
@@ -95,12 +102,19 @@ export function HabitFormModal({
             data.targetDays = targetDays;
         }
 
-        onSubmit(data);
-        setIsSubmitting(false);
-        onClose();
+        try {
+            await onSubmit(data);
+            onClose();
+        } catch {
+            setSubmitError("This routine wasn't saved. Please try again.");
+        } finally {
+            submissionGuard.end();
+            setIsSubmitting(false);
+        }
     };
 
     const handleClose = () => {
+        if (submissionGuard.isActive()) return;
         Keyboard.dismiss();
         onClose();
     };
@@ -325,6 +339,17 @@ export function HabitFormModal({
                                         <View style={styles.spacer} />
                                     </ScrollView>
 
+                                    {submitError && (
+                                        <Text
+                                            variant="small"
+                                            color={Colors.danger}
+                                            style={styles.submitError}
+                                            accessibilityRole="alert"
+                                        >
+                                            {submitError}
+                                        </Text>
+                                    )}
+
                                     {/* Action Buttons */}
                                     <View style={styles.actions}>
                                         <TouchableOpacity
@@ -493,6 +518,9 @@ const styles = StyleSheet.create({
         paddingTop: Spacing.md,
         borderTopWidth: 1,
         borderTopColor: Colors.border,
+    },
+    submitError: {
+        marginTop: Spacing.sm,
     },
     cancelButton: {
         paddingVertical: Spacing.md,

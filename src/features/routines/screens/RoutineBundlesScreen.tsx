@@ -1,20 +1,22 @@
 import { EmptyState } from "@/src/components/ui/EmptyState";
+import { Card } from "@/src/components/ui/Card";
 import { Screen } from "@/src/components/ui/Screen";
 import { ScreenBackButton } from "@/src/components/ui/ScreenBackButton";
 import { SectionHeader } from "@/src/components/ui/SectionHeader";
+import { Text } from "@/src/components/ui/Text";
 import {
   createRoutineBundleApplyGuard,
   createTasksFromBundle,
   starterRoutineBundles,
 } from "@/src/features/routines";
 import { useTasks } from "@/src/features/tasks";
-import { Spacing } from "@/src/theme/tokens";
+import { Colors, Spacing } from "@/src/theme/tokens";
 import { useEffect, useRef, useState } from "react";
 import { StyleSheet, View } from "react-native";
 import { RoutineBundleCard } from "../components/RoutineBundleCard";
 
 export default function RoutineBundlesScreen() {
-  const { createTask } = useTasks();
+  const { createTask, mutationError } = useTasks();
   const applyGuard = useRef(createRoutineBundleApplyGuard()).current;
   const releaseTimers = useRef<ReturnType<typeof setTimeout>[]>([]);
   const [applyingBundleIds, setApplyingBundleIds] = useState<string[]>([]);
@@ -26,7 +28,7 @@ export default function RoutineBundlesScreen() {
     };
   }, []);
 
-  const handleUseBundle = (bundle: typeof starterRoutineBundles[0]) => {
+  const handleUseBundle = async (bundle: typeof starterRoutineBundles[0]) => {
     if (!applyGuard.begin(bundle.id)) return;
 
     setApplyingBundleIds((current) =>
@@ -35,9 +37,9 @@ export default function RoutineBundlesScreen() {
 
     try {
       const tasks = createTasksFromBundle(bundle);
-      tasks.forEach((task) => {
-        createTask(task);
-      });
+      for (const task of tasks) {
+        await createTask(task);
+      }
       setAppliedBundleIds((current) =>
         current.includes(bundle.id) ? current : [...current, bundle.id],
       );
@@ -52,12 +54,11 @@ export default function RoutineBundlesScreen() {
           );
         }, 1200),
       );
-    } catch (error) {
+    } catch {
       applyGuard.release(bundle.id);
       setApplyingBundleIds((current) =>
         current.filter((bundleId) => bundleId !== bundle.id),
       );
-      throw error;
     }
   };
 
@@ -68,6 +69,14 @@ export default function RoutineBundlesScreen() {
         title="Routine Bundles"
         subtitle="Start from small repeatable templates."
       />
+
+      {mutationError && (
+        <Card variant="outlined" style={styles.errorCard}>
+          <Text variant="small" color={Colors.danger} accessibilityRole="alert">
+            {mutationError}
+          </Text>
+        </Card>
+      )}
 
       <View style={styles.list}>
         {starterRoutineBundles.length === 0 ? (
@@ -92,6 +101,12 @@ export default function RoutineBundlesScreen() {
 }
 
 const styles = StyleSheet.create({
+  errorCard: {
+    marginBottom: Spacing.md,
+    padding: Spacing.md,
+    backgroundColor: Colors.dangerSoft,
+    borderColor: Colors.danger + "30",
+  },
   list: {
     gap: Spacing.md,
   },

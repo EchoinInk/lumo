@@ -24,6 +24,7 @@ export default function HabitsScreen() {
     bestStreak,
     isHydrated,
     isLoading,
+    error,
     addHabit,
     updateHabit,
     deleteHabit,
@@ -49,13 +50,12 @@ export default function HabitsScreen() {
     setIsModalVisible(true);
   };
 
-  const handleModalSubmit = (data: CreateHabitInput) => {
+  const handleModalSubmit = async (data: CreateHabitInput) => {
     if (modalMode === "edit" && selectedHabit) {
-      updateHabit(selectedHabit.id, data);
-    } else {
-      addHabit(data);
+      await updateHabit(selectedHabit.id, data);
+      return;
     }
-    setIsModalVisible(false);
+    await addHabit(data);
   };
 
   const handleModalClose = () => {
@@ -75,6 +75,14 @@ export default function HabitsScreen() {
   return (
     <Screen scrollable padded>
       <MoreScreenHeader title="My Habits" subtitle="Daily Tracking" />
+
+      {error && (
+        <Card variant="outlined" style={styles.errorCard}>
+          <Text variant="small" color={Colors.danger} accessibilityRole="alert">
+            {error}
+          </Text>
+        </Card>
+      )}
 
       {/* Stats Summary */}
       <Card variant="gradient" style={styles.summaryCard}>
@@ -151,9 +159,13 @@ export default function HabitsScreen() {
             key={habit.id}
             habit={habit}
             isCompleted={isCompletedToday(habit)}
-            onToggle={() => toggleHabit(habit.id)}
+            onToggle={() => {
+              void toggleHabit(habit.id).catch(() => undefined);
+            }}
             onEdit={() => handleEditPress(habit)}
-            onDelete={() => deleteHabit(habit.id)}
+            onDelete={() => {
+              void deleteHabit(habit.id).catch(() => undefined);
+            }}
           />
         ))}
       </ScrollView>
@@ -196,6 +208,12 @@ export default function HabitsScreen() {
 }
 
 const styles = StyleSheet.create({
+  errorCard: {
+    marginBottom: Spacing.md,
+    padding: Spacing.md,
+    backgroundColor: Colors.dangerSoft,
+    borderColor: Colors.danger + "30",
+  },
   summaryCard: {
     marginBottom: Spacing.xl,
     padding: Spacing.lg,

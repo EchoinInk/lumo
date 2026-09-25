@@ -30,14 +30,24 @@ export default function BrainDumpScreen() {
     }
   };
 
-  const handleConvert = (
+  const handleConvert = async (
     entry: BrainDumpEntry,
     target: BrainDumpConversionTarget,
     scheduledAt?: string,
   ) => {
     if (target === "task") {
-      const task = createTask({ title: entry.text, priority: "medium" });
-      convertEntry(entry.id, target, task?.id);
+      try {
+        const result = await createTask({
+          title: entry.text,
+          priority: "medium",
+        });
+        convertEntry(entry.id, target, result.value.id);
+      } catch {
+        Alert.alert(
+          "Task wasn't created",
+          "Your note is still here. Please try converting it again.",
+        );
+      }
       return;
     }
 

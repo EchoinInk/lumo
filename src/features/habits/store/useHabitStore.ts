@@ -1,3 +1,7 @@
+import {
+  savedMutation,
+  type DurableMutationResult,
+} from "@/services/storage/durableMutation";
 import { create } from "zustand";
 import * as habitLocalRepository from "../services/habitLocalRepository";
 import { CreateHabitInput, Habit, UpdateHabitInput } from "../types/habit";
@@ -11,25 +15,34 @@ interface HabitState {
 
 interface HabitActions {
   hydrate: () => Promise<void>;
-  addHabit: (input: CreateHabitInput) => Promise<void>;
-  updateHabit: (id: string, updates: UpdateHabitInput) => Promise<void>;
-  deleteHabit: (id: string) => Promise<void>;
-  completeHabit: (id: string, date: string) => Promise<void>;
-  uncompleteHabit: (id: string, date: string) => Promise<void>;
+  addHabit: (input: CreateHabitInput) => Promise<DurableMutationResult<Habit>>;
+  updateHabit: (
+    id: string,
+    updates: UpdateHabitInput,
+  ) => Promise<DurableMutationResult<Habit>>;
+  deleteHabit: (id: string) => Promise<DurableMutationResult<void>>;
+  completeHabit: (
+    id: string,
+    date: string,
+  ) => Promise<DurableMutationResult<Habit>>;
+  uncompleteHabit: (
+    id: string,
+    date: string,
+  ) => Promise<DurableMutationResult<Habit>>;
   clearError: () => void;
 }
 
 type HabitStore = HabitState & HabitActions;
+const completionMutations = new Map<
+  string,
+  Promise<DurableMutationResult<Habit>>
+>();
 
-const initialState: HabitState = {
+export const useHabitStore = create<HabitStore>((set) => ({
   habits: [],
   isHydrated: false,
   isLoading: false,
   error: null,
-};
-
-export const useHabitStore = create<HabitStore>((set) => ({
-  ...initialState,
 
   hydrate: async () => {
     set({ isLoading: true, error: null });
@@ -37,7 +50,6 @@ export const useHabitStore = create<HabitStore>((set) => ({
       const habits = await habitLocalRepository.getHabits();
       set({ habits, isHydrated: true, isLoading: false });
     } catch (error) {
-      console.error("[useHabitStore] Hydration failed:", error);
       set({
         error: "Habits need recovery before they can be used.",
         isHydrated: true,
@@ -47,81 +59,90 @@ export const useHabitStore = create<HabitStore>((set) => ({
     }
   },
 
-  addHabit: async (input: CreateHabitInput) => {
-    set({ isLoading: true, error: null });
+  addHabit: async (input) => {
+    set({ error: null });
     try {
-      const newHabit = await habitLocalRepository.createHabit(input);
-      set((state) => ({
-        habits: [...state.habits, newHabit],
-        isLoading: false,
-      }));
+      const habit = await habitLocalRepository.createHabit(input);
+      set((state) => ({ habits: [...state.habits, habit] }));
+      return savedMutation(habit);
     } catch (error) {
-      console.error("[useHabitStore] Failed to add habit:", error);
-      set({
-        error: "Could not add your habit. Please try again.",
-        isLoading: false,
-      });
+      set({ error: "Could not add your habit. Please try again." });
+      throw error;
     }
   },
 
-  updateHabit: async (id: string, updates: UpdateHabitInput) => {
-    set({ isLoading: true, error: null });
+  updateHabit: async (id, updates) => {
+    set({ error: null });
     try {
-      const updatedHabit = await habitLocalRepository.updateHabit(id, updates);
+      const habit = await habitLocalRepository.updateHabit(id, updates);
       set((state) => ({
-        habits: state.habits.map((h) => (h.id === id ? updatedHabit : h)),
-        isLoading: false,
+        habits: state.habits.map((item) => (item.id === id ? habit : item)),
       }));
+      return savedMutation(habit);
     } catch (error) {
-      console.error(`[useHabitStore] Failed to update habit ${id}:`, error);
-      set({
-        error: "Could not update your habit. Please try again.",
-        isLoading: false,
-      });
+      set({ error: "Could not update your habit. Please try again." });
+      throw error;
     }
   },
 
-  deleteHabit: async (id: string) => {
-    set({ isLoading: true, error: null });
+  deleteHabit: async (id) => {
+    set({ error: null });
     try {
       await habitLocalRepository.deleteHabit(id);
       set((state) => ({
-        habits: state.habits.filter((h) => h.id !== id),
-        isLoading: false,
+        habits: state.habits.filter((habit) => habit.id !== id),
       }));
+      return savedMutation(undefined);
     } catch (error) {
-      console.error(`[useHabitStore] Failed to delete habit ${id}:`, error);
-      set({
-        error: "Could not delete your habit. Please try again.",
-        isLoading: false,
-      });
+      set({ error: "Could not delete your habit. Please try again." });
+      throw error;
     }
   },
 
-  completeHabit: async (id: string, date: string) => {
+  completeHabit: (id, date) => {
+    const key = `${id}:${date}`;
+    const existing = completionMutations.get(key);
+    if (existing) return existing;
+
     set({ error: null });
-    try {
-      const updatedHabit = await habitLocalRepository.completeHabit(id, date);
-      set((state) => ({
-        habits: state.habits.map((h) => (h.id === id ? updatedHabit : h)),
-      }));
-    } catch (error) {
-      console.error(`[useHabitStore] Failed to complete habit ${id}:`, error);
-      set({ error: "Could not mark habit complete. Please try again." });
-    }
+    const mutation = habitLocalRepository
+      .completeHabit(id, date)
+      .then((habit) => {
+        set((state) => ({
+          habits: state.habits.map((item) => (item.id === id ? habit : item)),
+        }));
+        return savedMutation(habit);
+      })
+      .catch((error) => {
+        set({ error: "Could not mark habit complete. Please try again." });
+        throw error;
+      })
+      .finally(() => completionMutations.delete(key));
+    completionMutations.set(key, mutation);
+    return mutation;
   },
 
-  uncompleteHabit: async (id: string, date: string) => {
+  uncompleteHabit: (id, date) => {
+    const key = `${id}:${date}`;
+    const existing = completionMutations.get(key);
+    if (existing) return existing;
+
     set({ error: null });
-    try {
-      const updatedHabit = await habitLocalRepository.uncompleteHabit(id, date);
-      set((state) => ({
-        habits: state.habits.map((h) => (h.id === id ? updatedHabit : h)),
-      }));
-    } catch (error) {
-      console.error(`[useHabitStore] Failed to uncomplete habit ${id}:`, error);
-      set({ error: "Could not update habit. Please try again." });
-    }
+    const mutation = habitLocalRepository
+      .uncompleteHabit(id, date)
+      .then((habit) => {
+        set((state) => ({
+          habits: state.habits.map((item) => (item.id === id ? habit : item)),
+        }));
+        return savedMutation(habit);
+      })
+      .catch((error) => {
+        set({ error: "Could not update habit. Please try again." });
+        throw error;
+      })
+      .finally(() => completionMutations.delete(key));
+    completionMutations.set(key, mutation);
+    return mutation;
   },
 
   clearError: () => set({ error: null }),

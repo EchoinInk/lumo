@@ -141,3 +141,25 @@ WP2.2 is complete. Every active local domain now has a versioned schema and stri
 | **Scope preserved** | No SQLite/database framework, storage key replacement, screen redesign, cross-domain reset, or WP2.3 mutation-serialization work was introduced. WP2.4 date semantics remain unchanged. |
 | **Status** | **Verified** |
 | **Gate effect** | WP2.2 is satisfied. **WP2.3 has not begun.** Phase 2 remains active. |
+
+---
+
+## WP2.3 - Verified
+
+WP2.3 is complete. Active task and habit mutations now report success only after the validated local write returns, conflicting read-modify-write operations are serialized, failures reject through the store and hook layers, and forms remain open with retryable feedback when persistence fails.
+
+## Completion record
+
+| Field | Record |
+|---|---|
+| **Package** | **WP2.3 — Standardize durable mutations and serialize conflicting writes** |
+| **Dependency gate** | WP2.1–WP2.2 were verified before implementation. Canonical ownership, existing keys, schema envelopes, recovery guards and domain-only recovery behavior were preserved. |
+| **Mutation contract** | Added a shared `DurableMutationResult<T>` success contract and classified `DurableMutationError` (`not-found`, `conflict`, `write-failed`). Task and habit store/hook actions return a saved result only after repository persistence completes and reject failures to their caller. |
+| **Serialization and conflicts** | Task and habit repositories use non-poisoning per-domain promise queues around every read-modify-write mutation. Each queued operation reloads the latest validated record before applying its change. Reads wait for queued writes; habit tombstones remain in the full stored collection; an update queued after deletion rejects as a conflict and cannot resurrect the entity. |
+| **UI durability** | Task and habit stores are durable-first: memory changes only after local persistence succeeds, so failed writes leave the last saved state intact. Active task/habit forms await the durable result, suppress duplicate submissions synchronously, stay open on failure, display inline retry guidance and cannot be dismissed while a write is in flight. Non-form failures are surfaced by task/habit error banners. Task toggles and habit completion interactions coalesce duplicate in-flight taps. |
+| **Dependent active flows** | Routine-bundle task creation is awaited before showing applied state. Brain-dump and morning-planning task conversions wait for the durable task result before recording the destination identifier. Persistence remains in repositories/stores rather than UI components. |
+| **Automated checks (2026-09-25)** | Credential-free config validation passed; TypeScript passed; tests **130 passed, 0 failed**; lint **0 errors, 84 existing warnings**; Expo Doctor **20/20**; web export passed; iOS Hermes production export passed; Android Hermes production export passed; `git diff --check` passed. New tests cover concurrent creates, overlapping partial edits, simultaneous completion dates, delete/update conflict ordering, injected write failure, memory rollback, retry, duplicate taps/submissions and restart hydration after a failed operation. |
+| **Failure/restart evidence** | The deterministic storage-failure test injects a task write exception, verifies that the store retains the prior durable value, clears memory to simulate restart, rehydrates the same prior value from storage, then removes the fault and verifies the retry is saved. This is automated local-storage evidence; no physical-device failure injection is claimed. |
+| **Scope preserved** | No database replacement, storage-key migration, optimistic unsaved-state model, sync protocol redesign, screen redesign or WP2.4 local-date work was introduced. Expo SDK 55 versioned documentation was reviewed before implementation. |
+| **Status** | **Verified** |
+| **Gate effect** | WP2.3 is satisfied. **WP2.4 has not begun.** Phase 2 remains active. |

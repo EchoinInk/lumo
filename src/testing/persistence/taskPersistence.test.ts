@@ -84,14 +84,12 @@ export async function testTaskStoreAddTaskPersistsSameId(): Promise<void> {
   deleteKey(StorageKeys.TASKS);
   useTaskStore.setState({ tasks: [], hasHydrated: true });
 
-  const created = useTaskStore.getState().addTask({
+  const created = await useTaskStore.getState().addTask({
     title: "Quick task",
     priority: "low",
   });
 
-  await new Promise((resolve) => setTimeout(resolve, 0));
-
   const stored = await taskLocalRepository.getTasks();
   assertEqual(stored.length, 1, "addTask should persist one task");
-  assertEqual(stored[0]?.id, created.id, "store and MMKV ids should match");
+  assertEqual(stored[0]?.id, created.value.id, "store and MMKV ids should match");
 }

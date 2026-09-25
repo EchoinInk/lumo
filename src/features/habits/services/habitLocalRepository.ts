@@ -1,42 +1,83 @@
 import { migrateHabitStorage } from "@/services/storage/canonicalMigrations";
+import {
+  DurableMutationError,
+  type DurableMutationOperation,
+  SerializedMutationQueue,
+} from "@/services/storage/durableMutation";
 import { habitStorageDefinition } from "@/services/storage/domainSchemas";
-import { loadVersionedData, saveVersionedData } from "@/services/storage/versionedStorage";
+import {
+  loadVersionedData,
+  saveVersionedData,
+} from "@/services/storage/versionedStorage";
 import { CreateHabitInput, Habit, UpdateHabitInput } from "../types/habit";
 
-export class HabitLocalRepositoryError extends Error {
-  constructor(
-    message: string,
-    public cause?: unknown,
-  ) {
-    super(message);
-    this.name = "HabitLocalRepositoryError";
-  }
+const mutations = new SerializedMutationQueue();
+
+function loadAllHabits(): Habit[] {
+  migrateHabitStorage();
+  return loadVersionedData(habitStorageDefinition).data;
 }
 
-export async function getHabits(): Promise<Habit[]> {
-  migrateHabitStorage();
-  return loadVersionedData(habitStorageDefinition).data.filter(
-    (habit) => !habit.deletedAt,
+function persistHabits(habits: Habit[]): void {
+  saveVersionedData(habitStorageDefinition, habits);
+}
+
+function mutate<T>(
+  operation: DurableMutationOperation,
+  mutation: () => T,
+): Promise<T> {
+  return mutations.run(() => {
+    try {
+      return mutation();
+    } catch (cause) {
+      if (cause instanceof DurableMutationError) throw cause;
+      throw new DurableMutationError(
+        "habits",
+        operation,
+        "write-failed",
+        `Habits could not be ${operation === "delete" ? "deleted" : "saved"}.`,
+        cause,
+      );
+    }
+  });
+}
+
+function findActiveHabitIndex(habits: Habit[], id: string): number {
+  return habits.findIndex((habit) => habit.id === id && !habit.deletedAt);
+}
+
+function unavailableHabit(
+  operation: DurableMutationOperation,
+  id: string,
+  habits: Habit[],
+): DurableMutationError {
+  const wasDeleted = habits.some((habit) => habit.id === id && habit.deletedAt);
+  return new DurableMutationError(
+    "habits",
+    operation,
+    wasDeleted ? "conflict" : "not-found",
+    wasDeleted
+      ? `Habit ${id} was deleted before it could be changed.`
+      : `Habit ${id} was not found.`,
   );
 }
 
+export async function getHabits(): Promise<Habit[]> {
+  await mutations.waitForIdle();
+  return loadAllHabits().filter((habit) => !habit.deletedAt);
+}
+
 export async function getHabitById(id: string): Promise<Habit | null> {
-  try {
-    const habits = await getHabits();
-    return habits.find((h) => h.id === id) || null;
-  } catch (error) {
-    console.error(`[HabitLocalRepository] Failed to get habit ${id}:`, error);
-    return null;
-  }
+  const habits = await getHabits();
+  return habits.find((habit) => habit.id === id) ?? null;
 }
 
 export async function createHabit(input: CreateHabitInput): Promise<Habit> {
-  try {
-    const habits = await getHabits();
+  return mutate("create", () => {
+    const habits = loadAllHabits();
     const now = new Date().toISOString();
-
     const newHabit: Habit = {
-      id: `habit_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`,
+      id: `habit_${Date.now()}_${Math.random().toString(36).slice(2, 11)}`,
       ...input,
       streakCount: 0,
       completedDates: [],
@@ -44,184 +85,119 @@ export async function createHabit(input: CreateHabitInput): Promise<Habit> {
       updatedAt: now,
       deletedAt: null,
       syncStatus: "pending",
+      pendingSync: true,
       version: 1,
     };
 
-    const updated = [...habits, newHabit];
-    saveVersionedData(habitStorageDefinition, updated);
-
+    persistHabits([...habits, newHabit]);
     return newHabit;
-  } catch (error) {
-    console.error("[HabitLocalRepository] Failed to create habit:", error);
-    throw new HabitLocalRepositoryError("Failed to create habit", error);
-  }
+  });
 }
 
 export async function updateHabit(
   id: string,
   updates: UpdateHabitInput,
 ): Promise<Habit> {
-  try {
-    const habits = await getHabits();
-    const habitIndex = habits.findIndex((h) => h.id === id);
+  return mutate("update", () => {
+    const habits = loadAllHabits();
+    const habitIndex = findActiveHabitIndex(habits, id);
+    if (habitIndex === -1) throw unavailableHabit("update", id, habits);
 
-    if (habitIndex === -1) {
-      throw new HabitLocalRepositoryError(`Habit ${id} not found`);
-    }
-
+    const current = habits[habitIndex];
     const updatedHabit: Habit = {
-      ...habits[habitIndex],
+      ...current,
       ...updates,
       updatedAt: new Date().toISOString(),
       syncStatus: "pending",
-      version: (habits[habitIndex].version || 1) + 1,
+      pendingSync: true,
+      version: (current.version ?? 0) + 1,
     };
-
     const updated = [...habits];
     updated[habitIndex] = updatedHabit;
-    saveVersionedData(habitStorageDefinition, updated);
-
+    persistHabits(updated);
     return updatedHabit;
-  } catch (error) {
-    console.error(
-      `[HabitLocalRepository] Failed to update habit ${id}:`,
-      error,
-    );
-    throw new HabitLocalRepositoryError(`Failed to update habit ${id}`, error);
-  }
+  });
 }
 
 export async function deleteHabit(id: string): Promise<void> {
-  try {
-    const habits = await getHabits();
-    const habitIndex = habits.findIndex((h) => h.id === id);
+  return mutate("delete", () => {
+    const habits = loadAllHabits();
+    const habitIndex = findActiveHabitIndex(habits, id);
+    if (habitIndex === -1) return;
 
-    if (habitIndex === -1) {
-      console.warn(`[HabitLocalRepository] Habit ${id} not found for deletion`);
-      return;
-    }
-
-    // Soft delete
+    const now = new Date().toISOString();
     const updated = [...habits];
     updated[habitIndex] = {
       ...updated[habitIndex],
-      deletedAt: new Date().toISOString(),
-      updatedAt: new Date().toISOString(),
+      deletedAt: now,
+      updatedAt: now,
       syncStatus: "pending",
+      pendingSync: true,
+      version: (updated[habitIndex].version ?? 0) + 1,
     };
-
-    saveVersionedData(habitStorageDefinition, updated);
-  } catch (error) {
-    console.error(
-      `[HabitLocalRepository] Failed to delete habit ${id}:`,
-      error,
-    );
-    throw new HabitLocalRepositoryError(`Failed to delete habit ${id}`, error);
-  }
+    persistHabits(updated);
+  });
 }
 
 export async function hardDeleteHabit(id: string): Promise<void> {
-  try {
-    const habits = await getHabits();
-    const updated = habits.filter((h) => h.id !== id);
-    saveVersionedData(habitStorageDefinition, updated);
-  } catch (error) {
-    console.error(
-      `[HabitLocalRepository] Failed to hard delete habit ${id}:`,
-      error,
-    );
-    throw new HabitLocalRepositoryError(
-      `Failed to hard delete habit ${id}`,
-      error,
-    );
-  }
+  return mutate("delete", () => {
+    persistHabits(loadAllHabits().filter((habit) => habit.id !== id));
+  });
 }
 
 export async function completeHabit(id: string, date: string): Promise<Habit> {
-  try {
-    const habits = await getHabits();
-    const habitIndex = habits.findIndex((h) => h.id === id);
-
-    if (habitIndex === -1) {
-      throw new HabitLocalRepositoryError(`Habit ${id} not found`);
-    }
+  return mutate("complete", () => {
+    const habits = loadAllHabits();
+    const habitIndex = findActiveHabitIndex(habits, id);
+    if (habitIndex === -1) throw unavailableHabit("complete", id, habits);
 
     const habit = habits[habitIndex];
-    if (habit.completedDates.includes(date)) {
-      // Already completed, return as-is
-      return habit;
-    }
+    if (habit.completedDates.includes(date)) return habit;
 
+    const completedDates = [...habit.completedDates, date];
     const updatedHabit: Habit = {
       ...habit,
-      completedDates: [...habit.completedDates, date],
-      streakCount: calculateStreak([...habit.completedDates, date]),
+      completedDates,
+      streakCount: calculateStreak(completedDates),
       updatedAt: new Date().toISOString(),
       syncStatus: "pending",
-      version: (habit.version || 1) + 1,
+      pendingSync: true,
+      version: (habit.version ?? 0) + 1,
     };
-
     const updated = [...habits];
     updated[habitIndex] = updatedHabit;
-    saveVersionedData(habitStorageDefinition, updated);
-
+    persistHabits(updated);
     return updatedHabit;
-  } catch (error) {
-    console.error(
-      `[HabitLocalRepository] Failed to complete habit ${id}:`,
-      error,
-    );
-    throw new HabitLocalRepositoryError(
-      `Failed to complete habit ${id}`,
-      error,
-    );
-  }
+  });
 }
 
 export async function uncompleteHabit(
   id: string,
   date: string,
 ): Promise<Habit> {
-  try {
-    const habits = await getHabits();
-    const habitIndex = habits.findIndex((h) => h.id === id);
-
-    if (habitIndex === -1) {
-      throw new HabitLocalRepositoryError(`Habit ${id} not found`);
-    }
+  return mutate("uncomplete", () => {
+    const habits = loadAllHabits();
+    const habitIndex = findActiveHabitIndex(habits, id);
+    if (habitIndex === -1) throw unavailableHabit("uncomplete", id, habits);
 
     const habit = habits[habitIndex];
-    if (!habit.completedDates.includes(date)) {
-      // Not completed, return as-is
-      return habit;
-    }
+    if (!habit.completedDates.includes(date)) return habit;
 
+    const completedDates = habit.completedDates.filter((item) => item !== date);
     const updatedHabit: Habit = {
       ...habit,
-      completedDates: habit.completedDates.filter((d) => d !== date),
-      streakCount: calculateStreak(
-        habit.completedDates.filter((d) => d !== date),
-      ),
+      completedDates,
+      streakCount: calculateStreak(completedDates),
       updatedAt: new Date().toISOString(),
       syncStatus: "pending",
-      version: (habit.version || 1) + 1,
+      pendingSync: true,
+      version: (habit.version ?? 0) + 1,
     };
-
     const updated = [...habits];
     updated[habitIndex] = updatedHabit;
-    saveVersionedData(habitStorageDefinition, updated);
-
+    persistHabits(updated);
     return updatedHabit;
-  } catch (error) {
-    console.error(
-      `[HabitLocalRepository] Failed to uncomplete habit ${id}:`,
-      error,
-    );
-    throw new HabitLocalRepositoryError(
-      `Failed to uncomplete habit ${id}`,
-      error,
-    );
-  }
+  });
 }
 
 function calculateStreak(completedDates: string[]): number {
@@ -230,24 +206,15 @@ function calculateStreak(completedDates: string[]): number {
   const sorted = [...completedDates].sort().reverse();
   const today = new Date().toISOString().split("T")[0];
   const yesterday = new Date(Date.now() - 86400000).toISOString().split("T")[0];
-
-  // Check if streak is active (completed today or yesterday)
-  if (!sorted.includes(today) && !sorted.includes(yesterday)) {
-    return 0;
-  }
+  if (!sorted.includes(today) && !sorted.includes(yesterday)) return 0;
 
   let streak = 0;
-  let currentDate = new Date();
-
+  const currentDate = new Date();
   while (true) {
     const dateStr = currentDate.toISOString().split("T")[0];
-    if (sorted.includes(dateStr)) {
-      streak++;
-      currentDate.setDate(currentDate.getDate() - 1);
-    } else {
-      break;
-    }
+    if (!sorted.includes(dateStr)) break;
+    streak += 1;
+    currentDate.setDate(currentDate.getDate() - 1);
   }
-
   return streak;
 }

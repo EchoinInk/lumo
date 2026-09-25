@@ -84,6 +84,7 @@ export default function TasksScreen() {
     completedCount,
     totalCount,
     error,
+    mutationError,
     isLoading,
     clearError,
   } = useTasks();
@@ -139,24 +140,27 @@ export default function TasksScreen() {
         { text: "Cancel", style: "cancel" },
         {
           text: "Park instead",
-          onPress: () => updateTask(task.id, { dueDate: tomorrow }),
+          onPress: () => {
+            void updateTask(task.id, { dueDate: tomorrow }).catch(() => undefined);
+          },
         },
         {
           text: "Delete",
           style: "destructive",
-          onPress: () => deleteTask(task.id),
+          onPress: () => {
+            void deleteTask(task.id).catch(() => undefined);
+          },
         },
       ],
     );
   };
 
-  const handleModalSubmit = (data: CreateTaskInput) => {
+  const handleModalSubmit = async (data: CreateTaskInput) => {
     if (modalMode === "edit" && selectedTask) {
-      updateTask(selectedTask.id, data);
-    } else {
-      createTask(data);
+      await updateTask(selectedTask.id, data);
+      return;
     }
-    setIsModalVisible(false);
+    await createTask(data);
   };
 
   const handleModalClose = () => {
@@ -164,14 +168,16 @@ export default function TasksScreen() {
     setSelectedTask(undefined);
   };
 
-  const handleUseBundle = (bundle: RoutineBundle) => {
+  const handleUseBundle = async (bundle: RoutineBundle) => {
     if (!applyGuard.begin(bundle.id)) return;
 
     setApplyingBundleIds((current) =>
       current.includes(bundle.id) ? current : [...current, bundle.id],
     );
     try {
-      createTasksFromBundle(bundle).forEach(createTask);
+      for (const task of createTasksFromBundle(bundle)) {
+        await createTask(task);
+      }
       setAppliedBundleIds((current) =>
         current.includes(bundle.id) ? current : [...current, bundle.id],
       );
@@ -186,12 +192,11 @@ export default function TasksScreen() {
           );
         }, 1200),
       );
-    } catch (error) {
+    } catch {
       applyGuard.release(bundle.id);
       setApplyingBundleIds((current) =>
         current.filter((bundleId) => bundleId !== bundle.id),
       );
-      throw error;
     }
   };
 
@@ -233,6 +238,13 @@ export default function TasksScreen() {
   return (
     <Screen scrollable padded>
       {/* Header */}
+      {mutationError && (
+        <Card variant="outlined" style={styles.errorCard}>
+          <Text variant="small" color={Colors.danger} accessibilityRole="alert">
+            {mutationError}
+          </Text>
+        </Card>
+      )}
       <SectionHeader
         title="Your Tasks"
         subtitle={`${completedCount} of ${totalCount} completed`}
@@ -327,7 +339,9 @@ export default function TasksScreen() {
           >
             <View style={styles.taskRow}>
               <TouchableOpacity
-                onPress={() => toggleTask(task.id)}
+                onPress={() => {
+                  void toggleTask(task.id).catch(() => undefined);
+                }}
                 style={styles.taskContent}
                 activeOpacity={0.7}
                 accessibilityLabel={`${task.completed ? "Completed" : "Pending"} task: ${task.title}`}

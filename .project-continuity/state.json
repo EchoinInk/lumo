@@ -47,12 +47,36 @@
       "from": "task:wp2.2",
       "to": "test:wp2.2-verification",
       "type": "verified_by"
+    },
+    {
+      "created_at": "2026-09-25T05:37:35.554777Z",
+      "from": "phase:2",
+      "to": "task:wp2.3",
+      "type": "contains"
+    },
+    {
+      "created_at": "2026-09-25T05:37:39.986393Z",
+      "from": "task:wp2.3",
+      "to": "task:wp2.2",
+      "type": "depends_on"
+    },
+    {
+      "created_at": "2026-09-25T05:37:45.100958Z",
+      "from": "task:wp2.3",
+      "to": "artifact:wp2.3-durable-mutations",
+      "type": "produces"
+    },
+    {
+      "created_at": "2026-09-25T05:37:49.764128Z",
+      "from": "task:wp2.3",
+      "to": "test:wp2.3-verification",
+      "type": "verified_by"
     }
   ],
   "meta": {
     "created_at": "2026-09-24T11:53:49.499720Z",
     "schema_version": "1.0",
-    "updated_at": "2026-09-25T05:11:37.694301Z"
+    "updated_at": "2026-09-25T05:37:49.764237Z"
   },
   "nodes": {
     "artifact:wp2.1-ownership": {
@@ -82,6 +106,21 @@
       "truth": "observed",
       "type": "artifact",
       "updated_at": "2026-09-25T05:11:37.128493Z"
+    },
+    "artifact:wp2.3-durable-mutations": {
+      "id": "artifact:wp2.3-durable-mutations",
+      "sources": [
+        "src/services/storage/durableMutation.ts",
+        "src/features/tasks/store/useTaskStore.ts",
+        "src/features/habits/store/useHabitStore.ts",
+        "src/features/tasks/components/TaskFormModal.tsx",
+        "src/features/habits/components/HabitFormModal.tsx"
+      ],
+      "status": "current",
+      "title": "Durable local mutation contract and serialized repositories",
+      "truth": "observed",
+      "type": "artifact",
+      "updated_at": "2026-09-25T05:37:25.701241Z"
     },
     "decision:g1-partial-acceptance": {
       "id": "decision:g1-partial-acceptance",
@@ -150,6 +189,20 @@
       "type": "task",
       "updated_at": "2026-09-25T05:11:37.010877Z"
     },
+    "task:wp2.3": {
+      "id": "task:wp2.3",
+      "sources": [
+        "docs/lumo-implementation-progress.md#wp23-verified",
+        "src/services/storage/durableMutation.ts",
+        "src/features/tasks/services/taskLocalRepository.ts",
+        "src/features/habits/services/habitLocalRepository.ts"
+      ],
+      "status": "complete",
+      "title": "Standardize durable mutations and serialize conflicting writes",
+      "truth": "observed",
+      "type": "task",
+      "updated_at": "2026-09-25T05:37:19.818011Z"
+    },
     "test:wp2.1-verification": {
       "id": "test:wp2.1-verification",
       "results": [
@@ -189,6 +242,26 @@
       "truth": "observed",
       "type": "test",
       "updated_at": "2026-09-25T05:11:37.249757Z"
+    },
+    "test:wp2.3-verification": {
+      "id": "test:wp2.3-verification",
+      "results": [
+        "TypeScript passed",
+        "130 tests passed",
+        "lint 0 errors",
+        "Expo Doctor 20/20",
+        "web/iOS/Android exports passed",
+        "injected write failure, rollback, retry and restart passed"
+      ],
+      "sources": [
+        "src/testing/persistence/durableMutations.test.ts",
+        "docs/lumo-implementation-progress.md#wp23-verified"
+      ],
+      "status": "passed",
+      "title": "WP2.3 durability and concurrency verification",
+      "truth": "observed",
+      "type": "test",
+      "updated_at": "2026-09-25T05:37:31.679034Z"
     }
   },
   "project": "project:lumo"

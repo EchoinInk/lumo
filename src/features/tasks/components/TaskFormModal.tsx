@@ -1,9 +1,10 @@
 import { Input } from "@/src/components/ui/Input";
 import { Text } from "@/src/components/ui/Text";
 import { Colors, Radius, Shadows, Spacing } from "@/src/theme/tokens";
+import { MutationSubmissionGuard } from "@/src/services/storage/durableMutation";
 import { LinearGradient } from "expo-linear-gradient";
 import { Calendar, Check, Clock, Plus, X } from "lucide-react-native";
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import {
     Keyboard,
     KeyboardAvoidingView,
@@ -25,7 +26,7 @@ interface TaskFormModalProps {
   visible: boolean;
   mode: "create" | "edit";
   initialTask?: Task;
-  onSubmit: (data: CreateTaskInput) => void;
+  onSubmit: (data: CreateTaskInput) => Promise<unknown>;
   onClose: () => void;
 }
 
@@ -56,10 +57,15 @@ export function TaskFormModal({
   const [energyRequired, setEnergyRequired] = useState<EnergyLevel | undefined>();
   const [recurrence, setRecurrence] = useState<RecurrencePattern | undefined>();
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [submitError, setSubmitError] = useState<string | null>(null);
+  const submissionGuard = useRef(new MutationSubmissionGuard()).current;
 
   // Initialize form when modal opens or initialTask changes
   useEffect(() => {
     if (visible) {
+      setSubmitError(null);
+      submissionGuard.end();
+      setIsSubmitting(false);
       if (mode === "edit" && initialTask) {
         setTitle(initialTask.title);
         setNotes(initialTask.description || "");
@@ -95,12 +101,13 @@ export function TaskFormModal({
         setDueTime("");
       }
     }
-  }, [visible, mode, initialTask]);
+  }, [visible, mode, initialTask, submissionGuard]);
 
   const handleSubmit = async () => {
-    if (!title.trim()) return;
+    if (!title.trim() || !submissionGuard.begin()) return;
 
     setIsSubmitting(true);
+    setSubmitError(null);
     Keyboard.dismiss();
 
     // Calculate dueDate from selection
@@ -111,21 +118,27 @@ export function TaskFormModal({
       dueDate = new Date(Date.now() + 86400000).toISOString().split("T")[0];
     }
 
-    onSubmit({
-      title: title.trim(),
-      description: notes.trim() || undefined,
-      priority,
-      energyRequired,
-      recurrence,
-      dueDate,
-      dueTime: dueTime.trim() || undefined,
-    });
-
-    setIsSubmitting(false);
-    onClose();
+    try {
+      await onSubmit({
+        title: title.trim(),
+        description: notes.trim() || undefined,
+        priority,
+        energyRequired,
+        recurrence,
+        dueDate,
+        dueTime: dueTime.trim() || undefined,
+      });
+      onClose();
+    } catch {
+      setSubmitError("This task wasn't saved. Please try again.");
+    } finally {
+      submissionGuard.end();
+      setIsSubmitting(false);
+    }
   };
 
   const handleClose = () => {
+    if (submissionGuard.isActive()) return;
     Keyboard.dismiss();
     onClose();
   };
@@ -354,6 +367,16 @@ export function TaskFormModal({
                   </ScrollView>
 
                   {/* Action Buttons */}
+                  {submitError && (
+                    <Text
+                      variant="small"
+                      color={Colors.danger}
+                      style={styles.submitError}
+                      accessibilityRole="alert"
+                    >
+                      {submitError}
+                    </Text>
+                  )}
                   <View style={styles.actions}>
                     <TouchableOpacity
                       onPress={handleClose}
@@ -517,6 +540,9 @@ const styles = StyleSheet.create({
     paddingTop: Spacing.md,
     borderTopWidth: 1,
     borderTopColor: Colors.border,
+  },
+  submitError: {
+    marginTop: Spacing.sm,
   },
   cancelButton: {
     paddingVertical: Spacing.md,

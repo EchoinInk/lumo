@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect } from "react";
 import { useTaskStore } from "../store/useTaskStore";
 import { CreateTaskInput, UpdateTaskInput } from "../types/task";
 
@@ -19,32 +19,24 @@ export function useTasks() {
   const {
     tasks,
     hasHydrated,
+    hydrationError,
+    mutationError,
     hydrateTasks,
     addTask,
     toggleTask,
     deleteTask,
     updateTask,
+    clearMutationError,
   } = useTaskStore();
-
-  // Local error state for UI feedback
-  const [error, setError] = useState<string | null>(null);
 
   // Hydrate from local storage on first mount
   useEffect(() => {
     if (!hasHydrated) {
       hydrateTasks().catch((err) => {
         console.error("[useTasks] Failed to hydrate tasks:", err);
-        setError("Unable to load your tasks. They'll appear when ready.");
       });
     }
   }, [hasHydrated, hydrateTasks]);
-
-  // Clear error when tasks update successfully
-  useEffect(() => {
-    if (tasks.length > 0 || hasHydrated) {
-      setError(null);
-    }
-  }, [tasks, hasHydrated]);
 
   // Derived selectors
   const activeTasks = tasks.filter((task) => !task.completed);
@@ -56,40 +48,39 @@ export function useTasks() {
     totalCount > 0 ? Math.round((completedCount / totalCount) * 100) : 0;
 
   // Wrapped actions with error handling
-  const handleCreateTask = (input: CreateTaskInput) => {
+  const handleCreateTask = async (input: CreateTaskInput) => {
     try {
-      return addTask(input);
+      return await addTask(input);
     } catch (err) {
       console.error("[useTasks] Failed to create task:", err);
-      setError("Couldn't save your task. Please try again.");
-      return null;
+      throw err;
     }
   };
 
-  const handleToggleTask = (id: string) => {
+  const handleToggleTask = async (id: string) => {
     try {
-      toggleTask(id);
+      return await toggleTask(id);
     } catch (err) {
       console.error("[useTasks] Failed to toggle task:", err);
-      setError("Couldn't update your task. Please try again.");
+      throw err;
     }
   };
 
-  const handleDeleteTask = (id: string) => {
+  const handleDeleteTask = async (id: string) => {
     try {
-      deleteTask(id);
+      return await deleteTask(id);
     } catch (err) {
       console.error("[useTasks] Failed to delete task:", err);
-      setError("Couldn't remove your task. Please try again.");
+      throw err;
     }
   };
 
-  const handleUpdateTask = (id: string, input: UpdateTaskInput) => {
+  const handleUpdateTask = async (id: string, input: UpdateTaskInput) => {
     try {
-      updateTask(id, input);
+      return await updateTask(id, input);
     } catch (err) {
       console.error("[useTasks] Failed to update task:", err);
-      setError("Couldn't update your task. Please try again.");
+      throw err;
     }
   };
 
@@ -98,8 +89,9 @@ export function useTasks() {
     tasks,
     hasHydrated,
     isLoading: !hasHydrated,
-    error,
-    clearError: () => setError(null),
+    error: hydrationError,
+    mutationError,
+    clearError: clearMutationError,
 
     // Derived data
     activeTasks,
