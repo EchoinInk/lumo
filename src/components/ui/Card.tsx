@@ -7,6 +7,8 @@ import {
     View,
     ViewProps,
 } from "react-native";
+import type { AccessibilityState } from "react-native";
+import { composeStyles, interactiveTargetStyle } from "./uiContracts";
 
 type CardVariant =
   | "default"
@@ -22,6 +24,8 @@ interface CardProps extends ViewProps {
   variant?: CardVariant;
   pressable?: boolean;
   onPress?: TouchableOpacityProps["onPress"];
+  onLongPress?: TouchableOpacityProps["onLongPress"];
+  disabled?: boolean;
   padding?: keyof typeof Spacing;
   accessibilityLabel?: string;
   reducedMotion?: boolean;
@@ -32,10 +36,15 @@ export function Card({
   variant = "default",
   pressable = false,
   onPress,
+  onLongPress,
+  disabled = false,
   padding = "lg",
   accessibilityLabel,
   reducedMotion = false,
   className = "",
+  style,
+  accessibilityRole,
+  accessibilityState,
   ...props
 }: CardProps) {
   const paddingValue = variant === "compact" ? Spacing.md : Spacing[padding];
@@ -95,26 +104,15 @@ export function Card({
   };
 
   const variantStyles = getVariantStyles();
+  const forwardedTouchableProps = props as TouchableOpacityProps;
 
   const cardContent = (
     <View
       className={className}
-      style={{
-        backgroundColor: variantStyles.backgroundColor,
-        borderRadius: variantStyles.borderRadius,
-        borderWidth: variantStyles.borderWidth,
-        borderColor: variantStyles.borderColor,
-        overflow: variantStyles.overflow,
-        shadowColor: (variantStyles as any).shadowColor,
-        shadowOffset: (variantStyles as any).shadowOffset,
-        shadowOpacity: (variantStyles as any).shadowOpacity,
-        shadowRadius: (variantStyles as any).shadowRadius,
-        elevation: (variantStyles as any).elevation,
-        padding: paddingValue,
-      }}
+      style={composeStyles(variantStyles, style, { padding: paddingValue })}
       accessible={!!accessibilityLabel}
       accessibilityLabel={accessibilityLabel}
-      accessibilityRole={pressable ? "button" : undefined}
+      accessibilityRole={accessibilityRole}
       {...props}
     >
       {variant === "gradient" ? (
@@ -138,14 +136,22 @@ export function Card({
   if (pressable) {
     return (
       <TouchableOpacity
+        className={className}
+        {...forwardedTouchableProps}
         onPress={onPress}
+        onLongPress={onLongPress}
+        disabled={disabled}
         activeOpacity={reducedMotion ? 0.95 : 0.85}
-        accessibilityRole="button"
+        accessibilityRole={accessibilityRole ?? "button"}
         accessibilityLabel={accessibilityLabel}
-        style={{
-          ...getVariantStyles(),
-          padding: paddingValue,
+        accessibilityState={{
+          ...(accessibilityState as AccessibilityState | undefined),
+          disabled,
         }}
+        style={composeStyles(variantStyles, style, {
+          padding: paddingValue,
+          ...interactiveTargetStyle,
+        })}
       >
         {variant === "gradient" ? (
           <LinearGradient

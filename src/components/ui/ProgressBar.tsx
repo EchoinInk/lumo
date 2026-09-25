@@ -4,6 +4,7 @@ import React from "react";
 import { StyleSheet, View } from "react-native";
 import type { DimensionValue, ViewProps } from "react-native";
 import { Text } from "./Text";
+import { getProgressAccessibilityValue } from "./uiContracts";
 
 interface ProgressBarProps extends ViewProps {
   progress: number;
@@ -21,6 +22,9 @@ export function ProgressBar({
   height = 8,
   className = "",
   style,
+  accessibilityLabel,
+  accessibilityValue,
+  accessibilityRole,
   ...props
 }: ProgressBarProps) {
   const clampedProgress = Math.min(Math.max(progress / 100, 0), 1);
@@ -52,7 +56,15 @@ export function ProgressBar({
     );
 
   return (
-    <View className={className} style={[styles.container, style]} {...props}>
+    <View
+      className={className}
+      {...props}
+      style={[styles.container, style]}
+      accessible
+      accessibilityRole={accessibilityRole ?? "progressbar"}
+      accessibilityLabel={accessibilityLabel ?? label ?? "Progress"}
+      accessibilityValue={getProgressAccessibilityValue(progress, accessibilityValue)}
+    >
       {(showLabel || label) && (
         <View style={styles.labelRow}>
           <Text variant="caption" color={Colors.textSecondary}>

@@ -39,6 +39,7 @@ export function Screen({
   centered = false,
   accessibilityLabel,
   bottomPadding = true,
+  style,
   ...props
 }: ScreenProps) {
   const paddingValue =
@@ -55,18 +56,20 @@ export function Screen({
   const content = (
     <View
       className={`flex-1 ${className}`}
-      style={{
-        backgroundColor,
-        paddingHorizontal: paddingValue,
-        paddingTop: paddingValue,
-        paddingBottom: bottomPaddingValue,
-        maxWidth: UX.content.maxWidth,
-        alignSelf: centered ? "center" : "stretch",
-        width: centered ? "100%" : undefined,
-      }}
+      style={[
+        {
+          backgroundColor,
+          paddingHorizontal: paddingValue,
+          paddingTop: paddingValue,
+          paddingBottom: bottomPaddingValue,
+          maxWidth: UX.content.maxWidth,
+          alignSelf: centered ? "center" : "stretch",
+          width: centered ? "100%" : undefined,
+        },
+        style,
+      ]}
       accessible={!!accessibilityLabel}
       accessibilityLabel={accessibilityLabel}
-      accessibilityRole="adjustable"
       {...props}
     >
       {children}
@@ -75,16 +78,19 @@ export function Screen({
 
   const scrollContent = (
     <ScrollView
-      contentContainerStyle={{
-        flexGrow: 1,
-        paddingHorizontal: paddingValue,
-        paddingTop: paddingValue,
-        paddingBottom: bottomPaddingValue,
-      }}
+      {...scrollViewProps}
+      contentContainerStyle={[
+        {
+          flexGrow: 1,
+          paddingHorizontal: paddingValue,
+          paddingTop: paddingValue,
+          paddingBottom: bottomPaddingValue,
+        },
+        scrollViewProps?.contentContainerStyle,
+      ]}
       showsVerticalScrollIndicator={false}
       keyboardShouldPersistTaps="handled"
       accessible={false}
-      {...scrollViewProps}
     >
       <View
         style={{

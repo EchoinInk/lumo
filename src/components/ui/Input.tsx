@@ -19,10 +19,16 @@ export function Input({
   rightIcon,
   className = '',
   style,
+  accessibilityLabel,
+  accessibilityHint,
+  onFocus,
+  onBlur,
+  nativeID,
   ...props 
 }: InputProps) {
   const [isFocused, setIsFocused] = useState(false);
   const hasError = !!error;
+  const inputId = nativeID ?? (label ? `${label.toLowerCase().replace(/[^a-z0-9]+/g, '-')}-input` : undefined);
 
   const getBorderColor = () => {
     if (hasError) return Colors.danger;
@@ -40,16 +46,32 @@ export function Input({
       <View style={[styles.inputContainer, { borderColor: getBorderColor() }]}>
         {leftIcon && <View style={styles.leftIcon}>{leftIcon}</View>}
         <TextInput
+          {...props}
+          nativeID={inputId}
           style={[styles.input, style]}
           placeholderTextColor={Colors.textTertiary}
-          onFocus={() => setIsFocused(true)}
-          onBlur={() => setIsFocused(false)}
-          {...props}
+          accessibilityLabel={accessibilityLabel ?? label}
+          accessibilityHint={error ?? accessibilityHint ?? helperText}
+          aria-invalid={hasError}
+          onFocus={(event) => {
+            setIsFocused(true);
+            onFocus?.(event);
+          }}
+          onBlur={(event) => {
+            setIsFocused(false);
+            onBlur?.(event);
+          }}
         />
         {rightIcon && <View style={styles.rightIcon}>{rightIcon}</View>}
       </View>
       {error && (
-        <Text variant="small" color={Colors.danger} style={styles.errorText}>
+        <Text
+          variant="small"
+          color={Colors.danger}
+          style={styles.errorText}
+          accessibilityRole="alert"
+          accessibilityLiveRegion="polite"
+        >
           {error}
         </Text>
       )}

@@ -211,3 +211,24 @@ WP2.5 is implemented. Daily planning now uses a shared planning store over the e
 | **Scope preserved** | No database replacement, storage-key rewrite for existing daily summaries, task/habit source-record duplication, screen redesign, cloud/sync behavior, notification delivery, recurrence repair or WP3.4 planning-core expansion was introduced. |
 | **Status** | **Implementation complete; automated acceptance verified.** |
 | **Gate effect** | WP2.5 implementation and automated Definition of Done are satisfied. Phase 2 remains active. Final G2 acceptance still inherits the WP2.4 manual clock/timezone resume gap and now also needs the WP2.5 manual navigation pass if required by the roadmap gate. |
+
+---
+
+## WP2.6 - Verified
+
+WP2.6 is complete. Shared UI primitives now compose caller styles with their required foundations, deliberately preserve interaction and accessibility semantics, and use readable essential colour pairs without changing feature-specific layouts.
+
+## Completion record
+
+| Field | Record |
+|---|---|
+| **Package** | **WP2.6 — Repair shared UI contracts** |
+| **Dependency gate** | WP2.1–WP2.5 were complete or implementation-complete before this work. Expo SDK 55 versioned reference and haptics documentation were reviewed before implementation. |
+| **Card and Button contracts** | Card and Button now extract caller style before forwarding props and compose base, caller and required invariant layers. Pressable Cards forward supported view/touch props, long press, disabled state, caller class/style and accessibility state. Buttons forward supported touch props while retaining their press handler, role, disabled/loading state, layout and a non-overridable 44×44 minimum target. Caller selected/expanded/checked state is retained when required disabled/busy state is merged. |
+| **Labels, state and errors** | Button continues deriving a label from string children unless a caller supplies one. Input derives a stable native identifier and label from its field label, preserves caller focus/blur callbacks, exposes invalid state and error guidance, and announces visible errors politely. ProgressBar supplies a progressbar role, label and clamped 0–100 value. Screen no longer assigns the incorrect adjustable role and composes caller styles/content-container styles. Text required no contract change. |
+| **Contrast** | The primary, danger, tertiary-text and text-bearing gradient endpoints were darkened within Lumo's purple/pink/navy identity. Secondary buttons now use dark foreground text. Regression calculations require at least 4.5:1 for normal-size text on every shared essential pair. Decorative pastel tokens remain available. |
+| **Automated checks (2026-09-25)** | Credential-free config validation passed; TypeScript passed; tests **158 passed, 0 failed**; lint **0 errors, 83 existing warnings**; Expo Doctor **20/20**; web export passed; iOS Hermes production export passed; Android Hermes production export passed; `git diff --check` passed. Five new primitive tests cover style layering, the enforced minimum target, merged selected/disabled/busy state, clamped progress semantics and contrast pairs. |
+| **Manual verification** | Inspected exported Dashboard, Tasks and More at a 320×568 viewport: primitive spacing/radii remained intact, horizontal filters remained scrollable, controls remained labeled, selected tabs/filters exposed state and ProgressBar appeared as a progress indicator. Installed the existing Release simulator build on the booted iPhone 17 Pro, set Dynamic Type to XXXL, relaunched and inspected Dashboard: text wrapped, Cards retained spacing, primary/secondary controls retained their targets and the screen remained vertically scrollable. The simulator text size was restored to its original Large setting. This is simulator evidence, not physical-device acceptance. |
+| **Scope preserved** | No screen redesign, feature-specific layout consolidation, storage behavior, navigation structure, haptics preference wiring or Phase 3 work was introduced. |
+| **Status** | **Verified** |
+| **Gate effect** | WP2.6 and the Card/Button regression criterion are satisfied. **G2 remains blocked** by the previously recorded WP2.4 interactive clock/timezone background-resume check, WP2.5 manual cross-screen planning navigation evidence, and the gate's native restart verification of tasks, habits and preferences. Phase 3 has not begun. |

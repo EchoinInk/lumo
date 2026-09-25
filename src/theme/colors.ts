@@ -13,13 +13,13 @@ export const colors = {
   text: {
     primary: "#1E2240",
     secondary: "#6B7280",
-    muted: "#9CA3AF",
+    muted: "#6F7688",
     inverse: "#FFFFFF",
   },
 
   // Accent colors - calm blue/pink/purple for gentle emphasis
   accent: {
-    primary: "#7C5CFF",
+    primary: "#7352F4",
     soft: "#A78BFA",
     muted: "#C4B5FD",
     pink: "#F472B6",
@@ -37,7 +37,7 @@ export const colors = {
     successSoft: "rgba(16, 185, 129, 0.12)",
     warning: "#F59E0B",
     warningSoft: "rgba(245, 158, 11, 0.12)",
-    danger: "#EF4444",
+    danger: "#D03434",
     dangerSoft: "rgba(239, 68, 68, 0.12)",
     info: "#3B82F6",
     infoSoft: "rgba(59, 130, 246, 0.12)",
@@ -46,7 +46,7 @@ export const colors = {
   // Border colors - subtle soft borders
   border: "#E5E7EB",
   borderLight: "#F3F4F6",
-  borderFocus: "#7C5CFF",
+  borderFocus: "#7352F4",
 
   // Overlay for modals and sheets - softer on light theme
   overlay: "rgba(30, 34, 64, 0.4)",
@@ -89,7 +89,7 @@ export const Colors = {
   borderDark: colors.border,
   overlay: colors.overlay,
   overlayLight: "rgba(30, 34, 64, 0.2)",
-  gradientStart: colors.accent.pink,
+  gradientStart: "#B83280",
   gradientEnd: colors.accent.primary,
   // New gradient variants for UI
   pink: colors.accent.pink,

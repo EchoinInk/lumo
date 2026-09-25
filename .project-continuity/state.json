@@ -101,12 +101,30 @@
       "from": "task:wp2.4",
       "to": "test:wp2.4-verification",
       "type": "verified_by"
+    },
+    {
+      "created_at": "2026-09-25T09:38:14.063778Z",
+      "from": "phase:2",
+      "to": "task:wp2.6",
+      "type": "contains"
+    },
+    {
+      "created_at": "2026-09-25T09:38:14.114377Z",
+      "from": "task:wp2.6",
+      "to": "artifact:wp2.6-ui-contracts",
+      "type": "produces"
+    },
+    {
+      "created_at": "2026-09-25T09:38:14.163598Z",
+      "from": "task:wp2.6",
+      "to": "test:wp2.6-verification",
+      "type": "verified_by"
     }
   ],
   "meta": {
     "created_at": "2026-09-24T11:53:49.499720Z",
     "schema_version": "1.0",
-    "updated_at": "2026-09-25T06:36:42.918418Z"
+    "updated_at": "2026-09-25T09:38:14.163784Z"
   },
   "nodes": {
     "artifact:wp2.1-ownership": {
@@ -165,6 +183,23 @@
       "truth": "observed",
       "type": "artifact",
       "updated_at": "2026-09-25T06:35:10.249323Z"
+    },
+    "artifact:wp2.6-ui-contracts": {
+      "id": "artifact:wp2.6-ui-contracts",
+      "sources": [
+        "src/components/ui/uiContracts.ts",
+        "src/components/ui/Card.tsx",
+        "src/components/ui/Button.tsx",
+        "src/components/ui/Input.tsx",
+        "src/components/ui/ProgressBar.tsx",
+        "src/components/ui/Screen.tsx",
+        "src/theme/colors.ts"
+      ],
+      "status": "current",
+      "title": "Shared UI primitive composition and accessibility contracts",
+      "truth": "observed",
+      "type": "artifact",
+      "updated_at": "2026-09-25T09:38:13.957890Z"
     },
     "decision:g1-partial-acceptance": {
       "id": "decision:g1-partial-acceptance",
@@ -280,6 +315,20 @@
       "type": "task",
       "updated_at": "2026-09-25T06:35:54.933143Z"
     },
+    "task:wp2.6": {
+      "id": "task:wp2.6",
+      "sources": [
+        "docs/lumo-implementation-progress.md#wp26-verified",
+        "src/components/ui/Card.tsx",
+        "src/components/ui/Button.tsx",
+        "src/components/ui/uiContracts.ts"
+      ],
+      "status": "complete",
+      "title": "Repair shared UI contracts",
+      "truth": "observed",
+      "type": "task",
+      "updated_at": "2026-09-25T09:38:13.906818Z"
+    },
     "test:wp2.1-verification": {
       "id": "test:wp2.1-verification",
       "results": [
@@ -362,6 +411,20 @@
       "truth": "observed",
       "type": "test",
       "updated_at": "2026-09-25T06:36:42.918305Z"
+    },
+    "test:wp2.6-verification": {
+      "actual": "config passed; typecheck passed; 158 tests passed; lint 0 errors; Doctor 20/20; web/iOS/Android exports passed; simulator and small-viewport manual checks passed",
+      "command": "npm run validate (Doctor rerun with network access; exports rerun after initial network-blocked chain)",
+      "id": "test:wp2.6-verification",
+      "sources": [
+        "src/testing/ui/uiContracts.test.ts",
+        "docs/lumo-implementation-progress.md#wp26-verified"
+      ],
+      "status": "passed",
+      "title": "WP2.6 primitive regressions and repository validation",
+      "truth": "observed",
+      "type": "test",
+      "updated_at": "2026-09-25T09:38:14.011905Z"
     }
   },
   "project": "project:lumo"

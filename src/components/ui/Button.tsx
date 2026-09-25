@@ -3,6 +3,7 @@ import { Colors, Radius, Shadows, Spacing, Typography } from '@/theme/tokens';
 import * as Haptics from 'expo-haptics';
 import React from 'react';
 import { ActivityIndicator, Text, TouchableOpacity, TouchableOpacityProps } from 'react-native';
+import { composeStyles, interactiveTargetStyle, mergeAccessibilityState } from './uiContracts';
 
 type ButtonVariant = 'primary' | 'secondary' | 'ghost' | 'danger';
 
@@ -34,6 +35,9 @@ export function Button({
   reducedMotion = false,
   className = '',
   onPress,
+  style,
+  accessibilityRole,
+  accessibilityState,
   ...props 
 }: ButtonProps) {
   const handlePress = (event: any) => {
@@ -108,9 +112,10 @@ export function Button({
 
     switch (variant) {
       case 'primary':
-      case 'secondary':
       case 'danger':
         return { ...baseStyle, color: Colors.textInverse };
+      case 'secondary':
+        return { ...baseStyle, color: Colors.textPrimary };
       case 'ghost':
         return { ...baseStyle, color: Colors.primary };
       default:
@@ -129,30 +134,40 @@ export function Button({
   return (
     <TouchableOpacity
       className={className}
+      {...props}
       onPress={handlePress}
       disabled={isDisabled}
       activeOpacity={reducedMotion ? 0.9 : 0.7}
-      accessibilityRole="button"
+      accessibilityRole={accessibilityRole ?? "button"}
       accessibilityLabel={getButtonLabel()}
       accessibilityHint={accessibilityHint}
-      accessibilityState={{
+      accessibilityState={mergeAccessibilityState(accessibilityState, {
         disabled: isDisabled,
         busy: loading,
-      }}
-      style={{
-        ...getSizeStyles(),
-        ...getVariantStyles(),
-        opacity: isDisabled ? 0.5 : 1,
-        flexDirection: 'row',
-        alignItems: 'center',
-        justifyContent: 'center',
-        gap: Spacing.sm,
-      }}
-      {...props}
+      })}
+      style={composeStyles(
+        {
+          ...getSizeStyles(),
+          ...getVariantStyles(),
+          opacity: isDisabled ? 0.5 : 1,
+          flexDirection: 'row',
+          alignItems: 'center',
+          justifyContent: 'center',
+          gap: Spacing.sm,
+        },
+        style,
+        interactiveTargetStyle,
+      )}
     >
       {loading ? (
         <ActivityIndicator 
-          color={variant === 'ghost' ? Colors.primary : Colors.textInverse}
+          color={
+            variant === 'ghost'
+              ? Colors.primary
+              : variant === 'secondary'
+                ? Colors.textPrimary
+                : Colors.textInverse
+          }
           accessibilityLabel="Loading"
         />
       ) : (
