@@ -185,4 +185,29 @@ WP2.4 is implemented. Tasks, calendar, habits, planning, dashboard suggestions a
 | **Manual verification gap** | **Blocking for final G2 acceptance:** the roadmap's interactive change-device-date/timezone and background/resume check around midnight was not performed. A booted iOS simulator is available, but deterministic lifecycle and timezone tests are not represented as a manual simulator or physical-device acceptance run. |
 | **Scope preserved** | No storage key or schema-version migration, database replacement, notification delivery/reconciliation implementation, arbitrary-date picker expansion, sync protocol change or WP2.5 shared-planning-store work was introduced. |
 | **Status** | **Implementation complete; automated acceptance verified; manual acceptance blocked.** |
-| **Gate effect** | WP2.4 implementation and automated Definition of Done are satisfied. Phase 2 remains active; the manual clock/timezone resume scenario blocks final G2 acceptance. **WP2.5 has not begun.** |
+| **Gate effect** | WP2.4 implementation and automated Definition of Done are satisfied. Phase 2 remains active; the manual clock/timezone resume scenario blocks final G2 acceptance. WP2.5 completion is recorded below. |
+
+---
+
+## WP2.5 - Implementation complete; automated acceptance verified
+
+WP2.5 is implemented. Daily planning now uses a shared planning store over the existing planning service, parking metadata is durable and separate from daily summary state, and selected planning steps are resolved by stable source identity instead of recommendation-list position.
+
+## Completion record
+
+| Field | Record |
+|---|---|
+| **Package** | **WP2.5 — Create shared planning state and durable parking** |
+| **Dependency gate** | WP2.1–WP2.4 were verified or implementation-complete before this work. Existing task, habit, reminder and brain-dump ownership remains canonical in their own stores. Expo SDK 55 versioned documentation was reviewed before implementation. |
+| **Audit coverage** | Addresses **B11** and the Phase 2 portion of **B12** by removing independent mounted daily-planning snapshots and moving parking out of day-scoped summary fields. WP3.4 remains responsible for later planning-core refinements beyond the shared-state and durable-parking contract. |
+| **Shared planning state** | Added `usePlanningStore` as the small shared store over `planningStorage`. Dashboard, Morning Planning, Evening Planning and Parked consume the same summary/parking state, and store updates use functional persistence updates so mounted subscribers observe changes without stale overwrite behavior. |
+| **Durable parking metadata** | Added a separate validated `planning-parking` versioned storage domain under `StorageKeys.PLANNING_PARKING`. Parking records store source type, source id, parking time, source flow and original due-date metadata where applicable. Daily summary rollover resets day-scoped fields while preserving parked records. Legacy `parkedIds` and `eveningParkedIds` are migrated into durable parking on load without deleting the old summary. |
+| **Canonical source records** | Planning stores stable source references, not duplicated task/habit/reminder/brain-dump records. Tasks remain canonical in `useTaskStore`/`taskLocalRepository`; habits remain canonical in `useHabitStore`/`habitLocalRepository`; reminders and brain-dump entries remain in their existing stores. Routine planning suggestions now use habit IDs when available instead of title-only identity. |
+| **Selection stability** | Morning-plan selection records `nextStepRef` and resolves selected steps from a full candidate list, so a chosen task/reminder/routine/brain-dump source can remain selected even when the visible recommendation order changes or the item falls outside the top-three shortlist. |
+| **Deleted source safety** | Parked records are resolved against canonical stores at render time. Missing/deleted sources render as removable stale parked refs rather than crashing, duplicating records or resurrecting source entities. Restore/remove operations can clear a durable parking ref without requiring the source record to still exist. |
+| **Parking and restore behavior** | Parking a task writes durable parking metadata and moves its due date out; bringing it back clears the parking record and restores the task to the current local day. Parking brain-dump entries archives them through the brain-dump store and restoration clears planning parking while restoring the source entry when present. |
+| **Automated checks (2026-09-25)** | TypeScript passed; tests **153 passed, 0 failed**; lint **0 errors, 83 existing warnings**; `git diff --check` passed. New tests cover multiple planning-store subscribers, simultaneous functional updates, rollover, restart hydration, legacy parking migration, deleted source refs, recommendation-rank changes and parking/restore persistence. |
+| **Manual verification gap** | Manual navigation among Dashboard, Morning Planning, Evening Planning and Parked was not performed in this turn. The shared-store and persistence behavior is covered by automated tests, but this is not represented as an interactive device or simulator acceptance pass. |
+| **Scope preserved** | No database replacement, storage-key rewrite for existing daily summaries, task/habit source-record duplication, screen redesign, cloud/sync behavior, notification delivery, recurrence repair or WP3.4 planning-core expansion was introduced. |
+| **Status** | **Implementation complete; automated acceptance verified.** |
+| **Gate effect** | WP2.5 implementation and automated Definition of Done are satisfied. Phase 2 remains active. Final G2 acceptance still inherits the WP2.4 manual clock/timezone resume gap and now also needs the WP2.5 manual navigation pass if required by the roadmap gate. |

@@ -100,6 +100,7 @@ export function getBrainDumpReviewQueue(
 
 export function getLowEnergyOptions(
   input: PlanningComposerInput,
+  limit = 3,
 ): LowEnergyOption[] {
   const today = input.today ?? toLocalDateKey();
   const options: LowEnergyOption[] = [];
@@ -125,13 +126,17 @@ export function getLowEnergyOptions(
     });
   }
 
-  const routineLabel = input.routineLabels[0];
-  if (routineLabel) {
+  const routineAnchor =
+    input.routineAnchors?.[0] ??
+    (input.routineLabels[0]
+      ? { id: input.routineLabels[0], label: input.routineLabels[0] }
+      : undefined);
+  if (routineAnchor) {
     options.push({
-      id: `low-routine-${routineLabel}`,
-      label: routineLabel,
+      id: `low-routine-${routineAnchor.id}`,
+      label: routineAnchor.label,
       sourceType: "routine",
-      sourceId: routineLabel,
+      sourceId: routineAnchor.id,
       effort: "tiny",
       reason: "A gentle reset",
     });
@@ -162,7 +167,7 @@ export function getLowEnergyOptions(
     });
   }
 
-  return options.slice(0, 3);
+  return options.slice(0, limit);
 }
 
 function energyWeight(
@@ -188,6 +193,7 @@ function energyWeight(
 
 export function getSuggestedNextSteps(
   input: PlanningComposerInput,
+  limit = 3,
 ): PlanningNextStep[] {
   const today = input.today ?? toLocalDateKey();
   const steps: PlanningNextStep[] = [];
@@ -206,6 +212,22 @@ export function getSuggestedNextSteps(
           : suggestion.reason,
     });
   }
+  if (limit > 3) {
+    const suggestedTaskIds = new Set(
+      focusSuggestions.map((suggestion) => suggestion.task.id),
+    );
+    for (const task of input.tasks.filter(isActiveTask)) {
+      if (suggestedTaskIds.has(task.id)) continue;
+      steps.push({
+        id: `focus-${task.id}`,
+        label: task.title,
+        sourceType: "task",
+        sourceId: task.id,
+        effort: taskEffort(task),
+        reason: "One next step",
+      });
+    }
+  }
 
   for (const reminder of input.reminders) {
     if (!isReminderDueToday(reminder, today)) continue;
@@ -219,12 +241,15 @@ export function getSuggestedNextSteps(
     });
   }
 
-  for (const label of input.routineLabels.slice(0, 2)) {
+  const routineAnchors =
+    input.routineAnchors ??
+    input.routineLabels.map((label) => ({ id: label, label }));
+  for (const anchor of routineAnchors.slice(0, 2)) {
     steps.push({
-      id: `routine-${label}`,
-      label,
+      id: `routine-${anchor.id}`,
+      label: anchor.label,
       sourceType: "routine",
-      sourceId: label,
+      sourceId: anchor.id,
       effort: "tiny",
       reason: "Today's routine anchor",
     });
@@ -260,7 +285,7 @@ export function getSuggestedNextSteps(
     ranked = ranked.filter((step) => step.effort !== "focused");
   }
 
-  return ranked.slice(0, 3);
+  return ranked.slice(0, limit);
 }
 
 export function composeDailyPlanningSummary(

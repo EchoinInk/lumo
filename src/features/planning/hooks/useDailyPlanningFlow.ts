@@ -4,7 +4,7 @@ import { useReminders } from "@/src/features/reminders";
 import { useTasks } from "@/src/features/tasks";
 import { useLocalDay } from "@/src/hooks/useLocalDay";
 import { addLocalDays } from "@/src/utils/dateTime";
-import { useCallback, useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo } from "react";
 import {
   composeDailyPlanningSummary,
   getBrainDumpReviewQueue,
@@ -13,47 +13,65 @@ import {
   getLowEnergyOptions,
   getSuggestedNextSteps,
 } from "../services/planningComposer";
-import {
-  createEmptyDailySummary,
-  loadDailyPlanningSummary,
-  persistDailyPlanningSummary,
-} from "../services/planningStorage";
+import { usePlanningStore } from "../store/usePlanningStore";
 import type {
-  DailyPlanningSummary,
   PlanningEnergyLevel,
   PlanningFlowMode,
   PlanningNextStep,
+  PlanningSourceRef,
   PlanningSourceType,
 } from "../types/planning";
+
+const ALL_OPTIONS_LIMIT = Number.MAX_SAFE_INTEGER;
+
+function sameSource(a: PlanningSourceRef, b: PlanningSourceRef): boolean {
+  return a.sourceType === b.sourceType && a.sourceId === b.sourceId;
+}
+
+function stepRef(step: PlanningNextStep): PlanningSourceRef {
+  return { sourceType: step.sourceType, sourceId: step.sourceId };
+}
+
+function uniqueWithSelected<T extends PlanningNextStep>(
+  options: T[],
+  selected?: T,
+): T[] {
+  if (!selected || options.some((option) => sameSource(option, selected))) {
+    return options;
+  }
+  return [selected, ...options].slice(0, 3);
+}
 
 export function useDailyPlanningFlow(mode: PlanningFlowMode = "morning") {
   const today = useLocalDay();
   const { tasks, updateTask, hasHydrated: tasksHydrated } = useTasks();
-  const { openEntries, archiveEntry, hasHydrated: brainDumpHydrated } =
+  const { openEntries, archiveEntry, restoreEntry, hasHydrated: brainDumpHydrated } =
     useBrainDump();
   const { reminders, hasHydrated: remindersHydrated } = useReminders();
   const { todayHabits, isHydrated: habitsHydrated } = useHabits();
-
-  const [summary, setSummary] = useState<DailyPlanningSummary>(
-    createEmptyDailySummary,
-  );
-  const [summaryLoaded, setSummaryLoaded] = useState(false);
+  const {
+    summary,
+    parking,
+    hasHydrated: summaryLoaded,
+    hydratePlanning,
+    updateSummary,
+    parkSource,
+    unparkSource,
+    removeParkedSource,
+  } = usePlanningStore();
 
   useEffect(() => {
-    const stored = loadDailyPlanningSummary(today);
-    setSummary(stored ?? createEmptyDailySummary(today));
-    setSummaryLoaded(true);
-  }, [today]);
-
-  const persistSummary = useCallback((next: DailyPlanningSummary) => {
-    setSummary(next);
-    persistDailyPlanningSummary(next);
-  }, []);
+    hydratePlanning(today);
+  }, [hydratePlanning, today]);
 
   const energyLevel = summary.energyLevel;
-  const routineLabels = useMemo(
-    () => todayHabits.map((habit) => habit.title),
+  const routineAnchors = useMemo(
+    () => todayHabits.map((habit) => ({ id: habit.id, label: habit.title })),
     [todayHabits],
+  );
+  const routineLabels = useMemo(
+    () => routineAnchors.map((anchor) => anchor.label),
+    [routineAnchors],
   );
 
   const composerInput = useMemo(
@@ -61,19 +79,26 @@ export function useDailyPlanningFlow(mode: PlanningFlowMode = "morning") {
       tasks,
       reminders,
       routineLabels,
+      routineAnchors,
       brainDumpEntries: openEntries,
       energyLevel,
       today,
     }),
-    [tasks, reminders, routineLabels, openEntries, energyLevel, today],
+    [tasks, reminders, routineLabels, routineAnchors, openEntries, energyLevel, today],
+  );
+
+  const parkedItems = parking.parkedItems;
+  const parkedRefs = useMemo(
+    () => new Set(parkedItems.map((item) => `${item.sourceType}:${item.sourceId}`)),
+    [parkedItems],
+  );
+  const isParked = useCallback(
+    (ref: PlanningSourceRef) => parkedRefs.has(`${ref.sourceType}:${ref.sourceId}`),
+    [parkedRefs],
   );
 
   const carryOverItems = useMemo(
     () => {
-      const parkedSourceIds = new Set([
-        ...summary.parkedIds,
-        ...summary.eveningParkedIds,
-      ]);
       const carriedSourceIds = new Set(
         summary.carryOverIds.map((id) => id.replace(/^carry-/, "")),
       );
@@ -83,7 +108,7 @@ export function useDailyPlanningFlow(mode: PlanningFlowMode = "morning") {
           : getGentleCarryOverItems(tasks);
       return items.filter(
         (item) =>
-          !parkedSourceIds.has(item.sourceId) &&
+          !isParked({ sourceType: item.sourceType, sourceId: item.sourceId }) &&
           !carriedSourceIds.has(item.sourceId) &&
           !summary.eveningCarriedIds.includes(item.sourceId),
       );
@@ -91,8 +116,7 @@ export function useDailyPlanningFlow(mode: PlanningFlowMode = "morning") {
     [
       tasks,
       mode,
-      summary.parkedIds,
-      summary.eveningParkedIds,
+      isParked,
       summary.carryOverIds,
       summary.eveningCarriedIds,
     ],
@@ -103,38 +127,56 @@ export function useDailyPlanningFlow(mode: PlanningFlowMode = "morning") {
   );
   const nextStepOptions = useMemo(
     () => {
-      const parkedSourceIds = new Set([
-        ...summary.parkedIds,
-        ...summary.eveningParkedIds,
-      ]);
       return getSuggestedNextSteps(composerInput).filter(
-        (step) => !parkedSourceIds.has(step.sourceId),
+        (step) => !isParked(stepRef(step)),
       );
     },
-    [composerInput, summary.parkedIds, summary.eveningParkedIds],
+    [composerInput, isParked],
   );
   const lowEnergyOptions = useMemo(
     () => {
-      const parkedSourceIds = new Set([
-        ...summary.parkedIds,
-        ...summary.eveningParkedIds,
-      ]);
       return getLowEnergyOptions(composerInput).filter(
-        (option) => !parkedSourceIds.has(option.sourceId),
+        (option) =>
+          !isParked({ sourceType: option.sourceType, sourceId: option.sourceId }),
       );
     },
-    [composerInput, summary.parkedIds, summary.eveningParkedIds],
+    [composerInput, isParked],
+  );
+  const allNextStepOptions = useMemo(
+    () =>
+      getSuggestedNextSteps(composerInput, ALL_OPTIONS_LIMIT).filter(
+        (step) => !isParked(stepRef(step)),
+      ),
+    [composerInput, isParked],
+  );
+  const allLowEnergyOptions = useMemo(
+    () =>
+      getLowEnergyOptions(composerInput, ALL_OPTIONS_LIMIT).filter(
+        (option) =>
+          !isParked({ sourceType: option.sourceType, sourceId: option.sourceId }),
+      ),
+    [composerInput, isParked],
   );
 
   const selectedNextStep = useMemo((): PlanningNextStep | undefined => {
-    if (summary.nextStepId) {
-      const fromNext = nextStepOptions.find(
-        (step) => step.id === summary.nextStepId,
+    const allOptions = [...allNextStepOptions, ...allLowEnergyOptions];
+    const legacySelected = summary.nextStepId
+      ? allOptions.find((option) => option.id === summary.nextStepId)
+      : undefined;
+    const selectedRef =
+      summary.nextStepRef ?? (legacySelected ? stepRef(legacySelected) : undefined);
+
+    if (selectedRef) {
+      const fromNext = allNextStepOptions.find((step) =>
+        sameSource(stepRef(step), selectedRef),
       );
       if (fromNext) return fromNext;
 
-      const fromLow = lowEnergyOptions.find(
-        (option) => option.id === summary.nextStepId,
+      const fromLow = allLowEnergyOptions.find((option) =>
+        sameSource(
+          { sourceType: option.sourceType, sourceId: option.sourceId },
+          selectedRef,
+        ),
       );
       if (fromLow) {
         return {
@@ -149,7 +191,21 @@ export function useDailyPlanningFlow(mode: PlanningFlowMode = "morning") {
     }
 
     return undefined;
-  }, [summary.nextStepId, nextStepOptions, lowEnergyOptions, energyLevel]);
+  }, [
+    summary.nextStepId,
+    summary.nextStepRef,
+    allNextStepOptions,
+    allLowEnergyOptions,
+  ]);
+
+  const visibleNextStepOptions = useMemo(
+    () => uniqueWithSelected(nextStepOptions, selectedNextStep),
+    [nextStepOptions, selectedNextStep],
+  );
+  const visibleLowEnergyOptions = useMemo(
+    () => uniqueWithSelected(lowEnergyOptions, selectedNextStep),
+    [lowEnergyOptions, selectedNextStep],
+  );
 
   const isHydrated =
     tasksHydrated &&
@@ -160,145 +216,159 @@ export function useDailyPlanningFlow(mode: PlanningFlowMode = "morning") {
 
   const chooseEnergyLevel = useCallback(
     (level: PlanningEnergyLevel) => {
-      persistSummary({
-        ...summary,
+      updateSummary((current) => ({
+        ...current,
         energyLevel: level,
         nextStepId: undefined,
+        nextStepRef: undefined,
         morningCompleted: false,
-      });
+      }));
     },
-    [summary, persistSummary],
+    [updateSummary],
   );
 
   const chooseNextStep = useCallback(
     (stepId: string) => {
-      persistSummary({ ...summary, nextStepId: stepId });
+      const step = [...allNextStepOptions, ...allLowEnergyOptions].find(
+        (option) => option.id === stepId,
+      );
+      updateSummary((current) => ({
+        ...current,
+        nextStepId: step?.id ?? stepId,
+        nextStepRef: step ? stepRef(step) : current.nextStepRef,
+      }));
     },
-    [summary, persistSummary],
+    [allNextStepOptions, allLowEnergyOptions, updateSummary],
   );
 
   const carryOverItem = useCallback(
     (sourceId: string) => {
       updateTask(sourceId, { dueDate: today });
-      persistSummary({
-        ...summary,
-        carryOverIds: [...new Set([...summary.carryOverIds, `carry-${sourceId}`])],
-      });
+      updateSummary((current) => ({
+        ...current,
+        carryOverIds: [...new Set([...current.carryOverIds, `carry-${sourceId}`])],
+      }));
     },
-    [summary, updateTask, persistSummary, today],
+    [updateTask, updateSummary, today],
   );
 
   const carryToTomorrow = useCallback(
     (sourceId: string) => {
       updateTask(sourceId, { dueDate: addLocalDays(today, 1) });
-      const carriedIds = [...new Set([...summary.carryOverIds, `carry-${sourceId}`])];
-      const eveningCarriedIds =
-        mode === "evening"
-          ? [...new Set([...summary.eveningCarriedIds, sourceId])]
-          : summary.eveningCarriedIds;
-      persistSummary({
-        ...summary,
-        carryOverIds: carriedIds,
-        eveningCarriedIds,
+      updateSummary((current) => {
+        const carriedIds = [...new Set([...current.carryOverIds, `carry-${sourceId}`])];
+        const eveningCarriedIds =
+          mode === "evening"
+            ? [...new Set([...current.eveningCarriedIds, sourceId])]
+            : current.eveningCarriedIds;
+        return {
+          ...current,
+          carryOverIds: carriedIds,
+          eveningCarriedIds,
+        };
       });
     },
-    [summary, updateTask, persistSummary, mode, today],
+    [updateTask, updateSummary, mode, today],
   );
 
   const parkItem = useCallback(
     (sourceId: string, sourceType: PlanningSourceType = "task") => {
+      const ref = { sourceType, sourceId };
       const parkedSelectedNextStep =
-        summary.nextStepId &&
-        (nextStepOptions.find((step) => step.id === summary.nextStepId)
-          ?.sourceId === sourceId ||
-          lowEnergyOptions.find((option) => option.id === summary.nextStepId)
-            ?.sourceId === sourceId);
+        selectedNextStep && sameSource(stepRef(selectedNextStep), ref);
 
       if (sourceType === "task") {
+        const task = tasks.find((item) => item.id === sourceId);
+        parkSource(ref, {
+          parkedFrom: mode,
+          originalDueDate: task?.dueDate,
+        });
         updateTask(sourceId, { dueDate: addLocalDays(today, 7) });
       } else if (sourceType === "brainDump") {
+        parkSource(ref, { parkedFrom: mode });
         archiveEntry(sourceId);
+      } else {
+        parkSource(ref, { parkedFrom: mode });
       }
 
-      if (mode === "evening" && sourceType === "task") {
-        persistSummary({
-          ...summary,
-          nextStepId: parkedSelectedNextStep ? undefined : summary.nextStepId,
-          parkedIds: [...new Set([...summary.parkedIds, sourceId])],
-          eveningParkedIds: [
-            ...new Set([...summary.eveningParkedIds, sourceId]),
-          ],
-        });
-        return;
+      if (parkedSelectedNextStep) {
+        updateSummary((current) => ({
+          ...current,
+          nextStepId: undefined,
+          nextStepRef: undefined,
+        }));
       }
-
-      persistSummary({
-        ...summary,
-        nextStepId: parkedSelectedNextStep ? undefined : summary.nextStepId,
-        parkedIds: [...new Set([...summary.parkedIds, sourceId])],
-      });
     },
     [
+      tasks,
       updateTask,
       archiveEntry,
       mode,
-      summary,
-      nextStepOptions,
-      lowEnergyOptions,
-      persistSummary,
+      selectedNextStep,
+      parkSource,
+      updateSummary,
       today,
     ],
   );
 
   const bringBackParkedItem = useCallback(
-    (sourceId: string) => {
-      persistSummary({
-        ...summary,
-        parkedIds: summary.parkedIds.filter((id) => id !== sourceId),
-        eveningParkedIds: summary.eveningParkedIds.filter(
-          (id) => id !== sourceId,
-        ),
-      });
+    (sourceId: string, sourceType: PlanningSourceType = "task") => {
+      const item = parkedItems.find(
+        (parked) =>
+          parked.sourceId === sourceId && parked.sourceType === sourceType,
+      );
+      if (item?.sourceType === "task") {
+        updateTask(sourceId, { dueDate: today });
+      } else if (item?.sourceType === "brainDump") {
+        restoreEntry(sourceId);
+      }
+      if (item) {
+        unparkSource({ sourceType: item.sourceType, sourceId: item.sourceId });
+        return;
+      }
+      unparkSource({ sourceType, sourceId });
     },
-    [summary, persistSummary],
+    [parkedItems, updateTask, today, restoreEntry, unparkSource],
   );
 
   const removeParkedItem = useCallback(
-    (sourceId: string) => {
-      persistSummary({
-        ...summary,
-        parkedIds: summary.parkedIds.filter((id) => id !== sourceId),
-        eveningParkedIds: summary.eveningParkedIds.filter(
-          (id) => id !== sourceId,
-        ),
-      });
+    (sourceId: string, sourceType: PlanningSourceType = "task") => {
+      const item = parkedItems.find(
+        (parked) =>
+          parked.sourceId === sourceId && parked.sourceType === sourceType,
+      );
+      removeParkedSource(
+        item
+          ? { sourceType: item.sourceType, sourceId: item.sourceId }
+          : { sourceType, sourceId },
+      );
     },
-    [summary, persistSummary],
+    [parkedItems, removeParkedSource],
   );
 
   const markEveningBrainDumpVisited = useCallback(() => {
-    persistSummary({ ...summary, eveningBrainDumpVisited: true });
-  }, [summary, persistSummary]);
+    updateSummary((current) => ({ ...current, eveningBrainDumpVisited: true }));
+  }, [updateSummary]);
 
   const resetMorningPlan = useCallback(() => {
-    persistSummary({ ...summary, morningCompleted: false });
-  }, [summary, persistSummary]);
+    updateSummary((current) => ({ ...current, morningCompleted: false }));
+  }, [updateSummary]);
 
   const resetEveningReset = useCallback(() => {
-    persistSummary({ ...summary, eveningCompleted: false });
-  }, [summary, persistSummary]);
+    updateSummary((current) => ({ ...current, eveningCompleted: false }));
+  }, [updateSummary]);
 
   const completeMorningPlan = useCallback(() => {
     const next = composeDailyPlanningSummary(composerInput, {
       ...summary,
       morningCompleted: true,
     });
-    persistSummary(next);
-  }, [composerInput, summary, persistSummary]);
+    updateSummary(() => next);
+  }, [composerInput, summary, updateSummary]);
 
   const completeEveningReset = useCallback(() => {
-    persistSummary({ ...summary, eveningCompleted: true });
-  }, [summary, persistSummary]);
+    updateSummary((current) => ({ ...current, eveningCompleted: true }));
+  }, [updateSummary]);
 
   const morningComplete = summary.morningCompleted;
   const showEveningReset =
@@ -310,10 +380,12 @@ export function useDailyPlanningFlow(mode: PlanningFlowMode = "morning") {
     mode,
     energyLevel,
     summary,
+    parkedItems,
+    eveningParkedItems: parkedItems.filter((item) => item.parkedFrom === "evening"),
     carryOverItems,
     brainDumpQueue,
-    nextStepOptions,
-    lowEnergyOptions,
+    nextStepOptions: visibleNextStepOptions,
+    lowEnergyOptions: visibleLowEnergyOptions,
     selectedNextStep,
     morningComplete,
     showEveningReset,

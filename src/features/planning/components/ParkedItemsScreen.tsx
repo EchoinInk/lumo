@@ -18,6 +18,7 @@ type ParkedItem = {
   title: string;
   sourceLabel: string;
   parkedAt?: string;
+  bringBackLabel?: string;
   onBringBack: () => void;
   onDelete?: () => void;
 };
@@ -54,8 +55,13 @@ export default function ParkedItemsScreen() {
     );
   };
 
+  const planningParkedKeys = new Set(
+    planning.parkedItems.map((item) => `${item.sourceType}:${item.sourceId}`),
+  );
+
   const archivedThoughts: ParkedItem[] = brainDump.entries
     .filter((entry) => entry.status === "archived")
+    .filter((entry) => !planningParkedKeys.has(`brainDump:${entry.id}`))
     .map((entry) => ({
       id: `brain-${entry.id}`,
       title: entry.text,
@@ -65,83 +71,84 @@ export default function ParkedItemsScreen() {
       onDelete: () => brainDump.deleteEntry(entry.id),
     }));
 
-  const planningParkedIds = [
-    ...new Set([
-      ...planning.summary.parkedIds,
-      ...planning.summary.eveningParkedIds,
-    ]),
-  ];
-
-  const planningItems: ParkedItem[] = planningParkedIds
-    .map((sourceId) => {
-      const task = tasks.find((item) => item.id === sourceId);
-      if (task) {
-        return {
-          id: `planning-task-${sourceId}`,
-          title: task.title,
-          sourceLabel: "Planning · Task",
-          onBringBack: () => planning.bringBackParkedItem(sourceId),
-          onDelete: () => {
-            deleteTask(sourceId);
-            planning.removeParkedItem(sourceId);
-          },
-        };
+  const planningItems: ParkedItem[] = planning.parkedItems
+    .map((parked) => {
+      const sourceId = parked.sourceId;
+      if (parked.sourceType === "task") {
+        const task = tasks.find((item) => item.id === sourceId);
+        if (task) {
+          return {
+            id: `planning-task-${sourceId}`,
+            title: task.title,
+            sourceLabel: "Planning · Task",
+            parkedAt: parked.parkedAt,
+            onBringBack: () => planning.bringBackParkedItem(sourceId, "task"),
+            onDelete: () => {
+              deleteTask(sourceId);
+              planning.removeParkedItem(sourceId, "task");
+            },
+          };
+        }
       }
 
-      const reminder = reminders.find((item) => item.id === sourceId);
-      if (reminder) {
-        return {
-          id: `planning-reminder-${sourceId}`,
-          title: reminder.title,
-          sourceLabel: "Planning · Reminder",
-          onBringBack: () => planning.bringBackParkedItem(sourceId),
-          onDelete: () => planning.removeParkedItem(sourceId),
-        };
+      if (parked.sourceType === "reminder") {
+        const reminder = reminders.find((item) => item.id === sourceId);
+        if (reminder) {
+          return {
+            id: `planning-reminder-${sourceId}`,
+            title: reminder.title,
+            sourceLabel: "Planning · Reminder",
+            parkedAt: parked.parkedAt,
+            onBringBack: () => planning.bringBackParkedItem(sourceId, "reminder"),
+            onDelete: () => planning.removeParkedItem(sourceId, "reminder"),
+          };
+        }
       }
 
-      const thought = brainDump.entries.find((entry) => entry.id === sourceId);
-      if (thought) {
-        return {
-          id: `planning-brain-${sourceId}`,
-          title: thought.text,
-          sourceLabel: "Planning · Brain Dump",
-          parkedAt: thought.convertedAt ?? thought.updatedAt,
-          onBringBack: () => {
-            brainDump.restoreEntry(thought.id);
-            planning.bringBackParkedItem(sourceId);
-          },
-          onDelete: () => {
-            brainDump.deleteEntry(thought.id);
-            planning.removeParkedItem(sourceId);
-          },
-        };
+      if (parked.sourceType === "brainDump") {
+        const thought = brainDump.entries.find((entry) => entry.id === sourceId);
+        if (thought) {
+          return {
+            id: `planning-brain-${sourceId}`,
+            title: thought.text,
+            sourceLabel: "Planning · Brain Dump",
+            parkedAt: parked.parkedAt,
+            onBringBack: () => {
+              brainDump.restoreEntry(thought.id);
+              planning.bringBackParkedItem(sourceId, "brainDump");
+            },
+            onDelete: () => {
+              brainDump.deleteEntry(thought.id);
+              planning.removeParkedItem(sourceId, "brainDump");
+            },
+          };
+        }
       }
 
-      const routine = habits.find((habit) => habit.title === sourceId);
-      if (routine || sourceId === "low-energy-reset") {
-        return {
-          id: `planning-routine-${sourceId}`,
-          title: routine?.title ?? "Take a small reset",
-          sourceLabel: "Planning · Routine",
-          onBringBack: () => planning.bringBackParkedItem(sourceId),
-          onDelete: () => planning.removeParkedItem(sourceId),
-        };
+      if (parked.sourceType === "routine") {
+        const routine = habits.find((habit) => habit.id === sourceId);
+        if (routine || sourceId === "low-energy-reset") {
+          return {
+            id: `planning-routine-${sourceId}`,
+            title: routine?.title ?? "Take a small reset",
+            sourceLabel: "Planning · Routine",
+            parkedAt: parked.parkedAt,
+            onBringBack: () => planning.bringBackParkedItem(sourceId, "routine"),
+            onDelete: () => planning.removeParkedItem(sourceId, "routine"),
+          };
+        }
       }
 
       return {
-        id: `planning-${sourceId}`,
-        title: "Saved for later",
-        sourceLabel: "Planning",
-        onBringBack: () => planning.bringBackParkedItem(sourceId),
-        onDelete: () => planning.removeParkedItem(sourceId),
+        id: `planning-${parked.sourceType}-${sourceId}`,
+        title: "No longer available",
+        sourceLabel: "Planning · Removed item",
+        parkedAt: parked.parkedAt,
+        bringBackLabel: "Clear",
+        onBringBack: () => planning.removeParkedItem(sourceId, parked.sourceType),
+        onDelete: () => planning.removeParkedItem(sourceId, parked.sourceType),
       };
-    })
-    .filter(
-      (item) =>
-        !archivedThoughts.some(
-          (thought) => thought.id === item.id.replace("planning-", ""),
-        ),
-    );
+    });
 
   const parkedItems = [...planningItems, ...archivedThoughts];
 
@@ -185,7 +192,7 @@ export default function ParkedItemsScreen() {
                   accessibilityLabel={`Bring back ${item.title}`}
                   accessibilityHint="Returns this item to active planning or Brain Dump review"
                 >
-                  Bring back
+                  {item.bringBackLabel ?? "Bring back"}
                 </Button>
                 {item.onDelete && (
                   <Button

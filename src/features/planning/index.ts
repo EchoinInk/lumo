@@ -20,6 +20,7 @@ export {
 } from "./services/planningComposer";
 
 export { useDailyPlanningFlow } from "./hooks/useDailyPlanningFlow";
+export { usePlanningStore } from "./store/usePlanningStore";
 
 export { CalmDailySummary } from "./components/CalmDailySummary";
 export type { PlanningDashboardState } from "./components/CalmDailySummary";

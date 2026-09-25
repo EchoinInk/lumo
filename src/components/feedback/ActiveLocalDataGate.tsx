@@ -1,7 +1,7 @@
 import { useBrainDumpStore } from "@/src/features/brain-dump/store/useBrainDumpStore";
 import { useHabitStore } from "@/src/features/habits/store/useHabitStore";
 import { useOnboardingStore } from "@/src/features/onboarding/store/useOnboardingStore";
-import { loadDailyPlanningSummary } from "@/src/features/planning/services/planningStorage";
+import { loadPlanningState } from "@/src/features/planning/services/planningStorage";
 import { useReminderStore } from "@/src/features/reminders/store/useReminderStore";
 import { useTaskStore } from "@/src/features/tasks/store/useTaskStore";
 import { activeStorageDefinitions } from "@/src/services/storage/domainSchemas";
@@ -30,6 +30,7 @@ const domainLabels: Record<PersistenceDomain, string> = {
   reminders: "reminders",
   "reminder-settings": "reminder settings",
   planning: "daily plan",
+  "planning-parking": "parked planning items",
 };
 
 function messageFor(error: PersistenceLoadError): string {
@@ -65,7 +66,7 @@ export function ActiveLocalDataGate({ children }: Props): React.JSX.Element {
       { domain: "onboarding", run: () => useOnboardingStore.getState().hydrate() },
       { domain: "brain-dump", run: () => useBrainDumpStore.getState().hydrate() },
       { domain: "reminders", run: () => useReminderStore.getState().hydrate() },
-      { domain: "planning", run: () => { loadDailyPlanningSummary(); } },
+      { domain: "planning", run: () => { loadPlanningState(); } },
     ];
 
     Promise.all(

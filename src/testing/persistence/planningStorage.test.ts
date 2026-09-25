@@ -1,14 +1,17 @@
 import {
   createEmptyDailySummary,
+  loadPlanningState,
   loadDailyPlanningSummary,
   normalizeDailyPlanningSummary,
+  normalizePlanningParkingState,
+  persistPlanningParkingState,
   persistDailyPlanningSummary,
 } from "@/features/planning/services/planningStorage";
 import { deleteKey, setString } from "@/services/storage/mmkv";
 import { StorageKeys } from "@/services/storage/storageKeys";
 import { assertEqual, resetTestState } from "../testUtils";
 import { PersistenceLoadError } from "@/services/storage/versionedStorage";
-import { toLocalDateKey } from "@/src/utils/dateTime";
+import { addLocalDays, toLocalDateKey } from "@/src/utils/dateTime";
 
 export async function testNormalizeDailyPlanningSummaryFallsBackSafely(): Promise<void> {
   const summary = normalizeDailyPlanningSummary({
@@ -102,5 +105,78 @@ export async function testPlanningAdjustmentsPreserveChoicesWhileReopening(): Pr
     reopenedEvening.eveningCompleted,
     false,
     "evening adjustment should reopen reset",
+  );
+}
+
+export async function testPlanningParkingSurvivesDayRollover(): Promise<void> {
+  resetTestState();
+  deleteKey(StorageKeys.PLANNING_SUMMARY);
+  deleteKey(StorageKeys.PLANNING_PARKING);
+  const today = toLocalDateKey();
+  const tomorrow = addLocalDays(today, 1);
+
+  persistDailyPlanningSummary(
+    normalizeDailyPlanningSummary({
+      date: today,
+      morningCompleted: true,
+      selectedFocusIds: ["focus-task-a"],
+    }),
+  );
+  persistPlanningParkingState(
+    normalizePlanningParkingState({
+      parkedItems: [
+        {
+          id: "task:task-a",
+          sourceType: "task",
+          sourceId: "task-a",
+          parkedAt: "2026-09-25T00:00:00.000Z",
+          parkedFrom: "morning",
+        },
+      ],
+    }),
+  );
+
+  const rolled = loadPlanningState(tomorrow);
+
+  assertEqual(rolled.summary.date, tomorrow, "daily summary should roll forward");
+  assertEqual(
+    rolled.summary.morningCompleted,
+    false,
+    "rolled daily summary should reset day-scoped completion",
+  );
+  assertEqual(
+    rolled.parking.parkedItems[0]?.sourceId,
+    "task-a",
+    "parking metadata should survive rollover",
+  );
+}
+
+export async function testLegacyDailyParkingMigratesToDurableParking(): Promise<void> {
+  resetTestState();
+  deleteKey(StorageKeys.PLANNING_SUMMARY);
+  deleteKey(StorageKeys.PLANNING_PARKING);
+  const today = toLocalDateKey();
+
+  persistDailyPlanningSummary(
+    normalizeDailyPlanningSummary({
+      date: addLocalDays(today, -1),
+      parkedIds: ["legacy-task"],
+      eveningParkedIds: ["evening-task"],
+    }),
+  );
+
+  const loaded = loadPlanningState(today);
+
+  assertEqual(
+    loaded.parking.parkedItems.some((item) => item.sourceId === "legacy-task"),
+    true,
+    "legacy morning parking should move into durable parking",
+  );
+  assertEqual(
+    loaded.parking.parkedItems.some(
+      (item) => item.sourceId === "evening-task" && item.parkedFrom === "evening",
+    ),
+    true,
+    "legacy evening parking should move into durable parking",
   );
 }

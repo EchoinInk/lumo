@@ -8,6 +8,7 @@ export const StorageKeys = {
   REMINDERS: "reminders",
   REMINDER_SETTINGS: "reminder_settings",
   PLANNING_SUMMARY: "daily_planning_summary",
+  PLANNING_PARKING: "planning_parking",
 
   // User preferences
   USER_SETTINGS: "user_settings",

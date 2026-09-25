@@ -44,7 +44,7 @@ export function EveningPlanningScreen() {
         carryOverItems={flow.carryOverItems}
         eveningCompleted={flow.summary.eveningCompleted}
         carriedCount={flow.summary.eveningCarriedIds.length}
-        parkedCount={flow.summary.eveningParkedIds.length}
+        parkedCount={flow.eveningParkedItems.length}
         brainDumpVisited={flow.summary.eveningBrainDumpVisited}
         onCarryToTomorrow={flow.carryToTomorrow}
         onPark={flow.parkItem}

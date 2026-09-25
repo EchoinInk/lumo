@@ -13,7 +13,8 @@ export type PersistenceDomain =
   | "brain-dump"
   | "reminders"
   | "reminder-settings"
-  | "planning";
+  | "planning"
+  | "planning-parking";
 
 export type PersistenceFailureKind =
   | "unreadable-data"

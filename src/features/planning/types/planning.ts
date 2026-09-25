@@ -10,6 +10,11 @@ export type PlanningSourceType = "task" | "reminder" | "routine" | "brainDump";
 
 export type PlanningEffort = "tiny" | "easy" | "focused";
 
+export interface PlanningSourceRef {
+  sourceType: PlanningSourceType;
+  sourceId: string;
+}
+
 export interface PlanningNextStep {
   id: string;
   label: string;
@@ -49,6 +54,7 @@ export interface DailyPlanningSummary {
   carryOverIds: string[];
   brainDumpQueueIds: string[];
   nextStepId?: string;
+  nextStepRef?: PlanningSourceRef;
   energyLevel?: PlanningEnergyLevel;
   morningCompleted: boolean;
   eveningCompleted: boolean;
@@ -58,10 +64,27 @@ export interface DailyPlanningSummary {
   eveningBrainDumpVisited: boolean;
 }
 
+export interface PlanningRoutineAnchor {
+  id: string;
+  label: string;
+}
+
+export interface PlanningParkedItem extends PlanningSourceRef {
+  id: string;
+  parkedAt: string;
+  parkedFrom: PlanningFlowMode;
+  originalDueDate?: string;
+}
+
+export interface PlanningParkingState {
+  parkedItems: PlanningParkedItem[];
+}
+
 export interface PlanningComposerInput {
   tasks: Task[];
   reminders: Reminder[];
   routineLabels: string[];
+  routineAnchors?: PlanningRoutineAnchor[];
   brainDumpEntries: BrainDumpEntry[];
   energyLevel?: PlanningEnergyLevel;
   today?: string;

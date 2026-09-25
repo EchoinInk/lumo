@@ -9,6 +9,9 @@ import type {
 import type {
   DailyPlanningSummary,
   PlanningEnergyLevel,
+  PlanningParkingState,
+  PlanningSourceRef,
+  PlanningSourceType,
 } from "@/features/planning/types/planning";
 import type { Reminder, ReminderSettings } from "@/features/reminders/types/reminder";
 import type { Task } from "@/features/tasks/types/task";
@@ -150,15 +153,40 @@ export function isReminderSettings(value: unknown): value is ReminderSettings {
 }
 
 const planningEnergy: readonly PlanningEnergyLevel[] = ["low", "medium", "steady"];
+const planningSourceTypes: readonly PlanningSourceType[] = [
+  "task",
+  "reminder",
+  "routine",
+  "brainDump",
+];
+
+function isPlanningSourceRef(value: unknown): value is PlanningSourceRef {
+  if (!isObject(value)) return false;
+  return isOneOf(value.sourceType, planningSourceTypes) && isString(value.sourceId);
+}
+
 export function isDailyPlanningSummary(value: unknown): value is DailyPlanningSummary {
   if (!isObject(value)) return false;
   return isString(value.date) && isStringArray(value.selectedFocusIds) &&
     isStringArray(value.carryOverIds) && isStringArray(value.brainDumpQueueIds) &&
     isOptionalString(value.nextStepId) &&
+    (value.nextStepRef === undefined || isPlanningSourceRef(value.nextStepRef)) &&
     (value.energyLevel === undefined || isOneOf(value.energyLevel, planningEnergy)) &&
     typeof value.morningCompleted === "boolean" && typeof value.eveningCompleted === "boolean" &&
     isStringArray(value.parkedIds) && isStringArray(value.eveningCarriedIds) &&
     isStringArray(value.eveningParkedIds) && typeof value.eveningBrainDumpVisited === "boolean";
+}
+
+export function isPlanningParkingState(value: unknown): value is PlanningParkingState {
+  if (!isObject(value) || !Array.isArray(value.parkedItems)) return false;
+  return value.parkedItems.every((item) =>
+    isObject(item) &&
+    isString(item.id) &&
+    isPlanningSourceRef(item) &&
+    isString(item.parkedAt) &&
+    isOneOf(item.parkedFrom, ["morning", "evening"]) &&
+    isOptionalString(item.originalDueDate),
+  );
 }
 
 const arrayDefinition = <T>(
@@ -212,6 +240,14 @@ export const planningStorageDefinition: VersionedStorageDefinition<DailyPlanning
   validate: isDailyPlanningSummary,
 };
 
+export const planningParkingStorageDefinition: VersionedStorageDefinition<PlanningParkingState> = {
+  domain: "planning-parking",
+  key: StorageKeys.PLANNING_PARKING,
+  schemaVersion: 1,
+  empty: () => ({ parkedItems: [] }),
+  validate: isPlanningParkingState,
+};
+
 export const activeStorageDefinitions = {
   tasks: taskStorageDefinition,
   habits: habitStorageDefinition,
@@ -221,4 +257,5 @@ export const activeStorageDefinitions = {
   reminders: reminderStorageDefinition,
   "reminder-settings": reminderSettingsStorageDefinition,
   planning: planningStorageDefinition,
+  "planning-parking": planningParkingStorageDefinition,
 } as const;
