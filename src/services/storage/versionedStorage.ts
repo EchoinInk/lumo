@@ -14,6 +14,8 @@ export type PersistenceDomain =
   | "groceries"
   | "meal-plans"
   | "budget-categories"
+  | "budget-transactions"
+  | "payments"
   | "settings"
   | "onboarding"
   | "brain-dump"

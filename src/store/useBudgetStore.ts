@@ -12,7 +12,7 @@ export interface Budget {
   pendingSync?: boolean;
 }
 
-/** Reserved for WP4.7; no transaction state is implemented by WP4.6. */
+/** Compatibility shape. Canonical transactions use integer minor units. */
 export interface Transaction {
   id: string;
   amount: number;

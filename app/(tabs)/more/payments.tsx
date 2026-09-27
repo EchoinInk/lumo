@@ -1,163 +1,35 @@
-import { CalmPlaceholderNote } from "@/src/components/ui/CalmPlaceholderNote";
-import { Card } from "@/src/components/ui/Card";
-import { Screen } from "@/src/components/ui/Screen";
-import { Text } from "@/src/components/ui/Text";
-import { MoreScreenHeader } from "@/src/features/more/components";
-import { Colors, Radius, Shadows, Spacing } from "@/src/theme/tokens";
-import { LinearGradient } from "expo-linear-gradient";
-import { Plus, Receipt } from "lucide-react-native";
-import { ScrollView, StyleSheet, TouchableOpacity, View } from "react-native";
+import { BottomSheet } from "@/components/ui/BottomSheet";
+import { Button } from "@/components/ui/Button";
+import { Card } from "@/components/ui/Card";
+import { EmptyState } from "@/components/ui/EmptyState";
+import { Input } from "@/components/ui/Input";
+import { Screen } from "@/components/ui/Screen";
+import { Text } from "@/components/ui/Text";
+import { parseNzdAmountToMinor } from "@/features/budget/services/budgetMoney";
+import { useBudgetCategoryStore } from "@/features/budget/store/useBudgetCategoryStore";
+import { MoreScreenHeader } from "@/features/more/components";
+import { usePaymentStore } from "@/features/payments/store/usePaymentStore";
+import type { Payment } from "@/features/payments/types/payment";
+import { Colors, Spacing } from "@/theme/tokens";
+import { toLocalDateKey } from "@/utils/dateTime";
+import { Pencil, Plus, Receipt, Trash2 } from "lucide-react-native";
+import { useRef, useState } from "react";
+import { ActivityIndicator, Alert, StyleSheet, TouchableOpacity, View } from "react-native";
 
-// Mock payments data
-const mockPayments = [
-  { id: "1", name: "Rent", amount: 1200, status: "paid", date: "May 1" },
-  { id: "2", name: "Electricity", amount: 85, status: "paid", date: "May 3" },
-  { id: "3", name: "Internet", amount: 60, status: "pending", date: "May 15" },
-  {
-    id: "4",
-    name: "Phone Bill",
-    amount: 45,
-    status: "pending",
-    date: "May 20",
-  },
-];
-
+const money = new Intl.NumberFormat("en-NZ", { style: "currency", currency: "NZD" });
 export default function PaymentsScreen() {
-  return (
-    <Screen scrollable padded>
-      <MoreScreenHeader title="Payment Logs" subtitle="May 2024" />
-
-      {/* Payments List */}
-      <ScrollView
-        showsVerticalScrollIndicator={false}
-        contentContainerStyle={styles.list}
-      >
-        {mockPayments.map((payment) => (
-          <Card key={payment.id} variant="elevated" style={styles.paymentCard}>
-            <View style={styles.paymentContent}>
-              <View
-                style={[
-                  styles.statusIndicator,
-                  {
-                    backgroundColor:
-                      payment.status === "paid"
-                        ? Colors.success + "20"
-                        : Colors.warning + "20",
-                  },
-                ]}
-              >
-                <Receipt
-                  size={18}
-                  color={
-                    payment.status === "paid" ? Colors.success : Colors.warning
-                  }
-                />
-              </View>
-              <View style={styles.paymentInfo}>
-                <Text variant="body" style={styles.paymentName}>
-                  {payment.name}
-                </Text>
-                <Text variant="caption" color={Colors.textSecondary}>
-                  {payment.date}
-                </Text>
-              </View>
-              <View style={styles.paymentAmount}>
-                <Text variant="subheading" style={styles.amount}>
-                  ${payment.amount}
-                </Text>
-                <Text
-                  variant="small"
-                  color={
-                    payment.status === "paid" ? Colors.success : Colors.warning
-                  }
-                >
-                  {payment.status === "paid" ? "Paid" : "Pending"}
-                </Text>
-              </View>
-            </View>
-          </Card>
-        ))}
-      </ScrollView>
-
-      {/* Add Button */}
-      <TouchableOpacity
-        style={styles.addButton}
-        disabled
-        accessibilityRole="button"
-        accessibilityLabel="Add payment"
-        accessibilityHint="Payment logging is coming soon"
-        accessibilityState={{ disabled: true }}
-      >
-        <LinearGradient
-          colors={[Colors.pink, Colors.purple]}
-          start={{ x: 0, y: 0 }}
-          end={{ x: 1, y: 1 }}
-          style={styles.gradientButton}
-        >
-          <Plus size={20} color={Colors.textInverse} />
-          <Text
-            variant="body"
-            color={Colors.textInverse}
-            style={styles.addButtonText}
-          >
-            Add Payment
-          </Text>
-        </LinearGradient>
-      </TouchableOpacity>
-
-      <CalmPlaceholderNote />
-    </Screen>
-  );
+  const store = usePaymentStore(); const categories = useBudgetCategoryStore();
+  const [form, setForm] = useState<Payment | "new" | null>(null); const [title, setTitle] = useState(""); const [amount, setAmount] = useState(""); const [dueDate, setDueDate] = useState(""); const [categoryId, setCategoryId] = useState(""); const [formError, setFormError] = useState<string | null>(null); const submitting = useRef(false);
+  const open = (payment?: Payment) => { setForm(payment ?? "new"); setTitle(payment?.title ?? ""); setAmount(payment ? (payment.amountMinor / 100).toFixed(2) : ""); setDueDate(payment?.dueDate ?? toLocalDateKey()); setCategoryId(payment?.categoryId ?? categories.categories[0]?.id ?? ""); setFormError(null); };
+  const submit = async () => { const amountMinor = parseNzdAmountToMinor(amount); if (!title.trim() || amountMinor === null || !dueDate || !categoryId) return setFormError("Complete the title, exact amount, due date and category."); if (submitting.current) return; submitting.current = true; try { const input = { title, amountMinor, dueDate, categoryId }; if (form !== "new" && form) await store.updatePayment(form.id, input); else await store.createPayment(input); setForm(null); } catch { setFormError("Could not save this payment. Please retry."); } finally { submitting.current = false; } };
+  if (!store.isHydrated || !categories.isHydrated || store.isLoading || categories.isLoading) return <Screen padded centered><ActivityIndicator color={Colors.primary}/><Text>Loading payments…</Text></Screen>;
+  return <Screen scrollable padded><MoreScreenHeader title="Payments" subtitle="Local bill tracking · NZD"/>
+    <Card style={styles.notice}><Text variant="small" color={Colors.textSecondary}>Lumo tracks bills locally. It never executes a bank or external payment.</Text></Card>
+    {store.error && <Card style={styles.error}><Text color={Colors.danger} accessibilityRole="alert">{store.error}</Text><Button size="sm" variant="ghost" onPress={store.clearError}>Dismiss</Button></Card>}
+    {store.payments.length === 0 ? <EmptyState icon={<Receipt size={36} color={Colors.primary}/>} title="No payments" description="Add a bill, then mark it paid to create exactly one linked budget expense." actionLabel={categories.categories.length ? "Add payment" : undefined} onAction={categories.categories.length ? () => open() : undefined}/> : <View style={styles.list}>{store.payments.slice().sort((a,b) => a.dueDate.localeCompare(b.dueDate)).map((payment) => <Card key={payment.id} style={styles.card}><View style={styles.row}><View style={styles.info}><Text>{payment.title}</Text><Text variant="caption" color={Colors.textSecondary}>Due {payment.dueDate} · {payment.categoryNameSnapshot}</Text><Text variant="small" color={payment.status === "paid" ? Colors.success : Colors.warning}>{payment.status === "paid" ? "Paid · linked to one expense" : payment.status === "unpaid" ? "Unpaid" : "Finishing saved operation…"}</Text></View><Text variant="subheading">{money.format(payment.amountMinor / 100)}</Text></View><View style={styles.actions}><Button size="sm" style={styles.flex} loading={store.isSaving && payment.status !== "paid"} onPress={() => void (payment.status === "paid" ? store.undoPaid(payment.id) : store.markPaid(payment.id))}>{payment.status === "paid" ? "Undo paid" : "Mark paid"}</Button><TouchableOpacity style={styles.icon} onPress={() => open(payment)} accessibilityLabel={`Edit ${payment.title}`}><Pencil size={18}/></TouchableOpacity><TouchableOpacity style={styles.icon} onPress={() => Alert.alert("Delete payment?", payment.status === "paid" ? "Its linked expense will also be removed from budget spending." : "This removes the local payment record.", [{ text: "Cancel" }, { text: "Delete", style: "destructive", onPress: () => void store.deletePayment(payment.id) }])} accessibilityLabel={`Delete ${payment.title}`}><Trash2 size={18} color={Colors.danger}/></TouchableOpacity></View></Card>)}</View>}
+    <Button style={styles.add} disabled={categories.categories.length === 0} onPress={() => open()} leftIcon={<Plus size={18} color={Colors.textInverse}/>}>Add payment</Button>
+    {categories.categories.length === 0 && <Text variant="small" color={Colors.textSecondary}>Create a budget category before adding a payment.</Text>}
+    <BottomSheet visible={form !== null} onClose={() => setForm(null)} snapPoint={0.7}><Text variant="heading">{form === "new" ? "New payment" : "Edit payment"}</Text><View style={styles.form}><Input label="Payee or title" value={title} onChangeText={setTitle}/><Input label="Amount (NZD)" value={amount} onChangeText={setAmount} keyboardType="decimal-pad"/><Input label="Due date (YYYY-MM-DD)" value={dueDate} onChangeText={setDueDate}/><View><Text variant="label" color={Colors.textSecondary}>Expense category</Text><View style={styles.choices}>{categories.categories.map((category) => <Button key={category.id} size="sm" variant={categoryId === category.id ? "primary" : "ghost"} onPress={() => setCategoryId(category.id)}>{category.name}</Button>)}</View></View>{formError && <Text color={Colors.danger} accessibilityRole="alert">{formError}</Text>}<View style={styles.actions}><Button style={styles.flex} variant="ghost" onPress={() => setForm(null)}>Cancel</Button><Button style={styles.flex} loading={store.isSaving} onPress={() => void submit()}>Save</Button></View></View></BottomSheet>
+  </Screen>;
 }
-
-const styles = StyleSheet.create({
-  list: {
-    gap: Spacing.md,
-    marginBottom: Spacing.xl,
-  },
-  paymentCard: {
-    padding: Spacing.md,
-  },
-  paymentContent: {
-    flexDirection: "row",
-    alignItems: "center",
-    gap: Spacing.md,
-  },
-  statusIndicator: {
-    width: 40,
-    height: 40,
-    borderRadius: Radius.lg,
-    alignItems: "center",
-    justifyContent: "center",
-  },
-  paymentInfo: {
-    flex: 1,
-  },
-  paymentName: {
-    fontWeight: "500",
-    marginBottom: Spacing.xs,
-  },
-  paymentAmount: {
-    alignItems: "flex-end",
-  },
-  amount: {
-    fontWeight: "600",
-    marginBottom: Spacing.xs,
-  },
-  addButton: {
-    marginTop: Spacing.md,
-    marginBottom: Spacing.xl,
-  },
-  gradientButton: {
-    flexDirection: "row",
-    alignItems: "center",
-    justifyContent: "center",
-    gap: Spacing.sm,
-    paddingVertical: Spacing.md,
-    borderRadius: Radius["2xl"],
-    ...Shadows.glow,
-  },
-  addButtonText: {
-    fontWeight: "600",
-  },
-});
+const styles = StyleSheet.create({ notice: { marginBottom: Spacing.md }, error: { gap: Spacing.sm, borderColor: Colors.danger, borderWidth: 1, marginBottom: Spacing.md }, list: { gap: Spacing.md }, card: { padding: Spacing.md, gap: Spacing.md }, row: { flexDirection: "row", alignItems: "center", gap: Spacing.md }, info: { flex: 1, gap: Spacing.xs }, actions: { flexDirection: "row", alignItems: "center", gap: Spacing.sm }, flex: { flex: 1 }, icon: { width: 44, height: 44, alignItems: "center", justifyContent: "center" }, add: { marginTop: Spacing.xl }, form: { gap: Spacing.md, marginTop: Spacing.lg }, choices: { flexDirection: "row", flexWrap: "wrap", gap: Spacing.sm, marginTop: Spacing.sm } });

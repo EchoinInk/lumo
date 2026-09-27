@@ -9,6 +9,8 @@ export const StorageKeys = {
   MEAL_PLANS: "meal_plans",
   BUDGET: "budget",
   BUDGET_CATEGORIES: "budget_categories",
+  BUDGET_TRANSACTIONS: "budget_transactions",
+  PAYMENTS: "payments",
   BRAIN_DUMP_ENTRIES: "brain_dump_entries",
   REMINDERS: "reminders",
   REMINDER_SETTINGS: "reminder_settings",

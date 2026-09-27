@@ -3,6 +3,8 @@ import { useHabitStore } from "@/src/features/habits/store/useHabitStore";
 import { useCleaningStore } from "@/src/features/cleaning/store/useCleaningStore";
 import { useMealStore } from "@/src/features/meals/store/useMealStore";
 import { useBudgetCategoryStore } from "@/src/features/budget/store/useBudgetCategoryStore";
+import { useBudgetTransactionStore } from "@/src/features/budget/store/useBudgetTransactionStore";
+import { usePaymentStore } from "@/src/features/payments/store/usePaymentStore";
 import { useOnboardingStore } from "@/src/features/onboarding/store/useOnboardingStore";
 import { loadPlanningState } from "@/src/features/planning/services/planningStorage";
 import { useReminderStore } from "@/src/features/reminders/store/useReminderStore";
@@ -33,6 +35,8 @@ const domainLabels: Record<PersistenceDomain, string> = {
   groceries: "groceries",
   "meal-plans": "meal plans",
   "budget-categories": "budget categories",
+  "budget-transactions": "income and expenses",
+  payments: "payments",
   settings: "settings",
   onboarding: "onboarding preferences",
   "brain-dump": "brain dump",
@@ -74,6 +78,8 @@ export function ActiveLocalDataGate({ children }: Props): React.JSX.Element {
       { domain: "cleaning", run: () => useCleaningStore.getState().hydrate() },
       { domain: "meals", run: () => useMealStore.getState().hydrate() },
       { domain: "budget-categories", run: () => useBudgetCategoryStore.getState().hydrate() },
+      { domain: "budget-transactions", run: () => useBudgetTransactionStore.getState().hydrate() },
+      { domain: "payments", run: () => usePaymentStore.getState().hydrate() },
       { domain: "settings", run: () => useSettingsStore.getState().hydrateSettings() },
       { domain: "onboarding", run: () => useOnboardingStore.getState().hydrate() },
       { domain: "brain-dump", run: () => useBrainDumpStore.getState().hydrate() },

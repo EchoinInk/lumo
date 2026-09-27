@@ -251,12 +251,78 @@
       "from": "finding:g3-native-evidence",
       "to": "phase:3",
       "type": "blocks"
+    },
+    {
+      "created_at": "2026-09-27T14:16:58.721268Z",
+      "from": "phase:4",
+      "to": "task:wp4.6",
+      "type": "contains"
+    },
+    {
+      "created_at": "2026-09-27T14:16:58.812294Z",
+      "from": "phase:4",
+      "to": "task:wp4.7",
+      "type": "contains"
+    },
+    {
+      "created_at": "2026-09-27T14:16:58.903446Z",
+      "from": "phase:4",
+      "to": "task:wp4.8",
+      "type": "contains"
+    },
+    {
+      "created_at": "2026-09-27T14:16:58.994222Z",
+      "from": "task:wp4.7",
+      "to": "task:wp4.6",
+      "type": "depends_on"
+    },
+    {
+      "created_at": "2026-09-27T14:16:59.085491Z",
+      "from": "task:wp4.8",
+      "to": "task:wp4.7",
+      "type": "depends_on"
+    },
+    {
+      "created_at": "2026-09-27T14:16:59.176941Z",
+      "from": "task:wp4.6",
+      "to": "artifact:wp4.6-8-finance",
+      "type": "produces"
+    },
+    {
+      "created_at": "2026-09-27T14:16:59.267040Z",
+      "from": "task:wp4.7",
+      "to": "artifact:wp4.6-8-finance",
+      "type": "produces"
+    },
+    {
+      "created_at": "2026-09-27T14:16:59.357519Z",
+      "from": "task:wp4.8",
+      "to": "artifact:wp4.6-8-finance",
+      "type": "produces"
+    },
+    {
+      "created_at": "2026-09-27T14:16:59.446532Z",
+      "from": "task:wp4.6",
+      "to": "test:wp4.6-8-automated",
+      "type": "verified_by"
+    },
+    {
+      "created_at": "2026-09-27T14:16:59.538498Z",
+      "from": "task:wp4.7",
+      "to": "test:wp4.6-8-automated",
+      "type": "verified_by"
+    },
+    {
+      "created_at": "2026-09-27T14:16:59.628983Z",
+      "from": "task:wp4.8",
+      "to": "test:wp4.6-8-automated",
+      "type": "verified_by"
     }
   ],
   "meta": {
     "created_at": "2026-09-24T11:53:49.499720Z",
     "schema_version": "1.0",
-    "updated_at": "2026-09-27T09:23:38.346613Z"
+    "updated_at": "2026-09-27T14:16:59.629094Z"
   },
   "nodes": {
     "artifact:wp2.1-ownership": {
@@ -372,6 +438,20 @@
       "type": "artifact",
       "updated_at": "2026-09-27T09:08:24.604821Z"
     },
+    "artifact:wp4.6-8-finance": {
+      "id": "artifact:wp4.6-8-finance",
+      "sources": [
+        "src/features/budget",
+        "src/features/payments",
+        "app/(tabs)/more/budget.tsx",
+        "app/(tabs)/more/payments.tsx"
+      ],
+      "status": "current",
+      "title": "Canonical local budget ledger and recoverable payment linking",
+      "truth": "observed",
+      "type": "artifact",
+      "updated_at": "2026-09-27T14:16:50.994462Z"
+    },
     "decision:g1-partial-acceptance": {
       "id": "decision:g1-partial-acceptance",
       "invariants": [
@@ -446,6 +526,19 @@
       "truth": "observed",
       "type": "phase",
       "updated_at": "2026-09-27T09:23:38.167633Z"
+    },
+    "phase:4": {
+      "gate": "G4",
+      "id": "phase:4",
+      "sources": [
+        "docs/lumo-launch-master-implementation-plan.md",
+        "user:2026-09-28-phase4-prompt3-authorization"
+      ],
+      "status": "active",
+      "title": "Replace lifestyle placeholders with real local workflows",
+      "truth": "declared",
+      "type": "phase",
+      "updated_at": "2026-09-27T14:16:50.623559Z"
     },
     "project:lumo": {
       "id": "project:lumo",
@@ -638,6 +731,42 @@
       "type": "task",
       "updated_at": "2026-09-27T09:23:38.071312Z"
     },
+    "task:wp4.6": {
+      "id": "task:wp4.6",
+      "note": "Implementation and automated evidence pass; native restart acceptance deferred.",
+      "sources": [
+        "docs/lumo-implementation-progress.md#wp46---implementation-complete-native-verification-deferred"
+      ],
+      "status": "partial",
+      "title": "Budget and Categories",
+      "truth": "observed",
+      "type": "task",
+      "updated_at": "2026-09-27T14:16:50.719015Z"
+    },
+    "task:wp4.7": {
+      "id": "task:wp4.7",
+      "note": "Implementation and automated evidence pass; native restart acceptance deferred.",
+      "sources": [
+        "docs/lumo-implementation-progress.md#wp47---implementation-complete-native-verification-deferred"
+      ],
+      "status": "partial",
+      "title": "Expenses and Manual Income",
+      "truth": "observed",
+      "type": "task",
+      "updated_at": "2026-09-27T14:16:50.813072Z"
+    },
+    "task:wp4.8": {
+      "id": "task:wp4.8",
+      "note": "Implementation and automated evidence pass; native restart acceptance deferred.",
+      "sources": [
+        "docs/lumo-implementation-progress.md#wp48---implementation-complete-native-verification-deferred"
+      ],
+      "status": "partial",
+      "title": "Payments",
+      "truth": "observed",
+      "type": "task",
+      "updated_at": "2026-09-27T14:16:50.904790Z"
+    },
     "test:wp2.1-verification": {
       "id": "test:wp2.1-verification",
       "results": [
@@ -812,6 +941,21 @@
       "truth": "observed",
       "type": "test",
       "updated_at": "2026-09-27T09:08:24.729384Z"
+    },
+    "test:wp4.6-8-automated": {
+      "actual": "typecheck passed; 210 tests passed, 0 failed; lint 0 errors; doctor and web/iOS/Android exports passed; diff check passed",
+      "id": "test:wp4.6-8-automated",
+      "sources": [
+        "src/testing/budget/budgetVerticalSlice.test.ts",
+        "src/testing/budget/transactionLedger.test.ts",
+        "src/testing/payments/paymentVerticalSlice.test.ts"
+      ],
+      "status": "passing",
+      "timestamp": "2026-09-28",
+      "title": "WP4.6-WP4.8 automated verification",
+      "truth": "observed",
+      "type": "test",
+      "updated_at": "2026-09-27T14:16:51.085443Z"
     }
   },
   "project": "project:lumo"

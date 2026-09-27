@@ -523,4 +523,28 @@ Automated evidence on 2026-09-28: `npm run typecheck` passed; `npm test` passed 
 
 Available browser verification confirmed the exported app reaches the routed Budget screen, displays the monthly NZD zero-data summary without actual-spend claims, shows the empty state and opens the accessible category form. Browser automation could not reliably submit the React Native Web text fields, so no browser CRUD result is claimed. Native terminate/reopen verification was not rerun because this host still lacks the previously recorded selectable Simulator/Xcode runtime. It remains deferred for release qualification and is not claimed as passed.
 
-**Gate effect:** WP4.6 implementation Definition of Done is satisfied with native restart verification deferred under the accepted host exception. WP4.7, WP4.8 and WP4.9 have not begun in this work package.
+**Gate effect:** WP4.6 implementation Definition of Done is satisfied with native restart verification deferred under the accepted host exception. WP4.7 subsequently connected this budget to its canonical persisted ledger; no independent editable balance was introduced.
+
+## WP4.7 - Implementation complete; native verification deferred
+
+Budget now includes a canonical local transaction ledger at `useBudgetTransactionStore` → `budgetTransactionRepository` → versioned storage. Expense and manual-income records use exact integer NZD minor units and support durable create/edit/delete for title, amount, local civil date and category where required. Expenses retain both a stable category ID and name snapshot, so category deletion never erases historical spending. Monthly budget summaries derive planned limits from categories and actual spending/income from persisted transactions; they do not store an editable balance.
+
+The routed Budget screen now presents real current-month planned, spent, remaining and manual-income totals, category reconciliation, ledger empty/error/loading/save states, and accessible transaction create/edit/delete controls. The prior disconnected mock Budget screen is now only a compatibility export, and the legacy budget repository delegates transaction operations and summaries to the canonical ledger instead of returning stubs or zeroes. `budget-transactions` is registered in canonical ownership and the active local-data recovery gate.
+
+Automated evidence on 2026-09-28: `npm run typecheck` passed; `npm test` passed (**210 passed, 0 failed**), including exact minor-unit validation, zero-data totals, month/year boundaries, category calculations, category-deletion snapshots, edit/delete reconciliation, moving an expense across periods and hydration restart coverage. `npm run lint` passed with **0 errors** (existing warnings only); `npm run doctor`, `npm run export:web` and `npm run export:native` passed; `git diff --check` passed.
+
+Native terminate/reopen verification could not be performed: `xcrun simctl list devices available` failed because CoreSimulatorService was unavailable and no usable Simulator runtime/device set could be obtained. Repository hydration tests verify persisted restart semantics, but are not a substitute for native restart acceptance.
+
+**Gate effect:** WP4.7 implementation is complete and automated reconciliation evidence passes. Its native restart acceptance remains deferred and is not claimed as passed.
+
+## WP4.8 - Implementation complete; native verification deferred
+
+Payments now replaces the fixed May 2024 sample list with a canonical versioned local domain for payee/title, exact NZD minor-unit amount, local due date, category and unpaid/paid state. The routed screen supports create/edit/delete, loading/empty/recovery/save-failure states, explicit local-only disclosure, and no bank connectivity or external payment execution.
+
+Mark Paid uses an idempotent payment-owned expense ID and durable intermediate `linking` state. It creates or reuses exactly one expense through the canonical transaction repository, then records the completed link. Undo Paid first persists `undoing`, soft-deletes the linked expense, and returns the payment to unpaid. Hydration/retry completes interrupted linking or undoing operations. Editing a paid payment reconciles its single linked expense; deleting a paid payment removes linked spending; independently deleting the linked expense safely reopens the payment rather than retaining a false paid state. `payments` is registered in canonical ownership and the active recovery gate.
+
+Automated evidence on 2026-09-28: the same **210 passed, 0 failed** suite includes repeated Mark Paid idempotency, interrupted-link restart recovery, retry-safe linking, linked-expense edits and deletion, paid-payment edits, undo, paid-payment deletion and hydration restart. Typecheck, lint (0 errors), Expo Doctor, web export, iOS export, Android export and diff checks passed.
+
+Native mark-paid/reopen inspection could not be performed because CoreSimulatorService was unavailable, as recorded above. Automated hydration and interrupted-operation recovery pass, but physical/simulator restart acceptance remains deferred.
+
+**Gate effect:** WP4.8 implementation is complete and payment/budget consistency is verified automatically without duplicate transactions. Native restart acceptance remains open. WP4.9 / Phase 4 Prompt 4 has not begun.

@@ -36,6 +36,27 @@ export const CanonicalLocalDomains = {
       "src/services/mealRepository.ts (compatibility alias; formerly a stub)",
     ],
   },
+  "budget-categories": {
+    store: "src/features/budget/store/useBudgetCategoryStore.ts",
+    repository: "src/features/budget/services/budgetCategoryRepository.ts",
+    namespace: StorageNamespaces.DEFAULT,
+    key: StorageKeys.BUDGET_CATEGORIES,
+    legacy: ["src/store/useBudgetStore.ts and src/services/budgetRepository.ts (compatibility adapters)"],
+  },
+  "budget-transactions": {
+    store: "src/features/budget/store/useBudgetTransactionStore.ts",
+    repository: "src/features/budget/services/budgetTransactionRepository.ts",
+    namespace: StorageNamespaces.DEFAULT,
+    key: StorageKeys.BUDGET_TRANSACTIONS,
+    legacy: ["src/services/budgetRepository.ts (compatibility adapter)"],
+  },
+  payments: {
+    store: "src/features/payments/store/usePaymentStore.ts",
+    repository: "src/features/payments/services/paymentRepository.ts",
+    namespace: StorageNamespaces.DEFAULT,
+    key: StorageKeys.PAYMENTS,
+    legacy: [],
+  },
   settings: {
     store: "src/store/useSettingsStore.ts",
     repository: null,
