@@ -21,6 +21,7 @@ import {
     Wallet,
 } from "lucide-react-native";
 import React from "react";
+import { useSimplifiedMode } from "@/src/hooks/useSimplifiedMode";
 import { ScrollView, StyleSheet, TouchableOpacity, View } from "react-native";
 
 interface FeatureCardProps {
@@ -56,6 +57,7 @@ function FeatureCard({ title, icon, color, onPress }: FeatureCardProps) {
 }
 
 export default function MoreScreen() {
+  const simplifiedMode = useSimplifiedMode();
   const features = [
     {
       title: "Budget Tracker",
@@ -139,7 +141,10 @@ export default function MoreScreen() {
         showsVerticalScrollIndicator={false}
         contentContainerStyle={styles.grid}
       >
-        {features.map((feature, index) => (
+        {(simplifiedMode
+          ? features.filter((feature) => ["Morning planning", "Evening reset", "Parked items", "Settings"].includes(feature.title))
+          : features
+        ).map((feature, index) => (
           <FeatureCard
             key={index}
             title={feature.title}
@@ -151,7 +156,7 @@ export default function MoreScreen() {
       </ScrollView>
 
       {/* Support Card */}
-      <Card variant="gradient" style={styles.supportCard}>
+      {!simplifiedMode && <Card variant="gradient" style={styles.supportCard}>
         <View style={styles.supportContent}>
           <Sparkles size={20} color={Colors.textInverse} />
           <Text
@@ -162,7 +167,7 @@ export default function MoreScreen() {
             Need help? We&apos;re here for you.
           </Text>
         </View>
-      </Card>
+      </Card>}
     </Screen>
   );
 }

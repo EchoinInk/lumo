@@ -1,10 +1,12 @@
-import { CalmPlaceholderNote } from "@/src/components/ui/CalmPlaceholderNote";
+import { Button } from "@/src/components/ui/Button";
 import { Card } from "@/src/components/ui/Card";
 import { Screen } from "@/src/components/ui/Screen";
 import { SectionHeader } from "@/src/components/ui/SectionHeader";
 import { Text } from "@/src/components/ui/Text";
 import { getTasksForCalendarDate } from "@/src/features/calendar/utils/calendarTasks";
 import { useTasks } from "@/src/features/tasks";
+import { TaskFormModal } from "@/src/features/tasks/components/TaskFormModal";
+import type { CreateTaskInput, Task } from "@/src/features/tasks/types/task";
 import { useLocalDay } from "@/src/hooks/useLocalDay";
 import { Colors, Radius, Spacing } from "@/src/theme/tokens";
 import {
@@ -18,9 +20,12 @@ import {
   Check,
   ChevronLeft,
   ChevronRight,
+  Pencil,
+  Plus,
+  Trash2,
 } from "lucide-react-native";
 import { useEffect, useRef, useState } from "react";
-import { ScrollView, StyleSheet, TouchableOpacity, View } from "react-native";
+import { Alert, ScrollView, StyleSheet, TouchableOpacity, View } from "react-native";
 
 function buildVisibleWeek(anchor: LocalDateKey, todayKey: LocalDateKey) {
   const day = weekdayIndexForLocalDate(anchor);
@@ -44,7 +49,9 @@ export default function CalendarScreen() {
   const weekDays = buildVisibleWeek(weekAnchor, todayKey);
   const [selectedDate, setSelectedDate] = useState<LocalDateKey>(todayKey);
   const previousToday = useRef(todayKey);
-  const { tasks } = useTasks();
+  const [isTaskFormVisible, setIsTaskFormVisible] = useState(false);
+  const [selectedTask, setSelectedTask] = useState<Task | undefined>();
+  const { tasks, createTask, updateTask, toggleTask, deleteTask, mutationError } = useTasks();
 
   useEffect(() => {
     if (previousToday.current !== todayKey) {
@@ -71,6 +78,31 @@ export default function CalendarScreen() {
       setSelectedDate(nextWeek[0]?.dateKey ?? next);
       return next;
     });
+  };
+  const openCreateTask = () => {
+    setSelectedTask(undefined);
+    setIsTaskFormVisible(true);
+  };
+  const openEditTask = (task: Task) => {
+    setSelectedTask(task);
+    setIsTaskFormVisible(true);
+  };
+  const handleTaskSubmit = async (input: CreateTaskInput) => {
+    if (selectedTask) {
+      await updateTask(selectedTask.id, input);
+    } else {
+      await createTask(input);
+    }
+  };
+  const confirmDeleteTask = (task: Task) => {
+    Alert.alert("Delete this task?", "This removes it from Tasks and Calendar.", [
+      { text: "Cancel", style: "cancel" },
+      {
+        text: "Delete",
+        style: "destructive",
+        onPress: () => void deleteTask(task.id).catch(() => undefined),
+      },
+    ]);
   };
 
   return (
@@ -100,8 +132,13 @@ export default function CalendarScreen() {
             </TouchableOpacity>
             <TouchableOpacity
               style={styles.calendarButton}
+              onPress={() => {
+                setWeekAnchor(todayKey);
+                setSelectedDate(todayKey);
+              }}
               accessibilityRole="button"
-              accessibilityLabel="Open calendar view"
+              accessibilityLabel="Go to today"
+              accessibilityHint="Selects today in the current calendar"
             >
               <CalendarIcon size={18} color={Colors.primary} />
             </TouchableOpacity>
@@ -158,16 +195,62 @@ export default function CalendarScreen() {
       </Card>
 
       <SectionHeader title={selectedLabel} />
+      {mutationError && (
+        <Card variant="outlined" style={styles.errorCard}>
+          <Text variant="small" color={Colors.danger} accessibilityRole="alert">
+            {mutationError}
+          </Text>
+        </Card>
+      )}
+      <Button
+        size="sm"
+        onPress={openCreateTask}
+        style={styles.addTaskButton}
+        accessibilityLabel={`Add task for ${selectedLabel}`}
+      >
+        <Plus size={16} color={Colors.textInverse} />
+        Add task
+      </Button>
       {selectedTasks.length > 0 ? (
         <View style={styles.taskList}>
           {selectedTasks.map((task) => (
             <Card key={task.id} variant="outlined" style={styles.taskCard}>
-              <Text variant="body" style={styles.taskTitle}>
-                {task.title}
-              </Text>
-              <Text variant="caption" color={Colors.textTertiary}>
-                {task.dueTime ? `At ${task.dueTime}` : "Scheduled task"}
-              </Text>
+              <TouchableOpacity
+                onPress={() => void toggleTask(task.id).catch(() => undefined)}
+                style={styles.taskCompletion}
+                accessibilityRole="button"
+                accessibilityLabel={`${task.completed ? "Mark pending" : "Complete"}: ${task.title}`}
+              >
+                <View style={[styles.checkbox, task.completed && styles.checkboxCompleted]}>
+                  {task.completed && <Check size={15} color={Colors.textInverse} />}
+                </View>
+                <View style={styles.taskDetails}>
+                  <Text variant="body" style={[styles.taskTitle, task.completed && styles.taskTitleCompleted]}>
+                    {task.title}
+                  </Text>
+                  <Text variant="caption" color={Colors.textTertiary}>
+                    {task.dueTime ? `At ${task.dueTime}` : "Any time"}
+                  </Text>
+                </View>
+              </TouchableOpacity>
+              <View style={styles.taskActions}>
+                <TouchableOpacity
+                  onPress={() => openEditTask(task)}
+                  style={styles.taskAction}
+                  accessibilityRole="button"
+                  accessibilityLabel={`Edit task: ${task.title}`}
+                >
+                  <Pencil size={17} color={Colors.textTertiary} />
+                </TouchableOpacity>
+                <TouchableOpacity
+                  onPress={() => confirmDeleteTask(task)}
+                  style={styles.taskAction}
+                  accessibilityRole="button"
+                  accessibilityLabel={`Delete task: ${task.title}`}
+                >
+                  <Trash2 size={17} color={Colors.textTertiary} />
+                </TouchableOpacity>
+              </View>
             </Card>
           ))}
         </View>
@@ -181,10 +264,16 @@ export default function CalendarScreen() {
           </Text>
         </Card>
       )}
-
-      <CalmPlaceholderNote
-        title="This space is coming together."
-        description="You can come back to this later."
+      <TaskFormModal
+        visible={isTaskFormVisible}
+        mode={selectedTask ? "edit" : "create"}
+        initialTask={selectedTask}
+        initialDueDate={selectedTask ? undefined : selectedDate}
+        onSubmit={handleTaskSubmit}
+        onClose={() => {
+          setIsTaskFormVisible(false);
+          setSelectedTask(undefined);
+        }}
       />
     </Screen>
   );
@@ -247,10 +336,21 @@ const styles = StyleSheet.create({
     marginBottom: Spacing.lg,
   },
   taskCard: {
-    padding: Spacing.lg,
-    gap: Spacing.xs,
+    padding: Spacing.md,
+    flexDirection: "row",
+    alignItems: "center",
+    gap: Spacing.sm,
   },
+  taskCompletion: { flex: 1, flexDirection: "row", alignItems: "center", gap: Spacing.md, minHeight: 44 },
+  taskDetails: { flex: 1, gap: Spacing.xs },
+  checkbox: { width: 24, height: 24, borderRadius: 12, borderWidth: 2, borderColor: Colors.border, alignItems: "center", justifyContent: "center" },
+  checkboxCompleted: { backgroundColor: Colors.primary, borderColor: Colors.primary },
   taskTitle: {
     fontWeight: "600",
   },
+  taskTitleCompleted: { textDecorationLine: "line-through", color: Colors.textTertiary },
+  taskActions: { flexDirection: "row", gap: Spacing.xs },
+  taskAction: { minWidth: 44, minHeight: 44, alignItems: "center", justifyContent: "center" },
+  addTaskButton: { alignSelf: "flex-start", marginBottom: Spacing.md },
+  errorCard: { padding: Spacing.md, marginBottom: Spacing.md, borderColor: Colors.danger },
 });

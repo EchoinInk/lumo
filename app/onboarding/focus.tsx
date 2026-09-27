@@ -40,7 +40,8 @@ export default function OnboardingStep3Screen() {
   };
 
   const handleBack = () => {
-    router.back();
+    if (router.canGoBack()) router.back();
+    else router.replace("/onboarding/planning" as any);
   };
 
   return (

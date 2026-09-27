@@ -2,7 +2,6 @@ import { Card } from "@/src/components/ui/Card";
 import { Screen } from "@/src/components/ui/Screen";
 import { Text } from "@/src/components/ui/Text";
 import { MoreScreenHeader } from "@/src/features/more/components";
-import { useOnboarding } from "@/src/features/onboarding/hooks/useOnboarding";
 import { ReminderSettingsCard } from "@/src/features/reminders/components/ReminderSettingsCard";
 import { useSettingsStore } from "@/src/store/useSettingsStore";
 import { Colors, Spacing } from "@/src/theme/tokens";
@@ -11,13 +10,10 @@ import {
   Bell,
   ChevronRight,
   Moon,
-  RefreshCw,
-  Shield,
   User,
 } from "lucide-react-native";
 import React from "react";
 import {
-  Alert,
   ScrollView,
   StyleSheet,
   Switch,
@@ -39,26 +35,11 @@ type SettingsSection = {
 
 const settingsSections: SettingsSection[] = [
   {
-    title: "Account",
-    items: [
-      {
-        icon: <User size={20} color={Colors.primary} />,
-        label: "Profile",
-        value: "Edit",
-      },
-    ],
-  },
-  {
     title: "Preferences",
     items: [
       {
         icon: <Bell size={20} color={Colors.warning} />,
         label: "Notifications",
-        hasToggle: true,
-      },
-      {
-        icon: <Moon size={20} color={Colors.purple} />,
-        label: "Dark Mode",
         hasToggle: true,
       },
     ],
@@ -83,55 +64,10 @@ const settingsSections: SettingsSection[] = [
       },
     ],
   },
-  {
-    title: "Privacy",
-    items: [
-      {
-        icon: <Shield size={20} color={Colors.success} />,
-        label: "Privacy Settings",
-        value: "",
-      },
-    ],
-  },
-  {
-    title: "Testing",
-    items: [
-      {
-        icon: <RefreshCw size={20} color={Colors.warning} />,
-        label: "Reset Onboarding",
-        value: "",
-      },
-    ],
-  },
 ];
 
 export default function SettingsScreen() {
-  const { resetOnboarding } = useOnboarding();
   const { settings, updateSettings } = useSettingsStore();
-
-  const handleResetOnboarding = () => {
-    Alert.alert(
-      "Reset Onboarding",
-      "This will reset your onboarding preferences and show the onboarding flow again. Are you sure?",
-      [
-        { text: "Cancel", style: "cancel" },
-        {
-          text: "Reset",
-          style: "destructive",
-          onPress: () => {
-            resetOnboarding();
-            router.replace("/onboarding" as any);
-          },
-        },
-      ],
-    );
-  };
-
-  const handleSettingPress = (label: string) => {
-    if (label === "Reset Onboarding") {
-      handleResetOnboarding();
-    }
-  };
 
   const handleToggle = (label: string) => {
     switch (label) {
@@ -151,9 +87,6 @@ export default function SettingsScreen() {
           notificationsEnabled: !settings.notificationsEnabled,
         });
         break;
-      case "Dark Mode":
-        // TODO: Implement dark mode toggle
-        break;
     }
   };
 
@@ -167,8 +100,6 @@ export default function SettingsScreen() {
         return settings.simplifiedMode;
       case "Notifications":
         return settings.notificationsEnabled;
-      case "Dark Mode":
-        return settings.theme === "dark";
       default:
         return false;
     }
@@ -224,7 +155,7 @@ export default function SettingsScreen() {
                       styles.settingItemBorder,
                   ]}
                   activeOpacity={item.hasToggle ? 1 : 0.7}
-                  onPress={() => handleSettingPress(item.label)}
+                  onPress={() => undefined}
                 >
                   <View style={styles.settingIcon}>{item.icon}</View>
                   <Text variant="body" style={styles.settingLabel}>

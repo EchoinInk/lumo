@@ -100,19 +100,15 @@ export const useOnboardingStore = create<OnboardingStore>((set, get) => ({
   },
 
   // Complete onboarding
-  completeOnboarding: () => {
+  completeOnboarding: async () => {
     const completedAt = new Date().toISOString();
     const newState = {
       ...get(),
       isComplete: true,
       completedAt,
     };
+    saveVersionedData(onboardingStorageDefinition, toRecord(newState));
     set(newState);
-    try {
-      saveVersionedData(onboardingStorageDefinition, toRecord(newState));
-    } catch (error) {
-      console.error("Error completing onboarding:", error);
-    }
   },
 
   // Reset onboarding

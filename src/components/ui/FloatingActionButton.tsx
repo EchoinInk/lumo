@@ -1,5 +1,6 @@
 import { Colors, Radius, Shadows, Spacing } from '@/theme/tokens';
-import * as Haptics from 'expo-haptics';
+import { mediumImpact } from '@/animations/haptics';
+import { useReducedMotion } from '@/hooks/useReducedMotion';
 import React from 'react';
 import { StyleSheet, TouchableOpacity, TouchableOpacityProps } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
@@ -22,10 +23,11 @@ export function FloatingActionButton({
   ...props 
 }: FloatingActionButtonProps) {
   const insets = useSafeAreaInsets();
+  const reducedMotion = useReducedMotion();
 
   const handlePress = (event: any) => {
     if (haptic) {
-      Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
+      mediumImpact();
     }
     onPress?.(event);
   };
@@ -80,7 +82,7 @@ export function FloatingActionButton({
     <TouchableOpacity
       className={className}
       onPress={handlePress}
-      activeOpacity={0.7}
+      activeOpacity={reducedMotion ? 0.9 : 0.7}
       style={[
         styles.container,
         getSizeStyles(),

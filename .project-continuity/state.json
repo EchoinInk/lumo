@@ -227,12 +227,36 @@
       "from": "task:wp3.5",
       "to": "test:wp3.5-automated",
       "type": "verified_by"
+    },
+    {
+      "created_at": "2026-09-27T09:23:38.211699Z",
+      "from": "phase:3",
+      "to": "task:wp3.6",
+      "type": "contains"
+    },
+    {
+      "created_at": "2026-09-27T09:23:38.256244Z",
+      "from": "phase:3",
+      "to": "task:wp3.7",
+      "type": "contains"
+    },
+    {
+      "created_at": "2026-09-27T09:23:38.300322Z",
+      "from": "phase:3",
+      "to": "task:wp3.8",
+      "type": "contains"
+    },
+    {
+      "created_at": "2026-09-27T09:23:38.346484Z",
+      "from": "finding:g3-native-evidence",
+      "to": "phase:3",
+      "type": "blocks"
     }
   ],
   "meta": {
     "created_at": "2026-09-24T11:53:49.499720Z",
     "schema_version": "1.0",
-    "updated_at": "2026-09-27T09:08:25.252553Z"
+    "updated_at": "2026-09-27T09:23:38.346613Z"
   },
   "nodes": {
     "artifact:wp2.1-ownership": {
@@ -383,6 +407,18 @@
       "type": "decision",
       "updated_at": "2026-09-25T06:35:10.154836Z"
     },
+    "finding:g3-native-evidence": {
+      "classification": "evidence-gap",
+      "id": "finding:g3-native-evidence",
+      "sources": [
+        "docs/lumo-implementation-progress.md#g3-phase-acceptance-gate---blocked"
+      ],
+      "status": "blocked",
+      "title": "G3 native manual acceptance remains outstanding",
+      "truth": "observed",
+      "type": "finding",
+      "updated_at": "2026-09-27T09:23:38.121833Z"
+    },
     "phase:2": {
       "gate": "G2",
       "id": "phase:2",
@@ -399,15 +435,17 @@
     "phase:3": {
       "gate": "G3",
       "id": "phase:3",
+      "note": "Implementation complete through WP3.8; native/manual acceptance evidence outstanding.",
       "sources": [
         "docs/lumo-launch-master-implementation-plan.md",
-        "user:2026-09-27-wp3.1-authorization"
+        "docs/lumo-implementation-progress.md#g3-phase-acceptance-gate---blocked",
+        "user:2026-09-27-phase3-remainder-authorization"
       ],
-      "status": "active",
+      "status": "blocked",
       "title": "Complete the existing core planner",
-      "truth": "declared",
+      "truth": "observed",
       "type": "phase",
-      "updated_at": "2026-09-27T05:48:01.720942Z"
+      "updated_at": "2026-09-27T09:23:38.167633Z"
     },
     "project:lumo": {
       "id": "project:lumo",
@@ -558,6 +596,47 @@
       "truth": "observed",
       "type": "task",
       "updated_at": "2026-09-27T09:08:24.559892Z"
+    },
+    "task:wp3.6": {
+      "id": "task:wp3.6",
+      "note": "Implementation plus automated and browser acceptance complete; native restart sequence pending.",
+      "sources": [
+        "docs/lumo-implementation-progress.md#wp36-implementation-complete-automated-and-browser-acceptance-verified",
+        "app/(tabs)/calendar.tsx",
+        "src/testing/calendar/calendarTasks.test.ts"
+      ],
+      "status": "partial",
+      "title": "Complete task-backed calendar interactions",
+      "truth": "observed",
+      "type": "task",
+      "updated_at": "2026-09-27T09:23:37.977375Z"
+    },
+    "task:wp3.7": {
+      "id": "task:wp3.7",
+      "note": "Implementation plus automated and browser acceptance complete; native sensory verification pending.",
+      "sources": [
+        "docs/lumo-implementation-progress.md#wp37-implementation-complete-automated-and-browser-acceptance-verified",
+        "app/_layout.tsx",
+        "src/animations/haptics.ts"
+      ],
+      "status": "partial",
+      "title": "Apply onboarding and preferences",
+      "truth": "observed",
+      "type": "task",
+      "updated_at": "2026-09-27T09:23:38.023349Z"
+    },
+    "task:wp3.8": {
+      "id": "task:wp3.8",
+      "note": "Implementation and automated acceptance complete; native cold-link and back sequence pending.",
+      "sources": [
+        "docs/lumo-implementation-progress.md#wp38-implementation-complete-automated-acceptance-verified",
+        "src/testing/routes/routeScan.test.ts"
+      ],
+      "status": "partial",
+      "title": "Retire obsolete production routes and repair navigation",
+      "truth": "observed",
+      "type": "task",
+      "updated_at": "2026-09-27T09:23:38.071312Z"
     },
     "test:wp2.1-verification": {
       "id": "test:wp2.1-verification",

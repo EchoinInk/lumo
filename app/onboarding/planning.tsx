@@ -30,7 +30,8 @@ export default function OnboardingStep2Screen() {
   };
 
   const handleBack = () => {
-    router.back();
+    if (router.canGoBack()) router.back();
+    else router.replace("/onboarding" as any);
   };
 
   return (

@@ -6,31 +6,21 @@
  */
 
 import * as Haptics from 'expo-haptics';
-import { useAccessibilityStore } from '@/store/useAccessibilityStore';
+import { useSettingsStore } from '@/store/useSettingsStore';
 import type { HapticPattern } from '@/types/accessibility';
 
 /**
  * Check if haptics are enabled
  */
-function areHapticsEnabled(): boolean {
-  const { preferences } = useAccessibilityStore.getState();
-  return preferences.hapticFeedbackEnabled;
+export function areHapticsEnabled(): boolean {
+  return useSettingsStore.getState().settings.hapticFeedbackEnabled;
 }
 
 /**
  * Get haptic intensity
  */
 function getHapticIntensity(): Haptics.ImpactFeedbackStyle {
-  const { preferences } = useAccessibilityStore.getState();
-  
-  switch (preferences.hapticIntensity) {
-    case 'light':
-      return Haptics.ImpactFeedbackStyle.Light;
-    case 'strong':
-      return Haptics.ImpactFeedbackStyle.Heavy;
-    default:
-      return Haptics.ImpactFeedbackStyle.Medium;
-  }
+  return Haptics.ImpactFeedbackStyle.Medium;
 }
 
 /**

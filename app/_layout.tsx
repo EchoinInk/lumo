@@ -7,12 +7,18 @@
 import { GlobalErrorBoundary } from "@/src/components/feedback/GlobalErrorBoundary";
 import { ActiveLocalDataGate } from "@/src/components/feedback/ActiveLocalDataGate";
 import { observability } from "@/src/services/observability";
-import { SplashScreen, Stack } from "expo-router";
+import { useOnboardingStore } from "@/src/features/onboarding/store/useOnboardingStore";
+import { getOnboardingRedirect } from "@/src/features/onboarding/utils/onboardingRouting";
+import { SplashScreen, Stack, router, useSegments } from "expo-router";
 import { useEffect } from "react";
 
 SplashScreen.preventAutoHideAsync();
 
 function RootLayoutContent() {
+  const segments = useSegments();
+  const isComplete = useOnboardingStore((state) => state.isComplete);
+  const isOnboardingHydrated = useOnboardingStore((state) => state.isHydrated);
+
   useEffect(() => {
     const startupMeasurementId =
       observability.performance.startMeasurement("app.startup_duration");
@@ -20,6 +26,12 @@ function RootLayoutContent() {
     SplashScreen.hideAsync();
     observability.performance.endMeasurement(startupMeasurementId);
   }, []);
+
+  useEffect(() => {
+    if (!isOnboardingHydrated) return;
+    const redirect = getOnboardingRedirect(isComplete, segments);
+    if (redirect) router.replace(redirect as any);
+  }, [isComplete, isOnboardingHydrated, segments]);
 
   return (
     <ActiveLocalDataGate>

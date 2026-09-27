@@ -8,6 +8,7 @@ import { Card } from "@/src/components/ui/Card";
 import { Text } from "@/src/components/ui/Text";
 import { useOnboarding } from "@/src/features/onboarding/hooks/useOnboarding";
 import { observability } from "@/src/services/observability";
+import { useSettingsStore } from "@/src/store/useSettingsStore";
 import { Colors, Radius, Shadows, Spacing } from "@/src/theme/tokens";
 import { LinearGradient } from "expo-linear-gradient";
 import { router } from "expo-router";
@@ -15,10 +16,12 @@ import { Sparkles } from "lucide-react-native";
 import { StyleSheet, View } from "react-native";
 
 export default function OnboardingCompleteScreen() {
-  const { completeOnboarding } = useOnboarding();
+  const { completeOnboarding, preferences } = useOnboarding();
+  const updateSettings = useSettingsStore((state) => state.updateSettings);
 
-  const handleEnterLumo = () => {
-    completeOnboarding();
+  const handleEnterLumo = async () => {
+    await completeOnboarding();
+    updateSettings({ simplifiedMode: preferences.planningStyle === "minimal" });
     observability.analytics.track("onboarding_completed");
     router.replace({ pathname: "/(tabs)" as const } as any);
   };
@@ -56,7 +59,7 @@ export default function OnboardingCompleteScreen() {
 
       <View style={styles.footer}>
         <Button
-          onPress={handleEnterLumo}
+          onPress={() => void handleEnterLumo()}
           variant="primary"
           size="lg"
           style={styles.enterButton}

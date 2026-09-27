@@ -1,6 +1,7 @@
 import { UX } from '@/constants/ux';
 import { Colors, Radius, Shadows, Spacing, Typography } from '@/theme/tokens';
-import * as Haptics from 'expo-haptics';
+import { mediumImpact } from '@/animations/haptics';
+import { useReducedMotion } from '@/hooks/useReducedMotion';
 import React from 'react';
 import { ActivityIndicator, Text, TouchableOpacity, TouchableOpacityProps } from 'react-native';
 import { composeStyles, interactiveTargetStyle, mergeAccessibilityState } from './uiContracts';
@@ -40,9 +41,10 @@ export function Button({
   accessibilityState,
   ...props 
 }: ButtonProps) {
+  const prefersReducedMotion = useReducedMotion();
   const handlePress = (event: any) => {
     if (haptic && !disabled && !loading) {
-      Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
+      mediumImpact();
     }
     onPress?.(event);
   };
@@ -137,7 +139,7 @@ export function Button({
       {...props}
       onPress={handlePress}
       disabled={isDisabled}
-      activeOpacity={reducedMotion ? 0.9 : 0.7}
+      activeOpacity={reducedMotion || prefersReducedMotion ? 0.9 : 0.7}
       accessibilityRole={accessibilityRole ?? "button"}
       accessibilityLabel={getButtonLabel()}
       accessibilityHint={accessibilityHint}

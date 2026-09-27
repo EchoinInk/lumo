@@ -89,3 +89,33 @@ export function testAppRouteCountIsStable(): void {
   const routes = collectRouteFiles(appDir);
   assertEqual(routes.length >= 35, true, "app route files should remain present");
 }
+
+export function testRetiredProductionRoutesRedirectSafely(): void {
+  const redirects: Record<string, string> = {
+    "explore.tsx": "/(tabs)",
+    "(tabs)/dashboard.tsx": "/(tabs)",
+    "(tabs)/add.tsx": "/(tabs)/tasks",
+    "modals/add-modal.tsx": "/(tabs)/tasks",
+  };
+
+  for (const [route, destination] of Object.entries(redirects)) {
+    const source = fs.readFileSync(path.join(appDir, route), "utf8");
+    assertEqual(source.includes("<Redirect"), true, `${route} should intentionally redirect`);
+    assertEqual(source.includes(destination), true, `${route} should redirect to ${destination}`);
+    assertEqual(source.includes("TODO"), false, `${route} should not expose dead work`);
+  }
+}
+
+export function testProductionSettingsDoNotExposeUnsupportedControls(): void {
+  const settings = fs.readFileSync(
+    path.join(appDir, "(tabs)", "more", "settings.tsx"),
+    "utf8",
+  );
+  for (const label of ["Dark Mode", "Profile", "Privacy Settings", "Reset Onboarding"]) {
+    assertEqual(
+      settings.includes(`label: "${label}"`),
+      false,
+      `${label} should not remain a production control`,
+    );
+  }
+}

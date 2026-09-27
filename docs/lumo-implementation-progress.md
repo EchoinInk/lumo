@@ -340,3 +340,70 @@ WP3.5 is implemented. Capture conversion now records a stable retry identity bef
 | **Architecture and scope** | Canonical destinations remain in `useTaskStore`/`taskLocalRepository` and `useReminderStore`; Brain Dump holds source state and identity metadata only. The implementation uses small local idempotency records, not a transaction framework or duplicate destination store. No notification delivery, routine entity model, cloud sync expansion or WP3.6 work was introduced. |
 | **Status** | **Implementation complete; automated acceptance verified; native manual interruption/restart sequence pending.** |
 | **Gate effect** | WP3.5 implementation and automated Definition of Done are satisfied. Phase 3 remains active. **WP3.6 has not begun.** |
+
+---
+
+## WP3.6 - Implementation complete; automated and browser acceptance verified
+
+WP3.6 is implemented. Calendar is an actionable view over the canonical task store: selected-date creation, editing, completion, deletion, movement, ordering and restart all use the same durable records as Tasks.
+
+## Completion record
+
+| Field | Record |
+|---|---|
+| **Package** | **WP3.6 — Complete task-backed calendar interactions** |
+| **Canonical interactions** | Calendar creates through `TaskFormModal` with the selected local date prefilled, edits through canonical `updateTask`, completes through canonical recurrence-aware `toggleTask`, and deletes through canonical soft deletion. There is no event store or system-calendar integration. Mounted Calendar and Tasks subscribe to the same Zustand task store, so changes are immediate. |
+| **Ordering and navigation** | Valid timed tasks sort chronologically before untimed work with stable created/id fallback ordering. Previous/next week and day selection remain intact. The dead calendar control now selects today and resets the visible week. |
+| **Automated checks (2026-09-27)** | Focused tests cover selected-date filtering, deletion, chronological timed ordering, date movement and deletion after movement. The final integrated suite passed **189 tests, 0 failed**. TypeScript, config validation and `git diff --check` passed. |
+| **Manual verification** | Production web: completed onboarding, advanced one week, created a 09:15 task from Calendar for the selected date, opened Tasks and confirmed it in Upcoming, edited its title in Tasks, returned to Calendar and saw the edit immediately, completed it in Calendar, re-entered through a fresh root load and confirmed the completed canonical task remained on that date. Direct refresh of a client route returned the expected static-server 404, so restart was verified by fresh root entry. This is browser-local persistence evidence, not native process-restart evidence. |
+| **Status** | **Implementation complete; automated and browser acceptance verified; native process-restart sequence pending.** |
+| **Gate effect** | WP3.6 implementation and browser Definition of Done are satisfied. Native restart evidence remains part of G3. |
+
+---
+
+## WP3.7 - Implementation complete; automated and browser acceptance verified
+
+WP3.7 is implemented. First-run routing is hydration-aware, onboarding completion is durable-first, and the remaining production preferences have observable effects through one canonical settings store.
+
+## Completion record
+
+| Field | Record |
+|---|---|
+| **Package** | **WP3.7 — Apply onboarding and preferences** |
+| **Onboarding lifecycle** | The root gate evaluates canonical onboarding state only after `ActiveLocalDataGate` finishes hydration. Incomplete users are sent to the routed onboarding flow; interrupted onboarding routes remain usable; completed users cannot re-enter the first-run flow. Completion persists before navigation. The Minimal planning choice initializes canonical Simplified Mode and the retained overwhelm selection supplies real supportive Dashboard copy. |
+| **Preferences** | Shared Button, IconButton, FloatingActionButton and haptic utilities now read the canonical settings haptic preference. The shared reduced-motion hook combines the OS preference with canonical settings and shared controls consume it. Simplified Mode removes secondary Dashboard summary/progress and secondary More destinations while preserving Today's Focus, capture, Calendar, planning, parked work and Settings. Unsupported Profile, Dark Mode, Privacy and production Testing controls were removed. |
+| **Automated checks (2026-09-27)** | Routing tests cover fresh install, interrupted onboarding, completed restart and product-route preservation. The final integrated suite passed **189 tests, 0 failed**; TypeScript and lint passed with **0 errors, 76 existing warnings**. |
+| **Manual verification** | Production web: fresh storage entered onboarding; selected Feeling overwhelmed, Minimal and Tasks; completed onboarding; verified the personalized Dashboard copy and reduced presentation; reloaded from root and remained completed; opened More and confirmed only core destinations; disabled Simplified Mode in Settings and immediately saw the full More presentation return. Native haptic output and native reduced-motion transitions were not physically verified. |
+| **Status** | **Implementation complete; automated and browser acceptance verified; native sensory verification pending.** |
+| **Gate effect** | WP3.7 implementation is complete. Native haptic/reduced-motion evidence remains part of G3. |
+
+---
+
+## WP3.8 - Implementation complete; automated acceptance verified
+
+WP3.8 is implemented. Obsolete production URLs no longer expose starter, mock, blank or dead-end content.
+
+## Completion record
+
+| Field | Record |
+|---|---|
+| **Package** | **WP3.8 — Retire obsolete production routes and repair navigation** |
+| **Retired routes** | Expo Explore and the mock weekly Dashboard intentionally redirect to the supported Dashboard. The blank Add tab and dead Add modal redirect to Tasks. Useful source modules outside the active route graph were preserved. |
+| **Navigation fallbacks** | `ScreenBackButton` already supplied history-aware fallback routing. More subpage headers now fall back to More on cold entry, and cold onboarding Planning/Focus back actions fall back to their preceding supported onboarding route. |
+| **Automated checks (2026-09-27)** | Route scans verify required routes, local-release auth isolation, intentional redirects, absence of dead TODO route content and absence of unsupported Settings controls. The final integrated suite passed **189 tests, 0 failed**. |
+| **Status** | **Implementation complete; automated acceptance verified; native cold-link/back sequence pending.** |
+| **Gate effect** | WP3.8 implementation is complete. No Phase 4 work was started. |
+
+---
+
+## G3 Phase Acceptance Gate - BLOCKED
+
+Phase 3 implementation is complete through WP3.8, but G3 is **BLOCKED** because required native/manual evidence remains outstanding. The gate has not been weakened to treat automated or browser evidence as native acceptance.
+
+| Field | Record |
+|---|---|
+| **Automated evidence (2026-09-27)** | Credential-free native config validation passed; TypeScript passed; tests **189 passed, 0 failed**; lint **0 errors, 76 warnings**; Expo Doctor **20/20** after a network-enabled rerun (the sandboxed attempt failed only with `ENOTFOUND registry.npmjs.org`); web export passed; iOS Hermes production export passed; Android Hermes production export passed; `git diff --check` passed. |
+| **Integrated browser evidence** | Fresh/interrupted/completed onboarding, completion reload, applied onboarding presentation, Simplified Mode on/off, Calendar selected-date create → Tasks edit → Calendar completion → fresh-root persistence, week/day navigation and Today action were verified in the production web export. Static hosting did not provide client-route fallback, so direct route refresh was not counted as cold-link acceptance. |
+| **Blocking evidence gaps** | WP3.3 still requires its native habit edit/history/miss/resume/delete-undo/restart sequence. WP3.4 still requires the native Morning → task edit → Evening → Parked → restore → restart sequence. WP3.5 still requires native conversion interruption/retry/restart verification. WP3.6 still requires native Calendar termination/restart. WP3.7 still requires native haptic-off and reduced-motion behavior checks. WP3.8 still requires native direct/cold navigation and no-history back checks. Earlier G2 native/manual gaps remain recorded separately and were not reclassified here. |
+| **Result** | **BLOCKED — implementation complete; native/manual acceptance evidence outstanding.** |
+| **Stop condition** | **Phase 4 has not begun.** The next bounded action is the outstanding native G3 acceptance matrix; stop before Phase 4 until G3 passes. |

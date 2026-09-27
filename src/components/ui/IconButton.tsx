@@ -1,6 +1,7 @@
 import { Colors, Radius, Shadows } from '@/theme/tokens';
 import { UX } from '@/constants/ux';
-import * as Haptics from 'expo-haptics';
+import { softImpact } from '@/animations/haptics';
+import { useReducedMotion } from '@/hooks/useReducedMotion';
 import React from 'react';
 import { TouchableOpacity, TouchableOpacityProps } from 'react-native';
 
@@ -27,9 +28,10 @@ export function IconButton({
   onPress,
   ...props 
 }: IconButtonProps) {
+  const prefersReducedMotion = useReducedMotion();
   const handlePress = (event: any) => {
     if (haptic) {
-      Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+      softImpact();
     }
     onPress?.(event);
   };
@@ -83,7 +85,7 @@ export function IconButton({
     <TouchableOpacity
       className={className}
       onPress={handlePress}
-      activeOpacity={reducedMotion ? 0.9 : 0.7}
+      activeOpacity={reducedMotion || prefersReducedMotion ? 0.9 : 0.7}
       accessibilityRole="button"
       style={{
         ...getSizeStyles(),

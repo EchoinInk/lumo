@@ -14,6 +14,8 @@ import {
 } from "@/src/features/planning";
 import { useTasks } from "@/src/features/tasks";
 import { useLocalDay } from "@/src/hooks/useLocalDay";
+import { useSimplifiedMode } from "@/src/hooks/useSimplifiedMode";
+import { useOnboardingStore } from "@/src/features/onboarding/store/useOnboardingStore";
 import { addLocalDays } from "@/src/utils/dateTime";
 import { router } from "expo-router";
 import { StyleSheet, TouchableOpacity, View } from "react-native";
@@ -87,6 +89,8 @@ function QuickActions({ onQuickCapture }: { onQuickCapture: () => void }) {
 }
 
 export default function DashboardScreen() {
+  const simplifiedMode = useSimplifiedMode();
+  const preferences = useOnboardingStore((state) => state.preferences);
   const [isQuickCaptureVisible, setIsQuickCaptureVisible] = useState(false);
   const {
     isFocusModeEnabled,
@@ -144,9 +148,12 @@ export default function DashboardScreen() {
       {isFocusModeEnabled && <FocusModeBanner onExit={disableFocusMode} />}
 
       {/* Greeting Header */}
-      <SectionHeader title="Good morning, Alex" subtitle="You've got this" />
+      <SectionHeader
+        title="Good morning"
+        subtitle={preferences.struggleAreas.includes("feeling_overwhelmed") ? "One gentle step is enough" : "You've got this"}
+      />
 
-      <CalmDailySummary
+      {!simplifiedMode && <CalmDailySummary
         nextStep={planning.selectedNextStep}
         energyLevel={planning.energyLevel}
         carryOverCount={planning.carryOverBacklogCount}
@@ -167,7 +174,7 @@ export default function DashboardScreen() {
         onViewParked={() =>
           router.push({ pathname: "/parked" as const } as any)
         }
-      />
+      />}
 
       <SectionHeader
         title="Today's Focus"
@@ -185,14 +192,14 @@ export default function DashboardScreen() {
       <SectionHeader title="Quick Actions" />
       <QuickActions onQuickCapture={() => setIsQuickCaptureVisible(true)} />
 
-      <DailyProgressCard
+      {!simplifiedMode && <DailyProgressCard
         title="Today's Progress"
         progress={completionRate}
         subtitle={supportiveLabel}
         completedCount={completedTodayItems}
         totalCount={totalTodayItems}
         variant="default"
-      />
+      />}
 
       <QuickCaptureSheet
         visible={isQuickCaptureVisible}

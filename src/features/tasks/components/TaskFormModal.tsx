@@ -35,6 +35,7 @@ interface TaskFormModalProps {
   visible: boolean;
   mode: "create" | "edit";
   initialTask?: Task;
+  initialDueDate?: string;
   onSubmit: (data: CreateTaskInput) => Promise<unknown>;
   onClose: () => void;
 }
@@ -56,6 +57,7 @@ export function TaskFormModal({
   visible,
   mode,
   initialTask,
+  initialDueDate,
   onSubmit,
   onClose,
 }: TaskFormModalProps) {
@@ -99,12 +101,12 @@ export function TaskFormModal({
         setPriority("medium");
         setEnergyRequired(undefined);
         setRecurrence(undefined);
-        setSelectedDate("none");
-        setCustomDate("");
+        setSelectedDate(initialDueDate ? "custom" : "none");
+        setCustomDate(initialDueDate ?? "");
         setDueTime("");
       }
     }
-  }, [visible, mode, initialTask, submissionGuard]);
+  }, [visible, mode, initialTask, initialDueDate, submissionGuard]);
 
   const handleSubmit = async () => {
     let schedule: Pick<CreateTaskInput, "dueDate" | "dueTime">;

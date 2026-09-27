@@ -41,7 +41,7 @@ export interface OnboardingStore extends OnboardingState {
   setStruggleAreas: (values: StruggleArea[]) => void;
   setPlanningStyle: (value: PlanningStyle) => void;
   setFocusAreas: (values: FocusArea[]) => void;
-  completeOnboarding: () => void;
+  completeOnboarding: () => Promise<void>;
   resetOnboarding: () => void;
 }
 

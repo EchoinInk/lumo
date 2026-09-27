@@ -10,12 +10,21 @@ interface MoreScreenHeaderProps {
 }
 
 export function MoreScreenHeader({ title, subtitle }: MoreScreenHeaderProps) {
+  const handleBack = () => {
+    if (router.canGoBack()) {
+      router.back();
+      return;
+    }
+    router.replace({ pathname: "/(tabs)/more" as const } as any);
+  };
   return (
     <View style={styles.container}>
       <TouchableOpacity
-        onPress={() => router.back()}
+        onPress={handleBack}
         style={styles.backButton}
         activeOpacity={0.7}
+        accessibilityRole="button"
+        accessibilityLabel="Back to More"
       >
         <View style={styles.backButtonInner}>
           <ChevronLeft size={20} color={Colors.textSecondary} />
