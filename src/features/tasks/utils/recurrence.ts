@@ -8,6 +8,14 @@ import {
 
 const weekdays: Weekday[] = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
 
+function normalizedInterval(pattern: RecurrencePattern): number {
+  return pattern.type === "none" ? 1 : Math.max(1, pattern.interval ?? 1);
+}
+
+function laterDate(left: string, right: string): string {
+  return left > right ? left : right;
+}
+
 export function summarizeRecurrence(pattern?: RecurrencePattern): string {
   if (!pattern || pattern.type === "none") return "Does not repeat";
 
@@ -43,29 +51,75 @@ export function getNextOccurrence(
   fromDate: string,
   pattern?: RecurrencePattern,
 ): string | null {
-  if (!pattern || pattern.type === "none") return null;
-  if (!isLocalDateKey(fromDate)) return null;
+  return getNextOccurrenceAfter(fromDate, pattern, fromDate, fromDate);
+}
 
-  if (pattern.type === "daily") {
-    return addLocalDays(fromDate, pattern.interval ?? 1);
+/**
+ * Return the first scheduled occurrence after both the current occurrence and
+ * the supplied floor date. Only one future occurrence is returned, so opening
+ * the app after a long gap never materializes a backlog.
+ */
+export function getNextOccurrenceAfter(
+  fromDate: string,
+  pattern: RecurrencePattern | undefined,
+  afterDate: string,
+  anchorDate = fromDate,
+): string | null {
+  if (
+    !pattern ||
+    pattern.type === "none" ||
+    !isLocalDateKey(fromDate) ||
+    !isLocalDateKey(afterDate) ||
+    !isLocalDateKey(anchorDate)
+  ) {
+    return null;
   }
 
-  if (pattern.type === "weekly") {
-    const selected = pattern.weekdays ?? [];
-    if (selected.length === 0) {
-      return addLocalDays(fromDate, 7 * (pattern.interval ?? 1));
-    }
+  const floor = laterDate(fromDate, afterDate);
+  const interval = normalizedInterval(pattern);
 
-    for (let offset = 1; offset <= 14 * (pattern.interval ?? 1); offset++) {
-      const next = addLocalDays(fromDate, offset);
-      if (selected.includes(weekdays[weekdayIndexForLocalDate(next)])) {
-        return next;
-      }
-    }
+  if (pattern.type === "daily") {
+    let candidate = addLocalDays(anchorDate, interval);
+    while (candidate <= floor) candidate = addLocalDays(candidate, interval);
+    return candidate;
   }
 
   if (pattern.type === "monthly") {
-    return addLocalMonths(fromDate, pattern.interval ?? 1);
+    let step = interval;
+    let candidate = addLocalMonths(anchorDate, step);
+    while (candidate <= floor) {
+      step += interval;
+      candidate = addLocalMonths(anchorDate, step);
+    }
+    return candidate;
+  }
+
+  const selected = [...new Set(pattern.weekdays ?? [])];
+  if (selected.length === 0) {
+    let candidate = addLocalDays(anchorDate, 7 * interval);
+    while (candidate <= floor) candidate = addLocalDays(candidate, 7 * interval);
+    return candidate;
+  }
+
+  const anchorWeekStart = addLocalDays(
+    anchorDate,
+    -weekdayIndexForLocalDate(anchorDate),
+  );
+  for (let offset = 1; offset <= 3660; offset++) {
+    const candidate = addLocalDays(floor, offset);
+    const daysFromAnchorWeek = Math.round(
+      (Date.parse(`${candidate}T00:00:00Z`) -
+        Date.parse(`${anchorWeekStart}T00:00:00Z`)) /
+        86_400_000,
+    );
+    const weekOffset = Math.floor(daysFromAnchorWeek / 7);
+    if (
+      weekOffset >= 0 &&
+      weekOffset % interval === 0 &&
+      selected.includes(weekdays[weekdayIndexForLocalDate(candidate)])
+    ) {
+      return candidate;
+    }
   }
 
   return null;

@@ -255,3 +255,24 @@ WP3.1 is complete. Every supported user-editable task field now round-trips thro
 | **Architecture and scope** | Task ownership remains `useTaskStore` → `taskLocalRepository` → existing versioned storage. No project, tag, subtask, cloud-sync, recurrence-execution or later Phase 3 functionality was added. The unrelated concurrent edits in `lumo-launch-master-implementation-plan.md` were not modified by this work. |
 | **Status** | **Verified** |
 | **Gate effect** | WP3.1 Definition of Done is satisfied. **WP3.2 has not begun.** Phase 3 remains active. |
+
+---
+
+## WP3.2 - Verified
+
+WP3.2 is complete. Every recurrence option exposed by the task form now advances exactly once, completed occurrences remain durable history, restart and retry are idempotent, and missed schedules create only the first future occurrence rather than a backlog.
+
+## Completion record
+
+| Field | Record |
+|---|---|
+| **Package** | **WP3.2 — Execute task recurrence** |
+| **Dependency context** | WP3.1 is verified. G2 retains its previously recorded manual evidence gaps; the product owner explicitly authorized this bounded WP3.2 package on 2026-09-27. No WP3.3 or later Phase 3 work was started. |
+| **Identity model** | Recurring tasks use optional `seriesId`, zero-based `occurrenceIndex`, `recurrenceAnchorDate`, `previousOccurrenceId` and `nextOccurrenceId` fields. The predecessor/successor link is the durable idempotency key: a completion retry or restart reuses the existing successor rather than creating another record. Existing non-recurring and legacy tasks remain schema-compatible. |
+| **Completion and history** | Completing an active recurring occurrence atomically marks that record complete with `completedAt` and persists one incomplete successor. The completed record remains in Done as history. Repeated explicit completion is a no-op; in-flight repeated UI taps share one mutation. Undo reopens the historical occurrence but retains its already-created successor and any successor edits; recompleting relinks to that same successor without duplication. Editing an occurrence affects that occurrence, and its recurrence settings become the source copied to its eventual successor. |
+| **Cadence and backlog policy** | The corrected recurrence utility uses local civil-date arithmetic for daily, weekday, weekly and multi-week intervals. Monthly calculation retains the series anchor, so January 31 can clamp to February 28/29 and return to March 31. Completing an overdue task skips missed dates and creates only the first occurrence after the current local day. Wall-clock due time is preserved, avoiding fixed-24-hour DST drift. |
+| **Automated checks (2026-09-27)** | Credential-free config validation passed; TypeScript passed; tests **168 passed, 0 failed**; lint **0 errors, 80 existing warnings**; Expo Doctor **20/20**; web export passed; iOS Hermes production export passed; Android Hermes production export passed; `git diff --check` passed. Five focused WP3.2 tests cover daily/weekly/monthly cadence, daily/weekly/monthly intervals, selected weekdays, month-end, leap years, DST boundaries, missed-date backlog suppression, repeated completion, repeated taps, stable series identity, completion history, successor-only edits, undo/recompletion and restart persistence. |
+| **Manual verification** | Production web export: created a daily task due Today, completed it and confirmed exactly one Tomorrow occurrence; edited the generated successor; reloaded from a fresh root navigation and confirmed the edit and both occurrences persisted; then undid the original completion and confirmed the original reopened while the edited successor remained and no duplicate appeared. This browser check is not physical-device evidence. |
+| **Architecture and scope** | Task ownership remains `useTaskStore` → `taskLocalRepository` → existing versioned storage. No background scheduler, backlog materializer, cloud recurrence service, habit work or WP3.3 functionality was introduced. The unrelated pre-existing edit in `lumo-launch-master-implementation-plan.md` was not modified by this work. |
+| **Status** | **Verified** |
+| **Gate effect** | WP3.2 Definition of Done is satisfied. Phase 3 remains active; **WP3.3 has not begun.** |

@@ -20,6 +20,8 @@ import {
   TaskScheduleValidationError,
 } from "../utils/taskValidation";
 import { ITaskRepository } from "./taskRepository.types";
+import { toLocalDateKey } from "@/src/utils/dateTime";
+import { getNextOccurrenceAfter } from "../utils/recurrence";
 
 /**
  * Task Local Repository
@@ -186,15 +188,23 @@ export class TaskLocalRepository implements ITaskRepository {
       const now = this.now();
       const normalizedInput = normalizeCreateTaskInput(input);
 
+      const id = this.generateId();
       const newTask: Task = {
         ...normalizedInput,
-        id: this.generateId(),
+        id,
         completed: false,
         createdAt: now,
         updatedAt: now,
         syncStatus: "pending",
         version: 1,
         pendingSync: true,
+        ...(normalizedInput.recurrence && normalizedInput.recurrence.type !== "none"
+          ? {
+              seriesId: id,
+              occurrenceIndex: 0,
+              recurrenceAnchorDate: normalizedInput.dueDate,
+            }
+          : {}),
       };
 
       this.persistTasks([...tasks, newTask]);
@@ -317,6 +327,14 @@ export class TaskLocalRepository implements ITaskRepository {
    * Pure local persistence — no sync logic.
    */
   async toggleTask(id: string): Promise<Task> {
+    return this.setTaskCompletion(id, undefined);
+  }
+
+  async setTaskCompletion(
+    id: string,
+    completed?: boolean,
+    localDate: string = toLocalDateKey(),
+  ): Promise<Task> {
     return this.mutate("toggle", () => {
       const tasks = this.loadTasks();
       const index = tasks.findIndex((t) => t.id === id);
@@ -331,10 +349,14 @@ export class TaskLocalRepository implements ITaskRepository {
       }
 
       const current = tasks[index];
+      const nextCompleted = completed ?? !current.completed;
+      if (current.completed === nextCompleted) return current;
+      const now = this.now();
       const updated: Task = {
         ...current,
-        completed: !current.completed,
-        updatedAt: this.now(),
+        completed: nextCompleted,
+        completedAt: nextCompleted ? now : undefined,
+        updatedAt: now,
         syncStatus: "pending",
         version: (current.version ?? 0) + 1,
         pendingSync: true,
@@ -342,8 +364,54 @@ export class TaskLocalRepository implements ITaskRepository {
 
       const next = [...tasks];
       next[index] = updated;
+
+      if (
+        nextCompleted &&
+        current.recurrence &&
+        current.recurrence.type !== "none" &&
+        !current.nextOccurrenceId
+      ) {
+        const existingSuccessor = tasks.find(
+          (task) => task.previousOccurrenceId === current.id,
+        );
+        if (existingSuccessor) {
+          next[index] = { ...updated, nextOccurrenceId: existingSuccessor.id };
+        } else {
+          const baseDate = current.dueDate ?? localDate;
+          const anchorDate = current.recurrenceAnchorDate ?? baseDate;
+          const dueDate = getNextOccurrenceAfter(
+            baseDate,
+            current.recurrence,
+            localDate,
+            anchorDate,
+          );
+          if (dueDate) {
+            const successorId = this.generateId();
+            next[index] = { ...updated, nextOccurrenceId: successorId };
+            next.push({
+              ...current,
+              id: successorId,
+              completed: false,
+              completedAt: undefined,
+              dueDate,
+              seriesId: current.seriesId ?? current.id,
+              occurrenceIndex: (current.occurrenceIndex ?? 0) + 1,
+              recurrenceAnchorDate: anchorDate,
+              previousOccurrenceId: current.id,
+              nextOccurrenceId: undefined,
+              createdAt: now,
+              updatedAt: now,
+              version: 1,
+              syncStatus: "pending",
+              pendingSync: true,
+              lastSyncedAt: undefined,
+              deletedAt: null,
+            });
+          }
+        }
+      }
       this.persistTasks(next);
-      return updated;
+      return next[index];
     });
   }
 

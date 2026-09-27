@@ -56,6 +56,12 @@ export function isTask(value: unknown): value is Task {
     isRecurrence(value.recurrence) && isOptionalString(value.dueDate) &&
     isOptionalString(value.dueTime) && isString(value.createdAt) &&
     isString(value.updatedAt) && isNullableString(value.deletedAt) &&
+    isOptionalString(value.seriesId) &&
+    (value.occurrenceIndex === undefined || (Number.isInteger(value.occurrenceIndex) && (value.occurrenceIndex as number) >= 0)) &&
+    isOptionalString(value.recurrenceAnchorDate) &&
+    isOptionalString(value.previousOccurrenceId) &&
+    isOptionalString(value.nextOccurrenceId) &&
+    isOptionalString(value.completedAt) &&
     (value.syncStatus === undefined || isOneOf(value.syncStatus, ["pending", "synced", "failed"])) &&
     (value.version === undefined || Number.isInteger(value.version)) &&
     isOptionalString(value.lastSyncedAt) &&

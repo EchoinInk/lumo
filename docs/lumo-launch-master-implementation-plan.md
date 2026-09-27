@@ -580,6 +580,20 @@ Update `docs/lumo-implementation-progress.md` with the status of each completed 
 
 ### Phase 4 — Replace Lifestyle Placeholders With Real Local Workflows
 
+#### Compressed execution plan — 5 prompts
+
+Prompt 1: WP4.1 Cleaning + WP4.2 Meals
+
+Prompt 2: WP4.3 Recipes + WP4.4 Groceries + WP4.5 Weekly Meal Planner
+
+Prompt 3: WP4.6 Budget/Categories + WP4.7 Expenses/Income + WP4.8 Payments
+
+Prompt 4: WP4.9 Calories + WP4.10 Weight
+
+Prompt 5: WP4.11 Workouts + WP4.12 Body Measurements, then G4
+
+Work packages retain their individual scope, dependencies and Definition of Done. Grouping changes session boundaries only.
+
 #### Goal
 
 Finish the declared lifestyle domains as complete, usable local features.
@@ -591,155 +605,253 @@ The persistence and interaction patterns are now proven. Each new slice can reus
 #### Audit findings addressed
 
 B02, B07, B09, B13, B25, B26, B34, B35, B42.
+
 Placeholder findings: S08–S15, S39.
 
 #### Files / systems likely affected
 
 Existing [More routes](/Users/echoin.ink/Developer/lumo/app/(tabs\)/more), [Health route](/Users/echoin.ink/Developer/lumo/app/(tabs\)/health.tsx), [feature modules](/Users/echoin.ink/Developer/lumo/src/features), current meal/budget stores and stub repositories.
+
 New domain modules belong within the existing feature-first structure. These are new product implementations, not a replacement architecture.
 
 #### WP4.1 — Cleaning
 
 - Objective: Replace sample chores with real routines/items.
+
 - Current problem: Static completion and disabled scheduling.
+
 - Implementation: Complete V for routines/items, dates, completion and supported repetition; derive progress from actual occurrences.
+
 - Constraints: One cleaning source; avoid separately editable duplicate task copies.
+
 - Modules: Existing Cleaning screen, new cleaning feature module, proven date/recurrence services.
+
 - Tests: V-tests plus completion recurrence, skipped days and deletion.
+
 - Manual: V-manual plus edit schedule and complete a repeated cleaning item.
+
 - Dependencies: G3.
+
 - Done: All displayed chores belong to the user; completion and schedules survive restart.
 
 #### WP4.2 — Meals
 
 - Objective: Implement consumed meal entries.
+
 - Current problem: Sample meals and fixed calorie totals.
+
 - Implementation: Complete V for dated meal entries, meal type, description and optional manually entered nutrition.
+
 - Constraints: Consumed meals are distinct from future meal plans; no nutrition API.
+
 - Modules: Existing Meals screen, meal model/store and replacement of the stub repository.
+
 - Tests: V-tests plus date boundaries, optional nutrition and edit/delete totals.
+
 - Manual: V-manual plus multiple meal types and dates.
+
 - Dependencies: WP4.1.
+
 - Done: Meal history and local totals contain only saved consumed entries.
 
 #### WP4.3 — Recipes
 
 - Objective: Add basic saved recipe management.
+
 - Current problem: No recipe domain exists.
+
 - Implementation: Complete V for names, ingredients, quantities/units, instructions and servings; allow logging a meal from a recipe.
+
 - Constraints: Preserve historical meal snapshots when recipes change; no scraping, AI generation or favourites requirement.
+
 - Modules: New recipe feature, completed meal service and a lightweight route.
+
 - Tests: V-tests plus serving quantities, recipe-to-meal logging and recipe deletion with existing meal history.
+
 - Manual: V-manual plus log a recipe as a consumed meal.
+
 - Dependencies: WP4.2.
+
 - Done: Recipes are independently useful and meal history does not change retroactively.
 
 #### WP4.4 — Groceries
 
 - Objective: Replace the static shopping list with real grocery management.
+
 - Current problem: Fixed items and visual-only checks.
+
 - Implementation: Complete V for list items, quantity/unit, checked state and editing; expose a domain operation for adding recipe ingredients.
+
 - Constraints: Preserve manual edits and checked state; do not show planner-generation controls before the planner exists.
+
 - Modules: Existing Groceries screen, new groceries feature and recipe ingredient types.
+
 - Tests: V-tests plus checking/undo, quantity validation and duplicate ingredient handling.
+
 - Manual: V-manual plus shopping-list edits and restart with checked items.
+
 - Dependencies: WP4.3.
+
 - Done: The grocery list is fully usable on its own and ready for actual planner integration.
 
 #### WP4.5 — Weekly Meal Planner
 
 - Objective: Implement persistent weekly meal assignments and shopping integration.
+
 - Current problem: Entire domain is missing.
+
 - Implementation: Complete V for day/meal-slot assignments referencing recipes or manual meal descriptions; generate/update groceries through the completed grocery service.
+
 - Constraints: Planned food never counts as consumed. Repeated generation must not duplicate items or erase manual shopping changes.
+
 - Modules: New meal-planning feature, recipe and grocery services, meal logging integration.
+
 - Tests: V-tests plus week rollover, reassignment, deleted recipes, repeated grocery generation and interrupted integration.
+
 - Manual: Plan a week, generate groceries twice, edit the plan and log one meal as consumed.
+
 - Dependencies: WP4.2–WP4.4.
+
 - Done: The planner, groceries and meal log remain distinct but correctly connected.
 
 #### WP4.6 — Budget and Categories
 
 - Objective: Establish real budget limits and periods.
+
 - Current problem: Categories and amounts are constants.
+
 - Implementation: Complete V for categories, period limits and currency; calculate against actual persisted transactions, initially an empty ledger.
+
 - Constraints: Use integer minor monetary units or an equivalent precise representation; no bank connectivity or multi-currency conversion.
+
 - Modules: Existing Budget screen, canonical budget types/store and real local repository.
+
 - Tests: V-tests plus rounding, period boundaries, category deletion and zero-data totals.
+
 - Manual: Create/edit a monthly budget and reopen.
+
 - Dependencies: WP4.5.
+
 - Done: Budget setup is real, durable and independent of sample spending.
 
 #### WP4.7 — Expenses and Manual Income
 
 - Objective: Provide the actual financial ledger.
+
 - Current problem: Expense creation is disabled and transaction repositories are stubs.
+
 - Implementation: Complete V for manual income/expense records, amount, category and date; update budget calculations immediately.
+
 - Constraints: Transactions own actual income/spending; budget summaries do not maintain duplicate balances.
+
 - Modules: Existing transaction model, budget repository/store boundary, expense forms/routes.
+
 - Tests: V-tests plus period/category calculations, money precision and edit/delete reconciliation.
+
 - Manual: Add income and expenses, move an expense across periods, then restart.
+
 - Dependencies: WP4.6.
+
 - Done: Budget balances match the persisted ledger after every mutation.
 
 #### WP4.8 — Payments
 
 - Objective: Track real upcoming and completed payment records.
+
 - Current problem: Fixed bills, dates and paid flags.
+
 - Implementation: Complete V for payee/title, due date, amount and paid state. Marking paid creates or links one expense through a recoverable operation; undo behavior must explicitly handle that link.
+
 - Constraints: Never execute external payments or double-count an existing expense.
+
 - Modules: Existing Payments screen, new payment domain, expense service and local operation recovery.
+
 - Tests: V-tests plus repeated “paid,” linked expense edits/deletion, interrupted saves and undo.
+
 - Manual: Mark paid, retry after interruption, inspect Budget and reopen.
+
 - Dependencies: WP4.7.
+
 - Done: Payment state and linked spending agree without duplicate transactions.
 
 #### WP4.9 — Calories
 
 - Objective: Provide truthful local calorie tracking.
+
 - Current problem: Health and Meals display contradictory constants.
+
 - Implementation: Complete the local slice for calorie preferences/goals and daily intake views; create/edit intake through canonical consumed meal entries, including quick manual intake capture.
+
 - Constraints: No second calorie ledger, invented nutrition estimates or automatic subtraction of exercise calories.
+
 - Modules: Meal feature, calorie preference/service layer and Health calorie presentation.
+
 - Tests: V-tests for preferences plus intake aggregation, unknown values, planned-versus-consumed separation and edits/deletes.
+
 - Manual: Log intake, edit it from Meals, inspect Calories and restart.
+
 - Dependencies: WP4.2 and WP4.8.
+
 - Done: Every intake value is traceable to a saved consumed entry; unset goals and unknown calories are honest states.
 
 #### WP4.10 — Weight
 
 - Objective: Replace fixed weight history with manual tracking.
+
 - Current problem: Static values and assumed weight-loss goals.
+
 - Implementation: Complete V for dated measurements, supported units, history and neutral change summaries.
+
 - Constraints: Preserve precision and entered meaning; do not prescribe goals or judge increases/decreases.
+
 - Modules: Existing Weight screen, new weight feature and unit utilities.
+
 - Tests: V-tests plus unit conversion, date ordering and trend recalculation.
+
 - Manual: Enter both supported units, edit/delete an entry and restart.
+
 - Dependencies: WP4.9.
+
 - Done: Current weight and changes derive from real records with neutral language.
 
 #### WP4.11 — Workouts
 
 - Objective: Implement manual workout logging.
+
 - Current problem: Fixed workout sessions and calorie totals.
+
 - Implementation: Complete V for activity, date, duration and optional manually supplied calorie estimate.
+
 - Constraints: No wearable integration, inferred calorie calculation or workout-program generator.
+
 - Modules: Existing Workouts screen and new workout feature.
+
 - Tests: V-tests plus duration validation, date totals and optional calorie handling.
+
 - Manual: Log, edit and remove sessions; verify history after restart.
+
 - Dependencies: WP4.10.
+
 - Done: Session counts, duration and optional estimates reflect saved records only.
 
 #### WP4.12 — Body Measurements
 
 - Objective: Implement basic manual measurement history.
+
 - Current problem: No domain or screen exists.
+
 - Implementation: Complete V for measurement type, value, unit and date, with simple history.
+
 - Constraints: No photos, diagnosis, inferred body composition or advanced analytics.
+
 - Modules: New measurements feature, existing unit/date utilities, lightweight route and Health navigation.
+
 - Tests: V-tests plus units, per-type history and invalid values.
+
 - Manual: Enter multiple measurement types, edit/delete and reopen.
+
 - Dependencies: WP4.11.
+
 - Done: Measurements are accessible, editable and durable, with no fabricated summaries.
 
 #### Risk points
@@ -753,13 +865,22 @@ Bank feeds, external payments, nutrition databases, barcode scanning, wearable A
 #### Phase Acceptance Gate — G4
 
 - Every package passes V-Done before the next starts.
+
 - All twelve domains have real local data and appropriate CRUD.
+
 - No placeholder records or disabled promised creation actions remain.
+
 - Food and financial integrations pass failure/retry tests.
+
 - Every domain passes native terminate/reopen verification.
+
 - Existing core planner tests remain green.
 
 ### Phase 5 — Make Dashboard / Health / Summaries Truthful
+
+#### Compressed execution plan — 1 prompt
+
+Prompt 1: WP5.1 Canonical summary selectors + WP5.2 Summary surfaces, then G5.
 
 #### Goal
 
@@ -780,25 +901,41 @@ B14, B23, B34, B40, B42; S01–S04, S11, S13–S15.
 #### WP5.1 — Define and implement canonical summary selectors
 
 - Objective: Give every metric a precise definition.
+
 - Current problem: Daily/all-time scope and real/mock data are mixed.
+
 - Implementation: Define date windows, denominators, completion attribution, unknown values and units; derive results from domain stores.
+
 - Constraints: No persisted duplicate totals unless a demonstrated performance need justifies a rebuildable cache.
+
 - Modules: Dashboard utilities and domain selectors.
+
 - Tests: Future/overdue tasks, historical completion, empty data, deleted records, missing nutrition and period boundaries.
+
 - Manual: Change source records and compare resulting summaries.
+
 - Dependencies: G4.
+
 - Done: Each metric has one documented calculation and passing fixtures.
 
 #### WP5.2 — Connect and verify all summary surfaces
 
 - Objective: Replace remaining constants and stale views.
+
 - Current problem: Health/Dashboard can imply activity that never occurred.
+
 - Implementation: Wire selectors, remove mock charts/wins, use honest empty/unknown states and replace hard-coded personalization.
+
 - Constraints: Preserve layouts; do not add advanced insight screens.
+
 - Modules: Dashboard, Health, budget and domain summary cards.
+
 - Tests: Cross-screen create/edit/delete updates and date rollover.
+
 - Manual: Run a representative day across all domains, then restart.
+
 - Dependencies: WP5.1.
+
 - Done: Every displayed operational value is traceable to real state and updates without forced reload.
 
 #### Risk points
@@ -812,12 +949,22 @@ Predictive insights, advanced charts, comparative scoring and a separate weekly 
 #### Phase Acceptance Gate — G5
 
 - No hard-coded user metric remains.
+
 - Future tasks cannot complete today’s progress.
+
 - Planned meals do not inflate calories.
+
 - Source edits/deletes update every relevant view.
+
 - Empty and unknown values are distinct.
 
 ### Phase 6 — Native Reminders and Notifications
+
+#### Compressed execution plan — 2 prompts
+
+Prompt 1: WP6.1 Reminder lifecycle + WP6.2 Native scheduling/reconciliation
+
+Prompt 2: WP6.3 Quiet hours/timezone/tap navigation, then G6
 
 #### Goal
 
@@ -838,37 +985,61 @@ B03, B13, B17, B31, B34; S18, S21, S22.
 #### WP6.1 — Complete reminder management and delivery-state contracts
 
 - Objective: Make reminders fully manageable before scheduling them.
+
 - Current problem: Records can be created without a complete edit/delete/complete flow.
+
 - Implementation: Add reminder management, validated schedule input, source references and explicit delivery states/OS identifiers.
+
 - Constraints: General notification preference and reminder preference must resolve through one effective policy.
+
 - Modules: Reminder types/store/storage/screens and settings.
+
 - Tests: CRUD, invalid/past times, source deletion, duplicate saves and restart.
+
 - Manual: Create/edit/disable/delete reminders from all supported entry points.
+
 - Dependencies: G5.
+
 - Done: Each reminder has a stable lifecycle and honest delivery status.
 
 #### WP6.2 — Implement native scheduling and reconciliation
 
 - Objective: Schedule actual OS notifications reliably.
+
 - Current problem: Timestamp storage currently produces no delivery.
+
 - Implementation: Integrate SDK 55 notifications behind a service; request permissions contextually; schedule/cancel/reschedule; persist IDs; reconcile desired state against pending OS requests after interruption.
+
 - Constraints: No push server or account. Do not claim scheduled success before the OS accepts the request.
+
 - Modules: Reminder service, native configuration, permission/settings integration.
+
 - Tests: Service-adapter failure paths, duplicate reconciliation, edit/delete cancellation and denied permissions.
+
 - Manual: Real-device foreground/background/terminated delivery on both platforms, including restart between scheduling and ID persistence.
+
 - Dependencies: WP6.1.
+
 - Done: Repeated reconciliation produces the intended requests without stale or duplicate notifications.
 
 #### WP6.3 — Finish quiet hours, timezone behavior and tap navigation
 
 - Objective: Make delivered reminders respectful and actionable.
+
 - Current problem: Quiet-hour/tone claims are not enforced and notification destinations do not exist.
+
 - Implementation: Apply canonical preferences, define quiet-hour handling, reconcile timezone changes and route taps safely to existing or deleted-source states.
+
 - Constraints: OS permission denial remains a usable local state; no repeated coercive prompts.
+
 - Modules: Reminder policy/copy, date services, router handlers and settings.
+
 - Tests: Quiet-hour boundaries, timezone/DST, revoked permission and missing-source taps.
+
 - Manual: Tap from terminated/background states; disable reminders; confirm pending requests are cancelled.
+
 - Dependencies: WP6.2.
+
 - Done: Delivery and navigation follow the saved policy on both platforms.
 
 #### Risk points
@@ -882,13 +1053,24 @@ Remote push, marketing messages, location triggers and cross-device delivery.
 #### Phase Acceptance Gate — G6
 
 - Both platforms pass real-device delivery tests.
+
 - Edits/deletes/settings changes reconcile pending requests.
+
 - OS identifiers survive restart.
+
 - Quiet hours and timezone policy are enforced.
+
 - Denied/revoked permission is handled honestly.
+
 - Taps never strand users or open dead records.
 
 ### Phase 7 — Accessibility, Neurodivergent UX, Design System and Mascot
+
+#### Compressed execution plan — 2 prompts
+
+Prompt 1: WP7.1 Accessibility/sensory coverage + WP7.2 Simplified/focus/visual consistency
+
+Prompt 2: WP7.3 Mascot/production brand assets, then G7
 
 #### Goal
 
@@ -909,37 +1091,61 @@ B17, B21, B22, B28, B29, B36–B40, B42; S16, S19, S20, S26, S34, S41, S42.
 #### WP7.1 — Complete accessibility and sensory-control coverage
 
 - Objective: Make every essential flow operable with supported accessibility settings.
+
 - Current problem: Labels, roles, touch targets, modal focus, scaling and motion enforcement are uneven.
+
 - Implementation: Apply established primitive contracts across all live screens; fix remaining contrast, focus, error announcement and target issues.
+
 - Constraints: Preserve layouts where accessible; fix actual barriers rather than redesign.
+
 - Modules: Active screens, forms/modals, shared primitives and motion/haptic consumers.
+
 - Tests: Behavioral checks for preferences and semantics; existing regressions.
+
 - Manual: VoiceOver, TalkBack, large text, reduced motion, haptics off, keyboard and small-screen navigation.
+
 - Dependencies: G6.
+
 - Done: Every essential action is accessible and sensory preferences hold throughout the app.
 
 #### WP7.2 — Complete simplified/focus behavior and visual consistency
 
 - Objective: Reduce unnecessary cognitive load while retaining access to functionality.
+
 - Current problem: Dense simultaneous choices, ineffective focus isolation and token drift remain.
+
 - Implementation: Apply progressive disclosure, emphasize the chosen focus task, retain recovery access and standardize active typography/spacing/colour use.
+
 - Constraints: No new navigation model, personalization engine or generic replacement of feature layouts.
+
 - Modules: Tasks, Dashboard, More, focus/simplified consumers and existing tokens.
+
 - Tests: Core-action reachability in normal/simplified/focus states.
+
 - Manual: Capture and complete a task in each mode; recover parked work; verify neutral wellness copy.
+
 - Dependencies: WP7.1.
+
 - Done: Modes change actual presentation without hiding essential actions or creating alternate data state.
 
 #### WP7.3 — Integrate mascot and production brand assets
 
 - Objective: Replace starter identity with the intended Lumo identity.
+
 - Current problem: Mascot assets/registry are absent and icon/splash assets are unfinished.
+
 - Implementation: Add approved initial mascot states, a central registry and reusable illustration-state presentation; configure production icons and splash assets.
+
 - Constraints: Use the existing design direction. No speculative mascot redesign or extensive animation system.
+
 - Modules: Assets, existing constants/feedback layers and app configuration.
+
 - Tests: Asset-reference/build validation; no unnecessary unit tests for static artwork.
+
 - Manual: Check actual native icon/splash, offline asset loading, meaningful text alternatives and reduced-motion behavior.
+
 - Dependencies: WP7.1–WP7.2; approved source artwork is required.
+
 - Done: No starter branding remains; contextual mascot feedback works without motion or visual-only meaning.
 
 #### Risk points
@@ -953,13 +1159,24 @@ Dark mode, a new design language, all nine animated mascot states, adaptive inte
 #### Phase Acceptance Gate — G7: Complete Local-First MVP
 
 - All earlier gates remain valid.
+
 - Every in-scope feature works without an account.
+
 - Essential accessibility and sensory-control checks pass.
+
 - No mock data, dead operational controls or misleading settings remain.
+
 - Brand assets and contextual feedback are complete.
+
 - Every domain has native restart evidence.
 
 ### Phase 8 — Production Hardening and Release Qualification
+
+#### Compressed execution plan — 2 prompts
+
+Prompt 1: WP8.1 Acceptance suite + WP8.2 Recovery/upgrades/long-running use
+
+Prompt 2: WP8.3 Reproducible release configuration + WP8.4 Beta/release-candidate qualification, then G8
 
 #### Goal
 
@@ -980,49 +1197,81 @@ B07, B09, B10, B13, B27–B35, B39; B43 if performance testing demonstrates a pr
 #### WP8.1 — Establish the complete acceptance suite
 
 - Objective: Replace helper-only confidence with product evidence.
+
 - Current problem: Existing tests missed build, concurrency and workflow defects.
+
 - Implementation: Consolidate regression scenarios for core/lifestyle integration and a repeatable native smoke workflow; add CI validation without replacing the working test suite unnecessarily.
+
 - Constraints: Tests must assert outcomes and failure behavior, not mirror implementation.
+
 - Modules: Existing testing directories, runner, scripts and CI configuration.
+
 - Tests: Full suite, native exports and critical-flow automation where practical.
+
 - Manual: Execute the release scenario matrix on both platforms.
+
 - Dependencies: G7.
+
 - Done: Failures in the audited critical behaviors cause visible release-gate failures.
 
 #### WP8.2 — Qualify recovery, upgrades and long-running use
 
 - Objective: Verify data survival under realistic interruption and failure.
+
 - Current problem: Process death, upgrades and corrupted-state recovery remain unqualified.
+
 - Implementation: Test migration fixtures, storage failures, interrupted conversions, notification reconciliation, long histories and missed-day recovery; repair demonstrated defects.
+
 - Constraints: Never “repair” data by silently resetting it. General user-facing export/import remains a separately controlled enhancement.
+
 - Modules: Existing repositories, migrations, recovery UI, lifecycle services and test fixtures.
+
 - Tests: Upgrade/restart/failure matrix, repeated migration and recovery idempotency.
+
 - Manual: Force-stop during mutations, upgrade a seeded installation and inspect retained records.
+
 - Dependencies: WP8.1.
+
 - Done: No silent data loss; recovery is understandable; backward/forward compatibility limits are documented.
 
 #### WP8.3 — Finalize reproducible release configuration
 
 - Objective: Produce the exact binaries that will be qualified and submitted.
+
 - Current problem: Release numbering, profiles and final native manifests are incomplete.
+
 - Implementation: Finalize development/preview/production EAS profiles, signing ownership, build numbering, environment boundaries and final permission/privacy manifests.
+
 - Constraints: Runtime remains local-first. OTA updates are deferred unless separately authorized.
+
 - Modules: App/EAS configuration, package scripts and generated native configuration.
+
 - Tests: Clean builds, config validation, Doctor, security triage refresh and native exports.
+
 - Manual: Inspect installed identity, permissions, deep links and production behavior without development tooling.
+
 - Dependencies: WP8.2 and WP7.3.
+
 - Done: A clean checkout reproducibly creates the branded signed binaries with no unnecessary permissions or runtime secrets.
 
 #### WP8.4 — Complete beta and release-candidate qualification
 
 - Objective: Demonstrate sustained usability on supported devices.
+
 - Current problem: The audit contains no native beta evidence.
+
 - Implementation: Run representative repeated daily use, accessibility/device matrix and backlog performance scenarios; resolve regressions; establish support diagnostics and rollback procedures.
+
 - Constraints: Optimize only measured problems; no automatic virtualization rewrite or new analytics stack.
+
 - Modules: Built application, test scenarios, existing diagnostics and release documentation.
+
 - Tests: Complete release suite against the candidate source.
+
 - Manual: Both platforms, small screens, gesture navigation, keyboard, offline use, missed days and reminders.
+
 - Dependencies: WP8.3.
+
 - Done: No open in-scope P0/P1; all launch-critical P2 criteria pass; candidate binaries and evidence are identified.
 
 #### Risk points
@@ -1036,13 +1285,26 @@ New product features, backend work, speculative optimization and growth analytic
 #### Phase Acceptance Gate — G8: Production Release Candidate
 
 - Signed production binaries pass the release checklist.
+
 - No open in-scope P0/P1.
+
 - Launch-critical P2 items are resolved.
+
 - Remaining nonblocking debt has explicit disposition.
+
 - Candidate source, build identifiers and test evidence match.
+
 - Support and recovery procedures are ready.
 
 ### Phase 9 — Store Launch
+
+#### Compressed execution plan — 2 prompts
+
+Prompt 1: WP9.1 Store/support materials
+
+Prompt 2: WP9.2 Submission configuration/review + WP9.3 Release/distribution verification, then G9
+
+External account access, agreements, review decisions and public store availability remain explicit blockers when they cannot be completed in-session.
 
 #### Goal
 
@@ -1063,37 +1325,61 @@ Final build configuration, approved brand assets, support/privacy materials, App
 #### WP9.1 — Prepare truthful store and support materials
 
 - Objective: Complete the submission package.
+
 - Current problem: Store metadata, screenshots, policy and support information are not established by the audit.
+
 - Implementation: Prepare final screenshots, descriptions, categories, ratings, support contact and privacy information from actual behavior. Recheck current store requirements at execution time.
+
 - Constraints: No unsupported medical/product claims; no cloud features described as available.
+
 - Modules: Store materials, public support/privacy destinations and in-app links.
+
 - Tests: Link checks and consistency review against the candidate.
+
 - Manual: Verify screenshots match the actual release and support/privacy pages work.
+
 - Dependencies: G8.
+
 - Done: All required materials are complete, accurate and approved for submission.
 
 #### WP9.2 — Complete submission configuration and review
 
 - Objective: Submit the qualified binaries.
+
 - Current problem: Store-account state, signing ownership and account-specific eligibility were not verified in the audit.
+
 - Implementation: Verify app records/identifiers, complete applicable declarations and testing requirements, upload the candidate and provide account-free review instructions.
+
 - Constraints: External credentials/agreements and submission approvals remain explicit user-controlled steps; do not rebuild with unqualified changes.
+
 - Systems: EAS submission configuration, App Store Connect and Play Console.
+
 - Tests: Validate uploaded build identifiers against qualified artifacts.
+
 - Manual: Complete console review and resolve reviewer feedback.
+
 - Dependencies: WP9.1.
+
 - Done: Both submissions are accepted for release, or specific external blockers are recorded without falsely closing the gate.
 
 #### WP9.3 — Release and verify distribution
 
 - Objective: Confirm the public product matches the qualified candidate.
+
 - Current problem: Submission approval alone does not prove correct distribution.
+
 - Implementation: Execute the release plan, verify listing links and public installations, and activate support/hotfix ownership.
+
 - Constraints: No last-minute feature additions; any binary change returns through affected qualification gates.
+
 - Systems: Store release controls, public listings, installed application and support process.
+
 - Tests: Critical smoke checks on store-distributed builds.
+
 - Manual: Install from both stores and verify offline startup, data saving and reminders.
+
 - Dependencies: WP9.2.
+
 - Done: Both public releases are available as intended and match the verified feature set.
 
 #### Risk points
@@ -1107,59 +1393,93 @@ Marketing experiments, paid acquisition, monetization, cloud launch and new feat
 #### Phase Acceptance Gate — G9: Launch
 
 - Both stores approve and distribute the intended builds.
+
 - Public installations pass critical smoke checks.
+
 - Listings and privacy/support information are accurate.
+
 - Release and support ownership are active.
 
 ## 4. Work-Package Execution Rules
 
-Each future Codex session should receive one work-package ID, not the entire roadmap as blanket implementation authorization.
+Each future Codex session should receive either one work-package ID or one explicitly defined sequential work-package group from the compressed execution plan, not the entire roadmap as blanket implementation authorization. Grouping changes session boundaries only: every WP retains its own scope, dependencies, Definition of Done and completion record.
 
 ### Required Session Input
 
 - Governing audit.
+
 - This roadmap.
+
 - Selected package ID.
+
 - Previous package completion record.
+
 - Relevant unresolved decisions or external blockers.
 
 ### Required Completion Record
 
 | Field | Required content |
+
 |---|---|
+
 | Package | Exact ID and title |
+
 | Audit coverage | B/S IDs addressed |
+
 | Changes | Concrete behavior and affected modules |
+
 | Data compatibility | Migration and preservation implications |
+
 | Automated checks | Commands, outcomes and failures |
+
 | Manual verification | Platforms/devices and scenarios actually performed |
+
 | Outstanding work | Specific remaining requirements |
+
 | Status | Planned, Active, Blocked or Verified |
+
 | Gate effect | Whether the package/phase acceptance gate is satisfied |
 
 Verified requires the complete Definition of Done. “Code written,” “tests added,” and “works on web” are not completion substitutes.
+
+For a grouped session, record each WP separately. A later WP must not be marked Verified merely because the group completed, and a blocked dependency stops execution of dependent WPs unless the roadmap explicitly allows otherwise.
+
 When implementation is authorized, maintain these completion records alongside the roadmap. No such files are created in this planning run.
 
 ### Change Control
 
 - Preserve stable work-package IDs.
+
 - Add a narrowly scoped amendment when implementation reveals new evidence.
+
 - Record scope changes explicitly; never silently defer an in-scope domain.
+
 - Reopen affected gates after changes to storage contracts, date semantics, dependency compatibility or notification lifecycle.
+
 - Do not rerun the whole audit merely because a package begins.
 
 ## 5. Acceptance Gates
 
 | Gate | Non-negotiable evidence |
+
 |---|---|
+
 | G1 — Native foundation | Independent native exports; installable guest builds; offline startup; dependency dispositions |
+
 | G2 — Data integrity | Migration/corruption/failure/concurrency tests; canonical state; native persistence |
+
 | G3 — Core planner | Complete task/habit/planning/capture/calendar flows; working retained preferences |
+
 | G4 — Lifestyle slices | All twelve V-Done checks, integrations and native restart verification |
+
 | G5 — Truthful summaries | Traceable calculations; live cross-screen updates; no mock metrics |
+
 | G6 — Notifications | Both-platform delivery, cancellation, reconciliation and tap behavior |
+
 | G7 — Complete MVP | Functional breadth, accessibility, sensory controls, brand and all earlier gates |
+
 | G8 — Release candidate | Qualified signed binaries; recovery/upgrade/device evidence; no blocking findings |
+
 | G9 — Launch | Approved public distribution and store-build smoke verification |
 
 A device, credential or artwork requirement that cannot be fulfilled is an explicit blocker—not an assumed pass.
@@ -1167,144 +1487,281 @@ A device, credential or artwork requirement that cannot be fulfilled is an expli
 ## 6. P0 / P1 / P2 Mapping
 
 The mapping identifies primary resolution ownership. Later phases may revalidate an earlier fix.
+
 | Audit ID | Priority | Primary package(s) |
+
 |---|---|---|
+
 | B01 | P0 | WP1.1 |
+
 | B02 | P1 | WP4.1–WP4.12 |
+
 | B03 | P1 | WP6.1–WP6.3 |
+
 | B04–B05 | P1 | WP3.1 |
+
 | B06 | P1 | WP3.2 |
+
 | B07 | P1 | WP2.3; form acceptance in Phase 3/4 |
+
 | B08 | P1 | WP2.3 |
+
 | B09–B10 | P1 | WP2.2 |
+
 | B11 | P1 | WP2.5 |
+
 | B12 | P1 | WP2.5, WP3.4 |
+
 | B13 | P1 | WP2.4; revalidated in every dated domain and Phase 6 |
+
 | B14 | P1 | WP5.1–WP5.2 |
+
 | B15–B16 | P1 | WP3.5 |
+
 | B17 | P1 | WP2.1, WP3.7, WP6.3, WP7.1 |
+
 | B18 | P1 | WP3.4 |
+
 | B19 | P1 | WP3.7 |
+
 | B20 | P1, conditional | WP1.1 excludes unsupported accounts from local release; cloud repair deferred |
+
 | B21 | P1 | WP2.6; whole-app verification WP7.1 |
+
 | B22 | P2 | WP2.6 |
+
 | B23–B25 | P2 | WP3.3 |
+
 | B26 | P2 | WP3.3, WP3.5 |
+
 | B27 | P2 | WP2.1 |
+
 | B28–B29 | P2 | WP2.6, WP3.7, WP7.1 |
+
 | B30–B31 | P2 | WP3.8; notification routing WP6.3 |
+
 | B32 | P2 | WP1.3, WP7.3, WP8.3, Phase 9 |
+
 | B33 | P2 | WP1.2; release recheck WP8.3 |
+
 | B34 | P2 | Regression tests throughout; consolidation WP8.1 |
+
 | B35 | P2 | WP2.1 and incremental domain implementation |
+
 | B36 | P2 | WP2.6, WP7.2; deferred auth UI excluded |
+
 | B37 | P2 | WP3.7, WP7.2 |
+
 | B38 | P2 | WP7.3 |
+
 | B39 | P2 | WP7.1, WP8.4 |
+
 | B40 | P2 | WP2.5, WP3.4 |
+
 | B42 | P2 | WP4.10, WP5.2, WP7.2, WP8.3 |
+
 | B41 | P3 | Targeted retirement after canonical migrations; broad cleanup deferred |
+
 | B43 | P3 | WP8.4 measurement; implementation only if a real performance defect is demonstrated |
 
 ### Placeholder Closure Groups
 
 | Audit register | Closure |
+
 |---|---|
+
 | S01–S02 | Retire mock weekly dashboard in WP3.8 |
+
 | S03–S07 | WP3.1–WP3.2, WP3.6 and Phase 5 |
+
 | S08–S15 | Phase 4, then cross-app verification in Phase 5 |
+
 | S16–S20 | WP3.7 and applicable Phase 6/7 checks |
+
 | S21–S22 | Phase 6 |
+
 | S23–S27 | WP3.4–WP3.5 and WP7.2 |
+
 | S28–S31 | WP3.8; actual build metadata in WP8.3 |
+
 | S32–S38 | Keep out of production; reuse only after deliberate replacement/verification |
+
 | S39 | Implement real repositories when their domain slice is built |
+
 | S40, S43–S44 | Deferred and excluded from release claims |
+
 | S41 | WP3.7 and WP7.1 |
+
 | S42 | Working support entry completed by Phase 9 |
+
 |  | 7. Deferred Feature Register |
+
 | Deferred item | Reason |
+
 | Release constraint | Accounts/authentication |
+
 | Not required for local-first use | No dependency or usable account surface in local release |
+
 | Cloud sync and guest migration | Separate ownership/conflict problem |
+
 | No sync claims | Supabase domain APIs |
+
 | Local repositories satisfy MVP | Existing scaffolds remain isolated |
+
 | AI assistance/adaptive recommendations | Speculative scope |
+
 | No “intelligent” behavior advertised | Monetization/subscriptions |
+
 | Separate product phase | No payment/subscription infrastructure |
+
 | Advanced weekly dashboards/charts | Not needed for truthful daily summaries |
+
 | Mock route removed | Standalone calendar events/system-calendar import |
+
 | Additional domain/integration | Calendar clearly task-backed |
+
 | Dark mode | Existing light identity can ship |
+
 | Broken switch removed | Tags, projects and extensive subtasks |
+
 | Not necessary to finish current task flow | No nonfunctional controls |
+
 | Fully customizable routine libraries | Existing templates provide bounded value |
+
 | Templates labeled accurately | Focus timers |
+
 | Not required by current implementation | No timer promised by an action that only creates text |
+
 | Recipe favourites/imports/barcodes | Beyond basic local recipe workflows |
+
 | No placeholder affordances | Banks, external payments, wearables |
+
 | External integration burden | Manual local records only |
+
 | Full mascot animation catalogue | Small static/contextual set is sufficient |
+
 | Reduced-motion-safe initial set | Tablet-specific redesign |
+
 | Separate supported-device decision | Supported devices must be declared honestly |
+
 | Public web parity | Mobile launch is the target |
+
 | Development web storage remains truthful | General user-facing backup/export/import |
+
 | Valuable follow-up, not required to add before core completion | Internal migration/corruption recovery and clear local-data limitations are mandatory |
+
 | OTA updates | Binary releases are sufficient initially |
+
 | No partially configured update behavior | New analytics platform |
+
 | Not necessary for MVP | Existing local diagnostics/support suffice |
+
 | Broad dead-code cleanup | Must not jeopardize migrations or delivery |
+
 | Remove only proven obsolete production paths as needed | No cleaning, food, finance or wellness domain from Phase 4 is deferred by this plan. |
+
 |  | 8. Release Qualification Checklist |
+
 | Functional and local data | • |
+
 | All G1–G7 criteria remain satisfied. | • |
+
 | Fresh install works without an account or remote environment. | • |
+
 | All domains save, edit, delete and reopen correctly. | • |
+
 | Existing installations migrate without silent loss. | • |
+
 | Invalid data and storage failures produce actionable recovery. | • |
+
 | Concurrent writes and interrupted conversions do not duplicate or lose records. | • |
+
 | Day rollover, timezone changes and DST follow the documented policy. | • |
+
 | Dashboard/Health totals match source records. | • |
+
 | No mock metrics or dead production routes remain. | Notifications |
+
 | • | Permission granted, denied and revoked states work. |
+
 | • | Schedule/edit/delete/disable operations reconcile OS requests. |
+
 | • | Process death does not create duplicate requests. |
+
 | • | Quiet hours and timezone changes behave correctly. |
+
 | • | Notification taps resolve safely from terminated/background states. |
+
 | Accessibility and experience | • |
+
 | VoiceOver and TalkBack cover all essential actions. | • |
+
 | Large text does not hide controls or essential content. | • |
+
 | Contrast and touch targets pass acceptance. | • |
+
 | Haptics off means no app-initiated haptics. | • |
+
 | OS/user reduced motion is respected. | • |
+
 | Simplified/focus modes retain capture and recovery access. | • |
+
 | Icon, splash and mascot assets load in production builds. | Engineering and distribution |
+
 | • | TypeScript and required tests pass. |
+
 | • | Lint has no errors or unexplained new warnings. |
+
 | • | Doctor mismatches are resolved or specifically justified. |
+
 | • | No untriaged serious dependency exposure remains. |
+
 | • | iOS and Android production exports and native builds pass. |
+
 | • | Clean-checkout build reproduction passes. |
+
 | • | Supported-device, offline, process-death and upgrade tests pass. |
+
 | • | Final permissions and privacy manifests match actual behavior. |
+
 | • | Candidate commit and binary identifiers are recorded. |
+
 | • | Support, diagnostics and hotfix/rollback procedures are ready. |
+
 |  | 9. Store Launch Checklist |
+
 | • | Verify developer accounts, app records and identifier ownership. |
+
 | • | Verify signing credentials and upload permissions. |
+
 | • | Recheck applicable store requirements at execution time. |
+
 | • | Complete any account-specific testing eligibility requirements. |
+
 | • | Produce final screenshots and required graphics from the qualified app. |
+
 | • | Prepare accurate descriptions, categories, keywords and ratings. |
+
 | • | Publish working privacy and support destinations. |
+
 | • | Link required support/privacy information from the app. |
+
 | • | Complete applicable privacy, Data safety, health-content and compliance declarations. |
+
 | • | Explain the account-free experience in review instructions. |
+
 | • | Upload the exact qualified binaries. |
+
 | • | Resolve review feedback through controlled changes and regression checks. |
+
 | • | Release to intended markets/devices. |
+
 | • | Install public store builds and run critical smoke checks. |
+
 | • | Confirm support and release ownership after launch. |
+
 |  | NEXT ACTION |
+
 | Execute WP1.1 — Restore native production exports and isolate guest startup. | Use this bounded instruction for the next Codex implementation session: |
+
 | Use docs/repository-product-launch-readiness-audit.md and the Lumo MVP → Launch Master Implementation Plan v1.0 as the governing baseline. Implement WP1.1 only. Read the exact Expo SDK 55 documentation before writing code. Reproduce the audited Hermes/Supabase production-export failure, remove deferred auth/cloud requirements from guest startup and the local production route graph, and apply the smallest supported correction needed for both iOS and Android production exports to pass. Preserve existing local data and working features. Do not implement authentication, cloud sync, lifestyle features, broad dependency upgrades or redesign. Run TypeScript, existing tests, web export and independent native exports. Report the changes, evidence and remaining limitations, then stop before WP1.2. | WP1.1 has not been implemented in this planning run. |

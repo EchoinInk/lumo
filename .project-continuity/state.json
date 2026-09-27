@@ -143,12 +143,42 @@
       "from": "task:wp3.1",
       "to": "test:wp3.1-manual",
       "type": "verified_by"
+    },
+    {
+      "created_at": "2026-09-27T06:29:06.264510Z",
+      "from": "phase:3",
+      "to": "task:wp3.2",
+      "type": "contains"
+    },
+    {
+      "created_at": "2026-09-27T06:29:06.328394Z",
+      "from": "task:wp3.2",
+      "to": "task:wp3.1",
+      "type": "depends_on"
+    },
+    {
+      "created_at": "2026-09-27T06:29:06.384110Z",
+      "from": "task:wp3.2",
+      "to": "artifact:wp3.2-recurrence",
+      "type": "produces"
+    },
+    {
+      "created_at": "2026-09-27T06:29:06.450302Z",
+      "from": "task:wp3.2",
+      "to": "test:wp3.2-automated",
+      "type": "verified_by"
+    },
+    {
+      "created_at": "2026-09-27T06:29:06.521611Z",
+      "from": "task:wp3.2",
+      "to": "test:wp3.2-manual",
+      "type": "verified_by"
     }
   ],
   "meta": {
     "created_at": "2026-09-24T11:53:49.499720Z",
     "schema_version": "1.0",
-    "updated_at": "2026-09-27T06:15:03.949486Z"
+    "updated_at": "2026-09-27T06:29:06.521776Z"
   },
   "nodes": {
     "artifact:wp2.1-ownership": {
@@ -224,6 +254,19 @@
       "truth": "observed",
       "type": "artifact",
       "updated_at": "2026-09-25T09:38:13.957890Z"
+    },
+    "artifact:wp3.2-recurrence": {
+      "id": "artifact:wp3.2-recurrence",
+      "sources": [
+        "src/features/tasks/types/task.ts",
+        "src/features/tasks/services/taskLocalRepository.ts",
+        "src/features/tasks/utils/recurrence.ts"
+      ],
+      "status": "current",
+      "title": "Durable task series and occurrence execution",
+      "truth": "observed",
+      "type": "artifact",
+      "updated_at": "2026-09-27T06:29:06.084539Z"
     },
     "decision:g1-partial-acceptance": {
       "id": "decision:g1-partial-acceptance",
@@ -381,6 +424,20 @@
       "type": "task",
       "updated_at": "2026-09-27T06:15:03.583028Z"
     },
+    "task:wp3.2": {
+      "id": "task:wp3.2",
+      "sources": [
+        "docs/lumo-implementation-progress.md#wp32-verified",
+        "src/features/tasks/services/taskLocalRepository.ts",
+        "src/features/tasks/utils/recurrence.ts",
+        "src/testing/tasks/recurrenceExecution.test.ts"
+      ],
+      "status": "complete",
+      "title": "Execute task recurrence",
+      "truth": "observed",
+      "type": "task",
+      "updated_at": "2026-09-27T06:29:06.013900Z"
+    },
     "test:wp2.1-verification": {
       "id": "test:wp2.1-verification",
       "results": [
@@ -502,6 +559,32 @@
       "truth": "observed",
       "type": "test",
       "updated_at": "2026-09-27T06:15:03.949352Z"
+    },
+    "test:wp3.2-automated": {
+      "actual": "All required commands passed; 168 tests, 0 failures; lint 0 errors and 80 warnings; Expo Doctor 20/20.",
+      "command": "config check, typecheck, tests, lint, doctor and web/iOS/Android exports",
+      "id": "test:wp3.2-automated",
+      "sources": [
+        "docs/lumo-implementation-progress.md#wp32-verified",
+        "src/testing/tasks/recurrenceExecution.test.ts"
+      ],
+      "status": "complete",
+      "title": "WP3.2 automated recurrence validation",
+      "truth": "observed",
+      "type": "test",
+      "updated_at": "2026-09-27T06:29:06.149524Z"
+    },
+    "test:wp3.2-manual": {
+      "actual": "Production web create, complete, successor edit, fresh-root reload, undo and duplicate-prevention checks passed.",
+      "id": "test:wp3.2-manual",
+      "sources": [
+        "docs/lumo-implementation-progress.md#wp32-verified"
+      ],
+      "status": "complete",
+      "title": "WP3.2 manual recurrence lifecycle verification",
+      "truth": "observed",
+      "type": "test",
+      "updated_at": "2026-09-27T06:29:06.204445Z"
     }
   },
   "project": "project:lumo"

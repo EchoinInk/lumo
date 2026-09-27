@@ -72,10 +72,9 @@ export const useTaskStore = create<TaskStore>((set) => ({
     set({ mutationError: null });
     const mutation = taskLocalRepository
       .toggleTask(id)
-      .then((task) => {
-        set((state) => ({
-          tasks: state.tasks.map((item) => (item.id === id ? task : item)),
-        }));
+      .then(async (task) => {
+        const tasks = await taskLocalRepository.getTasks();
+        set({ tasks });
         return savedMutation(task);
       })
       .catch((error) => {

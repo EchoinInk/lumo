@@ -21,6 +21,17 @@ export interface Task {
   priority: TaskPriority;
   energyRequired?: EnergyLevel;
   recurrence?: RecurrencePattern;
+  /** Stable identity shared by every occurrence in a recurring series. */
+  seriesId?: string;
+  /** Zero-based position within the recurring series. */
+  occurrenceIndex?: number;
+  /** Scheduled date that anchors interval and month-end calculations. */
+  recurrenceAnchorDate?: string;
+  /** Durable predecessor/successor links make recurrence generation idempotent. */
+  previousOccurrenceId?: string;
+  nextOccurrenceId?: string;
+  /** Completion history timestamp retained on completed occurrences. */
+  completedAt?: string;
   dueDate?: string; // Local date key (YYYY-MM-DD), never an instant.
   dueTime?: string; // Wall-clock time (HH:mm), never an instant.
   createdAt: string;
