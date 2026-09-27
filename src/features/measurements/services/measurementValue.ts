@@ -1,0 +1,2 @@
+export function parseMeasurementValue(value: string): number | null { const match = /^(\d+)(?:\.(\d{1,3}))?$/.exec(value.trim()); if (!match) return null; const result = Number(match[1]) * 1000 + Number((match[2] ?? "").padEnd(3, "0")); return Number.isSafeInteger(result) && result > 0 ? result : null; }
+export function formatMeasurementValue(valueMilli: number): string { return (valueMilli / 1000).toFixed(3).replace(/\.?0+$/, ""); }

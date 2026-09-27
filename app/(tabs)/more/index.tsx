@@ -12,6 +12,7 @@ import {
     Layers,
     Home,
     Moon,
+    Ruler,
     Scale,
     Settings,
     ShoppingCart,
@@ -107,6 +108,12 @@ export default function MoreScreen() {
       icon: <Dumbbell size={22} color={Colors.pink} />,
       color: Colors.pink,
       route: "/(tabs)/more/workouts",
+    },
+    {
+      title: "Body Measurements",
+      icon: <Ruler size={22} color={Colors.purple} />,
+      color: Colors.purple,
+      route: "/(tabs)/more/measurements",
     },
     {
       title: "Morning planning",

@@ -18,6 +18,8 @@ export type PersistenceDomain =
   | "payments"
   | "calorie-preferences"
   | "weight"
+  | "workouts"
+  | "body-measurements"
   | "settings"
   | "onboarding"
   | "brain-dump"

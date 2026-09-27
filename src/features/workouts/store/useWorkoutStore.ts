@@ -1,0 +1,11 @@
+import { savedMutation, type DurableMutationResult } from "@/services/storage/durableMutation";
+import { create } from "zustand";
+import * as repository from "../services/workoutRepository";
+import type { Workout, WorkoutInput } from "../types/workout";
+interface Store { workouts: Workout[]; isHydrated: boolean; isLoading: boolean; isSaving: boolean; error: string | null; hydrate: () => Promise<void>; createWorkout: (input: WorkoutInput) => Promise<DurableMutationResult<Workout>>; updateWorkout: (id: string, input: WorkoutInput) => Promise<DurableMutationResult<Workout>>; deleteWorkout: (id: string) => Promise<DurableMutationResult<void>>; clearError: () => void; }
+export const useWorkoutStore = create<Store>((set) => ({ workouts: [], isHydrated: false, isLoading: false, isSaving: false, error: null,
+  hydrate: async () => { set({ isLoading: true, error: null }); try { set({ workouts: await repository.getWorkouts(), isHydrated: true, isLoading: false }); } catch (error) { set({ isHydrated: true, isLoading: false, error: "Workout data needs recovery before it can be used." }); throw error; } },
+  createWorkout: async (input) => { set({ isSaving: true, error: null }); try { const value = await repository.createWorkout(input); set((state) => ({ workouts: [...state.workouts, value], isSaving: false })); return savedMutation(value); } catch (error) { set({ isSaving: false, error: "Could not save that workout." }); throw error; } },
+  updateWorkout: async (id, input) => { set({ isSaving: true, error: null }); try { const value = await repository.updateWorkout(id, input); set((state) => ({ workouts: state.workouts.map((item) => item.id === id ? value : item), isSaving: false })); return savedMutation(value); } catch (error) { set({ isSaving: false, error: "Could not save workout changes." }); throw error; } },
+  deleteWorkout: async (id) => { set({ isSaving: true, error: null }); try { await repository.deleteWorkout(id); set((state) => ({ workouts: state.workouts.filter((item) => item.id !== id), isSaving: false })); return savedMutation(undefined); } catch (error) { set({ isSaving: false, error: "Could not delete that workout." }); throw error; } }, clearError: () => set({ error: null }),
+}));

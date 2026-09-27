@@ -13,6 +13,8 @@ export const StorageKeys = {
   PAYMENTS: "payments",
   CALORIE_PREFERENCES: "calorie_preferences",
   WEIGHT: "weight",
+  WORKOUTS: "workouts",
+  BODY_MEASUREMENTS: "body_measurements",
   BRAIN_DUMP_ENTRIES: "brain_dump_entries",
   REMINDERS: "reminders",
   REMINDER_SETTINGS: "reminder_settings",

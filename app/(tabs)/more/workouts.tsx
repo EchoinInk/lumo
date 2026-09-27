@@ -1,188 +1,34 @@
-import { CalmPlaceholderNote } from "@/src/components/ui/CalmPlaceholderNote";
-import { Card } from "@/src/components/ui/Card";
-import { Screen } from "@/src/components/ui/Screen";
-import { SectionHeader } from "@/src/components/ui/SectionHeader";
-import { Text } from "@/src/components/ui/Text";
-import { MoreScreenHeader } from "@/src/features/more/components";
-import { Colors, Radius, Shadows, Spacing } from "@/src/theme/tokens";
-import { LinearGradient } from "expo-linear-gradient";
-import { Dumbbell, Plus, Timer } from "lucide-react-native";
-import { ScrollView, StyleSheet, TouchableOpacity, View } from "react-native";
+import { BottomSheet } from "@/components/ui/BottomSheet";
+import { Button } from "@/components/ui/Button";
+import { Card } from "@/components/ui/Card";
+import { EmptyState } from "@/components/ui/EmptyState";
+import { Input } from "@/components/ui/Input";
+import { Screen } from "@/components/ui/Screen";
+import { Text } from "@/components/ui/Text";
+import { MoreScreenHeader } from "@/features/more/components";
+import { workoutHistory, workoutSummaryForRange } from "@/features/workouts/services/workoutSelectors";
+import { useWorkoutStore } from "@/features/workouts/store/useWorkoutStore";
+import type { Workout } from "@/features/workouts/types/workout";
+import { Colors, Radius, Spacing } from "@/theme/tokens";
+import { addLocalDays, formatLocalDate, toLocalDateKey } from "@/utils/dateTime";
+import { Dumbbell, Pencil, Plus, Trash2 } from "lucide-react-native";
+import { useMemo, useRef, useState } from "react";
+import { ActivityIndicator, Alert, StyleSheet, TouchableOpacity, View } from "react-native";
 
-// Mock workout history
-const mockWorkouts = [
-  {
-    id: "1",
-    name: "Morning Run",
-    duration: "30 min",
-    calories: 280,
-    type: "Cardio",
-  },
-  {
-    id: "2",
-    name: "Upper Body",
-    duration: "45 min",
-    calories: 200,
-    type: "Strength",
-  },
-  {
-    id: "3",
-    name: "Yoga Flow",
-    duration: "20 min",
-    calories: 120,
-    type: "Flexibility",
-  },
-];
+function mondayFor(date: string): string { const value = new Date(`${date}T12:00:00`); return addLocalDays(date, -((value.getDay() + 6) % 7)); }
 
 export default function WorkoutsScreen() {
-  return (
-    <Screen scrollable padded>
-      <MoreScreenHeader title="My Workout Log" subtitle="This Week" />
-
-      {/* Weekly Summary Card */}
-      <Card variant="gradient" style={styles.summaryCard}>
-        <View style={styles.summaryContent}>
-          <Text variant="caption" color={Colors.textInverse}>
-            Weekly Activity
-          </Text>
-          <Text variant="heading" color={Colors.textInverse}>
-            3 Workouts
-          </Text>
-          <Text variant="body" color={Colors.textInverse}>
-            600 calories burned
-          </Text>
-        </View>
-      </Card>
-
-      {/* Workouts List */}
-      <SectionHeader title="Recent Workouts" />
-      <ScrollView
-        showsVerticalScrollIndicator={false}
-        contentContainerStyle={styles.list}
-      >
-        {mockWorkouts.map((workout) => (
-          <Card key={workout.id} variant="elevated" style={styles.workoutCard}>
-            <View style={styles.workoutContent}>
-              <View style={styles.workoutIconContainer}>
-                <Dumbbell size={20} color={Colors.pink} />
-              </View>
-              <View style={styles.workoutInfo}>
-                <Text variant="body" style={styles.workoutName}>
-                  {workout.name}
-                </Text>
-                <Text variant="caption" color={Colors.textSecondary}>
-                  {workout.type}
-                </Text>
-              </View>
-              <View style={styles.workoutStats}>
-                <View style={styles.stat}>
-                  <Timer size={14} color={Colors.textSecondary} />
-                  <Text variant="caption" color={Colors.textSecondary}>
-                    {workout.duration}
-                  </Text>
-                </View>
-                <Text variant="caption" style={styles.calories}>
-                  {workout.calories} kcal
-                </Text>
-              </View>
-            </View>
-          </Card>
-        ))}
-      </ScrollView>
-
-      {/* Add Button */}
-      <TouchableOpacity
-        style={styles.addButton}
-        disabled
-        accessibilityRole="button"
-        accessibilityLabel="Log workout"
-        accessibilityHint="Workout logging is coming soon"
-        accessibilityState={{ disabled: true }}
-      >
-        <LinearGradient
-          colors={[Colors.pink, Colors.purple]}
-          start={{ x: 0, y: 0 }}
-          end={{ x: 1, y: 1 }}
-          style={styles.gradientButton}
-        >
-          <Plus size={20} color={Colors.textInverse} />
-          <Text
-            variant="body"
-            color={Colors.textInverse}
-            style={styles.addButtonText}
-          >
-            Log Workout
-          </Text>
-        </LinearGradient>
-      </TouchableOpacity>
-
-      <CalmPlaceholderNote />
-    </Screen>
-  );
+  const store = useWorkoutStore(); const history = useMemo(() => workoutHistory(store.workouts), [store.workouts]); const today = toLocalDateKey(); const weekStart = mondayFor(today); const summary = useMemo(() => workoutSummaryForRange(store.workouts, weekStart, addLocalDays(weekStart, 7)), [store.workouts, weekStart]);
+  const [form, setForm] = useState<Workout | "new" | null>(null); const [activity, setActivity] = useState(""); const [date, setDate] = useState(""); const [duration, setDuration] = useState(""); const [calories, setCalories] = useState(""); const [formError, setFormError] = useState<string | null>(null); const submitting = useRef(false);
+  const open = (workout?: Workout) => { setForm(workout ?? "new"); setActivity(workout?.activity ?? ""); setDate(workout?.date ?? today); setDuration(workout?.durationMinutes.toString() ?? ""); setCalories(workout?.calorieEstimate?.toString() ?? ""); setFormError(null); };
+  const submit = async () => { const durationMinutes = Number(duration); const calorieEstimate = calories.trim() ? Number(calories) : null; if (!activity.trim() || !date || !Number.isSafeInteger(durationMinutes) || durationMinutes <= 0 || (calorieEstimate !== null && (!Number.isSafeInteger(calorieEstimate) || calorieEstimate < 0))) return setFormError("Enter an activity, valid date, positive whole-minute duration, and optional whole-number calories."); if (submitting.current) return; submitting.current = true; try { const input = { activity, date, durationMinutes, calorieEstimate }; if (form !== "new" && form) await store.updateWorkout(form.id, input); else await store.createWorkout(input); setForm(null); } catch { setFormError("Could not save this workout. Please retry."); } finally { submitting.current = false; } };
+  if (!store.isHydrated || store.isLoading) return <Screen padded centered><ActivityIndicator color={Colors.primary}/><Text>Loading workout history…</Text></Screen>;
+  return <Screen scrollable padded><MoreScreenHeader title="Workout Log" subtitle="Manual activity records"/>
+    {store.error && <Card style={styles.error}><Text color={Colors.danger} accessibilityRole="alert">{store.error}</Text><Button size="sm" variant="ghost" onPress={store.clearError}>Dismiss</Button></Card>}
+    <Card variant="gradient" style={styles.summary}><Text variant="caption" color={Colors.textInverse}>This week</Text><Text variant="heading" color={Colors.textInverse}>{summary.count} {summary.count === 1 ? "workout" : "workouts"} · {summary.durationMinutes} min</Text><Text variant="small" color={Colors.textInverse}>{summary.calorieEntryCount ? `${summary.knownCalories} manually recorded kcal${summary.unknownCalorieCount ? ` · ${summary.unknownCalorieCount} without estimates` : ""}` : "No calorie estimates recorded"}</Text></Card>
+    {history.length === 0 ? <EmptyState icon={<Dumbbell size={36} color={Colors.primary}/>} title="No workouts recorded" description="Log an activity when you choose. Calories are only shown when you supply an estimate." actionLabel="Log workout" onAction={() => open()}/> : <View style={styles.list}>{history.map((workout) => <Card key={workout.id} style={styles.row}><View style={styles.icon}><Dumbbell size={18} color={Colors.primary}/></View><View style={styles.info}><Text>{workout.activity}</Text><Text variant="caption" color={Colors.textSecondary}>{formatLocalDate(workout.date, { year: "numeric", month: "short", day: "numeric" })} · {workout.durationMinutes} min</Text><Text variant="small" color={Colors.textTertiary}>{workout.calorieEstimate === null ? "No calorie estimate" : `${workout.calorieEstimate} manually estimated kcal`}</Text></View><TouchableOpacity style={styles.action} onPress={() => open(workout)} accessibilityLabel={`Edit ${workout.activity}`}><Pencil size={18}/></TouchableOpacity><TouchableOpacity style={styles.action} onPress={() => Alert.alert("Delete workout?", "This removes the workout from your history and summaries.", [{ text: "Cancel" }, { text: "Delete", style: "destructive", onPress: () => void store.deleteWorkout(workout.id) }])} accessibilityLabel={`Delete ${workout.activity}`}><Trash2 size={18} color={Colors.danger}/></TouchableOpacity></Card>)}</View>}
+    <Button style={styles.add} leftIcon={<Plus size={18} color={Colors.textInverse}/>} onPress={() => open()}>Log workout</Button>
+    <BottomSheet visible={form !== null} onClose={() => setForm(null)}><Text variant="heading">{form === "new" ? "Log workout" : "Edit workout"}</Text><View style={styles.form}><Input label="Activity" value={activity} onChangeText={setActivity}/><Input label="Date (YYYY-MM-DD)" value={date} onChangeText={setDate}/><Input label="Duration (minutes)" value={duration} onChangeText={setDuration} keyboardType="number-pad"/><Input label="Calorie estimate (optional)" value={calories} onChangeText={setCalories} keyboardType="number-pad" helperText="Only enter a value you supplied; Lumo does not infer calories."/>{formError && <Text color={Colors.danger} accessibilityRole="alert">{formError}</Text>}<View style={styles.buttons}><Button style={styles.flex} variant="ghost" onPress={() => setForm(null)}>Cancel</Button><Button style={styles.flex} loading={store.isSaving} onPress={() => void submit()}>Save</Button></View></View></BottomSheet>
+  </Screen>;
 }
-
-const styles = StyleSheet.create({
-  summaryCard: {
-    marginBottom: Spacing.xl,
-    padding: Spacing.xl,
-  },
-  summaryContent: {
-    alignItems: "center",
-  },
-  list: {
-    gap: Spacing.md,
-    marginBottom: Spacing.xl,
-  },
-  workoutCard: {
-    padding: Spacing.md,
-  },
-  workoutContent: {
-    flexDirection: "row",
-    alignItems: "center",
-    gap: Spacing.md,
-  },
-  workoutIconContainer: {
-    width: 44,
-    height: 44,
-    borderRadius: Radius.lg,
-    backgroundColor: Colors.pink + "15",
-    alignItems: "center",
-    justifyContent: "center",
-  },
-  workoutInfo: {
-    flex: 1,
-  },
-  workoutName: {
-    fontWeight: "500",
-    marginBottom: Spacing.xs,
-  },
-  workoutStats: {
-    alignItems: "flex-end",
-    gap: Spacing.xs,
-  },
-  stat: {
-    flexDirection: "row",
-    alignItems: "center",
-    gap: Spacing.xs,
-  },
-  calories: {
-    color: Colors.pink,
-    fontWeight: "500",
-  },
-  addButton: {
-    marginTop: Spacing.md,
-    marginBottom: Spacing.xl,
-  },
-  gradientButton: {
-    flexDirection: "row",
-    alignItems: "center",
-    justifyContent: "center",
-    gap: Spacing.sm,
-    paddingVertical: Spacing.md,
-    borderRadius: Radius["2xl"],
-    ...Shadows.glow,
-  },
-  addButtonText: {
-    fontWeight: "600",
-  },
-});
+const styles = StyleSheet.create({ error: { gap: Spacing.sm, borderColor: Colors.danger, borderWidth: 1, marginBottom: Spacing.md }, summary: { padding: Spacing.xl, gap: Spacing.sm, marginBottom: Spacing.xl }, list: { gap: Spacing.md }, row: { padding: Spacing.md, flexDirection: "row", alignItems: "center", gap: Spacing.sm }, icon: { width: 44, height: 44, borderRadius: Radius.lg, backgroundColor: `${Colors.primary}15`, alignItems: "center", justifyContent: "center" }, info: { flex: 1, gap: Spacing.xs }, action: { width: 44, height: 44, alignItems: "center", justifyContent: "center" }, add: { marginTop: Spacing.xl }, form: { gap: Spacing.md, marginTop: Spacing.lg }, buttons: { flexDirection: "row", gap: Spacing.sm }, flex: { flex: 1 } });

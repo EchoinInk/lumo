@@ -19,6 +19,8 @@ import type { MealEntry, MealEntryInput } from "@/src/features/meals/types/meal"
 import { latestWeight, weightChangeGrams } from "@/src/features/weight/services/weightSelectors";
 import { formatWeight, gramsToUnit } from "@/src/features/weight/services/weightUnits";
 import { useWeightStore } from "@/src/features/weight/store/useWeightStore";
+import { workoutSummaryForRange } from "@/src/features/workouts/services/workoutSelectors";
+import { useWorkoutStore } from "@/src/features/workouts/store/useWorkoutStore";
 import { useLocalDay } from "@/src/hooks/useLocalDay";
 import { addLocalDays, formatLocalDate } from "@/src/utils/dateTime";
 import { Colors, Radius, Shadows, Spacing } from "@/src/theme/tokens";
@@ -31,20 +33,14 @@ import {
   ChevronLeft,
   ChevronRight,
   Plus,
+  Ruler,
   Scale,
   Utensils,
 } from "lucide-react-native";
 import { useMemo, useState } from "react";
 import { StyleSheet, TouchableOpacity, View } from "react-native";
 
-// Workouts remain owned by WP4.11.
-const healthSummary = {
-  workouts: {
-    thisWeek: 3,
-    caloriesBurned: 600,
-    lastWorkout: "Yoga Flow",
-  },
-};
+function mondayFor(date: string): string { const value = new Date(`${date}T12:00:00`); return addLocalDays(date, -((value.getDay() + 6) % 7)); }
 
 // Quick links to health screens
 const healthLinks = [
@@ -72,13 +68,20 @@ const healthLinks = [
     color: Colors.warning,
     route: "/(tabs)/more/workouts",
   },
+  {
+    title: "Body Measurements",
+    icon: Ruler,
+    color: Colors.purple,
+    route: "/(tabs)/more/measurements",
+  },
 ];
 
 export default function HealthScreen() {
-  const today = useLocalDay(); const meals = useMealStore(); const caloriePreferences = useCaloriePreferencesStore(); const weight = useWeightStore();
+  const today = useLocalDay(); const meals = useMealStore(); const caloriePreferences = useCaloriePreferencesStore(); const weight = useWeightStore(); const workouts = useWorkoutStore();
   const [calorieDate, setCalorieDate] = useState(today); const calorieSummary = useMemo(() => dailyCalorieSummary(meals.meals, calorieDate), [meals.meals, calorieDate]);
   const goal = caloriePreferences.preferences.dailyGoalKcal; const calorieProgress = goal ? Math.min(100, calorieSummary.knownCalories * 100 / goal) : 0;
   const latestWeightEntry = latestWeight(weight.state.entries); const weightChange = weightChangeGrams(weight.state.entries); const weightUnit = weight.state.preferredUnit;
+  const workoutWeekStart = mondayFor(today); const workoutSummary = useMemo(() => workoutSummaryForRange(workouts.workouts, workoutWeekStart, addLocalDays(workoutWeekStart, 7)), [workouts.workouts, workoutWeekStart]);
   const [mealVisible, setMealVisible] = useState(false); const [editingMeal, setEditingMeal] = useState<MealEntry | null>(null); const [mealSaving, setMealSaving] = useState(false);
   const [goalVisible, setGoalVisible] = useState(false); const [goalInput, setGoalInput] = useState(""); const [goalError, setGoalError] = useState<string | null>(null);
   const saveMeal = async (input: MealEntryInput) => { setMealSaving(true); try { if (editingMeal) await meals.updateMeal(editingMeal.id, input); else await meals.createMeal(input); setMealVisible(false); setEditingMeal(null); } finally { setMealSaving(false); } };
@@ -152,7 +155,7 @@ export default function HealthScreen() {
           </Text>
         </Card>
       )}
-      {(meals.error || caloriePreferences.error || weight.error) && <Card variant="outlined" style={styles.errorCard}><Text variant="small" color={Colors.danger} accessibilityRole="alert">{meals.error ?? caloriePreferences.error ?? weight.error}</Text></Card>}
+      {(meals.error || caloriePreferences.error || weight.error || workouts.error) && <Card variant="outlined" style={styles.errorCard}><Text variant="small" color={Colors.danger} accessibilityRole="alert">{meals.error ?? caloriePreferences.error ?? weight.error ?? workouts.error}</Text></Card>}
 
       {/* Habits Summary */}
       <Card variant="elevated" style={styles.summaryCard}>
@@ -343,10 +346,10 @@ export default function HealthScreen() {
           </View>
           <View style={styles.weightValue}>
             <Text variant="subheading" style={styles.summaryValue}>
-              {healthSummary.workouts.thisWeek}
+              {workoutSummary.count}
             </Text>
             <Text variant="caption" color={Colors.textSecondary}>
-              {healthSummary.workouts.caloriesBurned} kcal burned
+              {workoutSummary.durationMinutes} min{workoutSummary.calorieEntryCount ? ` · ${workoutSummary.knownCalories} manually recorded kcal` : " · no calorie estimates"}
             </Text>
           </View>
         </View>

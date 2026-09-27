@@ -9,6 +9,8 @@ import type { BudgetTransaction } from "@/features/budget/types/budgetTransactio
 import type { Payment } from "@/features/payments/types/payment";
 import type { CaloriePreferences } from "@/features/calories/types/caloriePreferences";
 import type { WeightEntry, WeightState } from "@/features/weight/types/weight";
+import type { Workout } from "@/features/workouts/types/workout";
+import { measurementTypes, type BodyMeasurement } from "@/features/measurements/types/measurement";
 import type { Habit } from "@/features/habits/types/habit";
 import type {
   FocusArea,
@@ -169,6 +171,18 @@ export function isWeightState(value: unknown): value is WeightState {
   return isObject(value) && isOneOf(value.preferredUnit, ["kg", "lb"]) && Array.isArray(value.entries) &&
     value.entries.every(isWeightEntry) && (value.updatedAt === null || isString(value.updatedAt)) && Number.isInteger(value.version);
 }
+export function isWorkout(value: unknown): value is Workout {
+  return isObject(value) && isString(value.id) && isString(value.activity) && isLocalDateKey(value.date) &&
+    Number.isSafeInteger(value.durationMinutes) && (value.durationMinutes as number) > 0 &&
+    (value.calorieEstimate === null || (Number.isSafeInteger(value.calorieEstimate) && (value.calorieEstimate as number) >= 0)) &&
+    isString(value.createdAt) && isString(value.updatedAt) && isNullableString(value.deletedAt) && Number.isInteger(value.version);
+}
+export function isBodyMeasurement(value: unknown): value is BodyMeasurement {
+  return isObject(value) && isString(value.id) && isOneOf(value.type, measurementTypes) &&
+    Number.isSafeInteger(value.valueMilli) && (value.valueMilli as number) > 0 && isOneOf(value.unit, ["cm", "in"]) &&
+    isLocalDateKey(value.date) && isString(value.createdAt) && isString(value.updatedAt) &&
+    isNullableString(value.deletedAt) && Number.isInteger(value.version);
+}
 
 const struggleAreas: readonly StruggleArea[] = ["remembering_tasks", "building_routines", "meal_planning", "budgeting", "staying_consistent", "feeling_overwhelmed"];
 const planningStyles: readonly PlanningStyle[] = ["minimal", "visual", "structured", "flexible"];
@@ -305,6 +319,8 @@ export const budgetTransactionStorageDefinition = arrayDefinition("budget-transa
 export const paymentStorageDefinition = arrayDefinition("payments", StorageKeys.PAYMENTS, isPayment);
 export const caloriePreferencesStorageDefinition: VersionedStorageDefinition<CaloriePreferences> = { domain: "calorie-preferences", key: StorageKeys.CALORIE_PREFERENCES, schemaVersion: 1, empty: () => ({ dailyGoalKcal: null, updatedAt: null, version: 0 }), validate: isCaloriePreferences };
 export const weightStorageDefinition: VersionedStorageDefinition<WeightState> = { domain: "weight", key: StorageKeys.WEIGHT, schemaVersion: 1, empty: () => ({ preferredUnit: "kg", entries: [], updatedAt: null, version: 0 }), validate: isWeightState };
+export const workoutStorageDefinition = arrayDefinition("workouts", StorageKeys.WORKOUTS, isWorkout);
+export const bodyMeasurementStorageDefinition = arrayDefinition("body-measurements", StorageKeys.BODY_MEASUREMENTS, isBodyMeasurement);
 export const brainDumpStorageDefinition = arrayDefinition("brain-dump", StorageKeys.BRAIN_DUMP_ENTRIES, isBrainDumpEntry);
 export const reminderStorageDefinition = arrayDefinition("reminders", StorageKeys.REMINDERS, isReminder);
 
@@ -363,6 +379,8 @@ export const activeStorageDefinitions = {
   payments: paymentStorageDefinition,
   "calorie-preferences": caloriePreferencesStorageDefinition,
   weight: weightStorageDefinition,
+  workouts: workoutStorageDefinition,
+  "body-measurements": bodyMeasurementStorageDefinition,
   settings: settingsStorageDefinition,
   onboarding: onboardingStorageDefinition,
   "brain-dump": brainDumpStorageDefinition,

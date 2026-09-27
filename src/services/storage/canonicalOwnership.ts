@@ -71,6 +71,20 @@ export const CanonicalLocalDomains = {
     key: StorageKeys.WEIGHT,
     legacy: [],
   },
+  workouts: {
+    store: "src/features/workouts/store/useWorkoutStore.ts",
+    repository: "src/features/workouts/services/workoutRepository.ts",
+    namespace: StorageNamespaces.DEFAULT,
+    key: StorageKeys.WORKOUTS,
+    legacy: [],
+  },
+  "body-measurements": {
+    store: "src/features/measurements/store/useMeasurementStore.ts",
+    repository: "src/features/measurements/services/measurementRepository.ts",
+    namespace: StorageNamespaces.DEFAULT,
+    key: StorageKeys.BODY_MEASUREMENTS,
+    legacy: [],
+  },
   settings: {
     store: "src/store/useSettingsStore.ts",
     repository: null,

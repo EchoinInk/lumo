@@ -365,12 +365,54 @@
       "from": "task:wp4.10",
       "to": "test:wp4.9-10-automated",
       "type": "verified_by"
+    },
+    {
+      "created_at": "2026-09-27T16:00:26.015964Z",
+      "from": "phase:4",
+      "to": "task:wp4.11",
+      "type": "contains"
+    },
+    {
+      "created_at": "2026-09-27T16:00:26.125512Z",
+      "from": "phase:4",
+      "to": "task:wp4.12",
+      "type": "contains"
+    },
+    {
+      "created_at": "2026-09-27T16:00:26.227951Z",
+      "from": "task:wp4.11",
+      "to": "test:wp4.11-12-automated",
+      "type": "verified_by"
+    },
+    {
+      "created_at": "2026-09-27T16:00:26.328895Z",
+      "from": "task:wp4.12",
+      "to": "test:wp4.11-12-automated",
+      "type": "verified_by"
+    },
+    {
+      "created_at": "2026-09-27T16:00:26.424096Z",
+      "from": "task:wp4.11",
+      "to": "artifact:wp4.11-12-health",
+      "type": "produces"
+    },
+    {
+      "created_at": "2026-09-27T16:00:26.519102Z",
+      "from": "task:wp4.12",
+      "to": "artifact:wp4.11-12-health",
+      "type": "produces"
+    },
+    {
+      "created_at": "2026-09-27T16:00:26.619692Z",
+      "from": "finding:g4-native-restart",
+      "to": "phase:4",
+      "type": "blocks"
     }
   ],
   "meta": {
     "created_at": "2026-09-24T11:53:49.499720Z",
     "schema_version": "1.0",
-    "updated_at": "2026-09-27T15:24:11.342184Z"
+    "updated_at": "2026-09-27T16:00:26.620241Z"
   },
   "nodes": {
     "artifact:wp2.1-ownership": {
@@ -486,6 +528,20 @@
       "type": "artifact",
       "updated_at": "2026-09-27T09:08:24.604821Z"
     },
+    "artifact:wp4.11-12-health": {
+      "id": "artifact:wp4.11-12-health",
+      "sources": [
+        "app/(tabs)/more/workouts.tsx",
+        "app/(tabs)/more/measurements.tsx",
+        "src/features/workouts",
+        "src/features/measurements"
+      ],
+      "status": "current",
+      "title": "Canonical workout and body measurement vertical slices",
+      "truth": "observed",
+      "type": "artifact",
+      "updated_at": "2026-09-27T16:00:18.582951Z"
+    },
     "artifact:wp4.6-8-finance": {
       "id": "artifact:wp4.6-8-finance",
       "sources": [
@@ -561,6 +617,19 @@
       "type": "finding",
       "updated_at": "2026-09-27T09:23:38.121833Z"
     },
+    "finding:g4-native-restart": {
+      "id": "finding:g4-native-restart",
+      "note": "WP4.3-WP4.12 lack required native terminate/reopen evidence because CoreSimulatorService cannot initialize a device set.",
+      "severity": "blocking",
+      "sources": [
+        "docs/lumo-implementation-progress.md#g4-phase-acceptance-gate---blocked"
+      ],
+      "status": "blocked",
+      "title": "G4 native terminate/reopen evidence gap",
+      "truth": "observed",
+      "type": "finding",
+      "updated_at": "2026-09-27T16:00:18.673198Z"
+    },
     "phase:2": {
       "gate": "G2",
       "id": "phase:2",
@@ -592,15 +661,17 @@
     "phase:4": {
       "gate": "G4",
       "id": "phase:4",
+      "note": "Implementation complete through WP4.12; native terminate/reopen evidence is incomplete.",
       "sources": [
         "docs/lumo-launch-master-implementation-plan.md",
-        "user:2026-09-28-phase4-prompt3-authorization"
+        "docs/lumo-implementation-progress.md#g4-phase-acceptance-gate---blocked",
+        "user:2026-09-28-phase4-prompt5-authorization"
       ],
-      "status": "active",
+      "status": "blocked",
       "title": "Replace lifestyle placeholders with real local workflows",
-      "truth": "declared",
+      "truth": "observed",
       "type": "phase",
-      "updated_at": "2026-09-27T14:16:50.623559Z"
+      "updated_at": "2026-09-27T16:00:18.763843Z"
     },
     "project:lumo": {
       "id": "project:lumo",
@@ -804,6 +875,30 @@
       "truth": "observed",
       "type": "task",
       "updated_at": "2026-09-27T15:24:00.368349Z"
+    },
+    "task:wp4.11": {
+      "id": "task:wp4.11",
+      "note": "Implementation and automated evidence pass; native restart acceptance deferred.",
+      "sources": [
+        "docs/lumo-implementation-progress.md#wp411---implementation-complete-native-verification-deferred"
+      ],
+      "status": "partial",
+      "title": "Workouts",
+      "truth": "observed",
+      "type": "task",
+      "updated_at": "2026-09-27T16:00:18.289532Z"
+    },
+    "task:wp4.12": {
+      "id": "task:wp4.12",
+      "note": "Implementation and automated evidence pass; native restart acceptance deferred.",
+      "sources": [
+        "docs/lumo-implementation-progress.md#wp412---implementation-complete-native-verification-deferred"
+      ],
+      "status": "partial",
+      "title": "Body Measurements",
+      "truth": "observed",
+      "type": "task",
+      "updated_at": "2026-09-27T16:00:18.389095Z"
     },
     "task:wp4.6": {
       "id": "task:wp4.6",
@@ -1027,6 +1122,20 @@
       "truth": "observed",
       "type": "test",
       "updated_at": "2026-09-27T09:08:24.729384Z"
+    },
+    "test:wp4.11-12-automated": {
+      "actual": "typecheck passed; 222 tests passed, 0 failed; lint 0 errors and 78 warnings; doctor and web/iOS/Android exports passed; diff check passed",
+      "id": "test:wp4.11-12-automated",
+      "sources": [
+        "src/testing/workouts/workoutVerticalSlice.test.ts",
+        "src/testing/measurements/measurementVerticalSlice.test.ts"
+      ],
+      "status": "passing",
+      "timestamp": "2026-09-28",
+      "title": "WP4.11-WP4.12 automated verification",
+      "truth": "observed",
+      "type": "test",
+      "updated_at": "2026-09-27T16:00:18.489315Z"
     },
     "test:wp4.6-8-automated": {
       "actual": "typecheck passed; 210 tests passed, 0 failed; lint 0 errors; doctor and web/iOS/Android exports passed; diff check passed",

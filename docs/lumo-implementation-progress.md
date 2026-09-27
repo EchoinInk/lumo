@@ -572,3 +572,37 @@ Automated evidence on 2026-09-28: the same **216 passed, 0 failed** suite includ
 Native log/edit/reopen verification remains unavailable because CoreSimulatorService could not provide a Simulator device set. Automated durable hydration passes, but it is not a substitute for native restart acceptance.
 
 **Gate effect:** WP4.10 implementation is complete and all current/history/change values derive exclusively from real persisted records. Native restart acceptance remains open. WP4.11 / Phase 4 Prompt 5 has not begun.
+
+## WP4.11 - Implementation complete; native verification deferred
+
+Workouts now replaces the fixed three-record sample and disabled Log Workout control with a canonical local vertical slice. Dated records support activity, positive whole-minute duration, an optional manually supplied whole-number calorie estimate, create/edit/delete and newest-date-first history. The versioned repository serializes durable mutations; the canonical store exposes loading, hydration, saving and actionable error states; the active local-data gate preserves malformed or unsupported stored data for explicit recovery.
+
+The routed Workout Log and Health weekly summary derive counts, duration and known calorie totals only from persisted records within local civil-date boundaries. Missing calorie estimates remain explicitly unknown and are never inferred. No wearable integration, exercise programming or fabricated health metric was added.
+
+Automated evidence on 2026-09-28: `npm run typecheck` passed; `npm test` passed (**222 passed, 0 failed**). WP4.11 tests cover duration and date validation, inclusive-start/exclusive-end date totals, optional/unknown calories, editing, deletion and store hydration from durable storage. `npm run lint` passed with **0 errors and 78 existing warnings**; `npm run doctor`, `npm run export:web` and `npm run export:native` passed; `git diff --check` passed.
+
+Native terminate/reopen verification could not be performed. `xcrun simctl list devices available` failed because CoreSimulatorService rejected the connection and could not initialize a Simulator device set. Automated durable hydration passed, but is not represented as native restart acceptance.
+
+**Status:** WP4.11 implementation and automated Definition of Done evidence pass; native restart acceptance remains deferred.
+
+## WP4.12 - Implementation complete; native verification deferred
+
+Body Measurements is now accessible from both Health and More. Its canonical versioned local domain supports waist, hips, chest, neck, upper-arm and thigh records with an explicit centimetre or inch unit, exact integer thousandths, local date, create/edit/delete and simple per-type newest-first history. The screen contains honest empty, loading, hydration-recovery, validation, saving and error states, with no photos, medical interpretation, diagnosis, inferred body composition or fabricated summary.
+
+Automated evidence on 2026-09-28: the same **222 passed, 0 failed** suite includes exact three-decimal parsing/formatting, centimetre/inch records, excess-precision and non-positive rejection, invalid dates, per-type filtering, edit/delete behavior and canonical store hydration from durable storage. TypeScript, lint (0 errors), Expo Doctor, web export, iOS export, Android export and diff checks passed.
+
+Native terminate/reopen verification could not be performed because CoreSimulatorService exposed no usable Simulator device set. Repository/store hydration verifies persistence semantics automatically, but does not substitute for the required native check.
+
+**Status:** WP4.12 implementation and automated Definition of Done evidence pass; native terminate/reopen acceptance remains deferred.
+
+## G4 Phase Acceptance Gate - BLOCKED
+
+Phase 4 implementation is complete through WP4.12, but G4 is **BLOCKED**. The gate has not been weakened to treat exports or repository hydration tests as native terminate/reopen evidence.
+
+| Field | Record |
+|---|---|
+| **Twelve-domain implementation** | Cleaning, consumed meals, recipes, groceries, weekly meal planning, budget/categories, expenses/manual income, payments, calories, weight, workouts and body measurements now use real canonical local data with their required CRUD or preference operations. The Phase 4 screens no longer contain sample records or disabled future creation controls; conditional controls that require a selected date or budget category remain explicit prerequisites rather than placeholders. |
+| **Integration and regression evidence (2026-09-28)** | Final TypeScript passed; tests **222 passed, 0 failed**, including food idempotency/snapshot behavior, financial interruption/retry and double-count prevention, workout and measurement coverage, and the existing planner suites. Lint reported **0 errors and 78 existing warnings**; Expo Doctor, web export, iOS Hermes export, Android Hermes export and `git diff --check` passed. |
+| **Native restart evidence** | WP4.1 and WP4.2 have recorded native terminate/reopen evidence. WP4.3-WP4.12 retain explicit native verification gaps. The current attempt failed before launch because CoreSimulatorService rejected the connection and could not initialize a device set. Native exports and automated hydration tests are not counted as restart acceptance. |
+| **Result** | **BLOCKED — Phase 4 implementation and automated verification are complete; G4 requires native terminate/reopen verification for every domain.** |
+| **Stop condition** | **Phase 5 has not begun.** The next bounded action is to execute and record the outstanding native Phase 4 restart matrix on an available simulator or physical device. |
