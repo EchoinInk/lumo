@@ -3,7 +3,10 @@ export type MiriState =
   | "connected"
   | "focus"
   | "gentleReminder"
+  | "growing"
+  | "growth"
   | "overwhelmed"
+  | "puzzle"
   | "resting"
   | "smiling"
   | "thinking"
@@ -43,10 +46,28 @@ export const miriStates: Record<MiriState, MiriStateConfig> = {
     defaultMessage: "A gentle reminder, whenever you're ready.",
   },
 
+  growing: {
+    asset: require("../../assets/branding/lumo/miri/growing-cloud.png"),
+    accessibilityLabel: "Miri growing",
+    defaultMessage: "Small steps can grow into something bigger.",
+  },
+
+  growth: {
+    asset: require("../../assets/branding/lumo/miri/growth-cloud.png"),
+    accessibilityLabel: "Miri celebrating growth",
+    defaultMessage: "Look how far you've come.",
+  },
+
   overwhelmed: {
     asset: require("../../assets/branding/lumo/miri/overwhelmed-cloud.png"),
     accessibilityLabel: "Miri feeling overwhelmed",
     defaultMessage: "We can make this smaller.",
+  },
+
+  puzzle: {
+    asset: require("../../assets/branding/lumo/miri/puzzle-cloud.png"),
+    accessibilityLabel: "Miri figuring something out",
+    defaultMessage: "We can figure this out one piece at a time.",
   },
 
   resting: {
