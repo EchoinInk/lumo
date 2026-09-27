@@ -14,6 +14,11 @@ import {
   type VersionedStorageDefinition,
 } from "@/services/storage/versionedStorage";
 import { CreateTaskInput, Task, UpdateTaskInput } from "../types/task";
+import {
+  normalizeCreateTaskInput,
+  normalizeUpdateTaskInput,
+  TaskScheduleValidationError,
+} from "../utils/taskValidation";
 import { ITaskRepository } from "./taskRepository.types";
 
 /**
@@ -116,6 +121,15 @@ export class TaskLocalRepository implements ITaskRepository {
         return mutation();
       } catch (cause) {
         if (cause instanceof DurableMutationError) throw cause;
+        if (cause instanceof TaskScheduleValidationError) {
+          throw new DurableMutationError(
+            "tasks",
+            operation,
+            "invalid-input",
+            cause.message,
+            cause,
+          );
+        }
         throw new DurableMutationError(
           "tasks",
           operation,
@@ -170,9 +184,10 @@ export class TaskLocalRepository implements ITaskRepository {
     return this.mutate("create", () => {
       const tasks = this.loadTasks();
       const now = this.now();
+      const normalizedInput = normalizeCreateTaskInput(input);
 
       const newTask: Task = {
-        ...input,
+        ...normalizedInput,
         id: this.generateId(),
         completed: false,
         createdAt: now,
@@ -230,9 +245,10 @@ export class TaskLocalRepository implements ITaskRepository {
       }
 
       const current = tasks[index];
+      const normalizedInput = normalizeUpdateTaskInput(input, current);
       const updated: Task = {
         ...current,
-        ...input,
+        ...normalizedInput,
         updatedAt: this.now(),
         syncStatus: "pending",
         version: (current.version ?? 0) + 1,

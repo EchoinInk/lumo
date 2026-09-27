@@ -1,6 +1,8 @@
 import { Task, TaskPriority, TaskFilter } from '../types/task';
 import { isLocalDateKey, toLocalDateKey } from '@/src/utils/dateTime';
 
+export type TaskDateFilter = "all" | "today" | "upcoming" | "done";
+
 /**
  * Task Utility Helpers
  * 
@@ -128,6 +130,40 @@ export function filterTasks(tasks: Task[], filter: TaskFilter): Task[] {
     case 'low':
       return tasks.filter((task) => task.priority === 'low');
     case 'all':
+    default:
+      return tasks;
+  }
+}
+
+/**
+ * Date filters used by the primary Tasks route.
+ * Today is the actionable queue: incomplete overdue, due-today, and undated
+ * tasks. Upcoming is strictly incomplete tasks after today. Completed tasks
+ * appear only in All and Done.
+ */
+export function filterTasksByDate(
+  tasks: Task[],
+  filter: TaskDateFilter,
+  today: string = toLocalDateKey(),
+): Task[] {
+  switch (filter) {
+    case "today":
+      return tasks.filter(
+        (task) =>
+          !task.completed &&
+          (!task.dueDate ||
+            (isLocalDateKey(task.dueDate) && task.dueDate <= today)),
+      );
+    case "upcoming":
+      return tasks.filter(
+        (task) =>
+          !task.completed &&
+          isLocalDateKey(task.dueDate) &&
+          task.dueDate > today,
+      );
+    case "done":
+      return tasks.filter((task) => task.completed);
+    case "all":
     default:
       return tasks;
   }

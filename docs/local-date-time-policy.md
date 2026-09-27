@@ -14,6 +14,19 @@ The date-key arithmetic uses UTC internally only as a timezone-free Gregorian ca
 
 Mounted day-dependent views use `useLocalDay`. The hook refreshes at the next local midnight and whenever the app becomes active. Foreground refresh also recalculates the next midnight, so manual clock or timezone changes do not leave an old timer in force.
 
+## Task scheduling and list filters
+
+New task due dates must be valid local date keys. New task due times must use canonical 24-hour `HH:mm` form and require a due date. The same validation runs in the form and canonical local repository, so alternate callers cannot persist a schedule the primary form would reject. Clearing a date in the task form also clears its time. Existing ambiguous legacy values remain byte-preserved when an unrelated edit does not change them, as described below.
+
+The primary Tasks route uses these date boundaries:
+
+- **Today:** active overdue tasks, active tasks due on the current local day, and active undated tasks.
+- **Upcoming:** active tasks with a valid date strictly after the current local day.
+- **Done:** all completed tasks, regardless of their due date.
+- **All:** every non-deleted task returned by the canonical repository.
+
+Completed tasks do not also appear in Today or Upcoming. Invalid legacy date text is retained for recovery/editing but is not guessed into a date-scoped filter.
+
 ## DST and timezone behavior
 
 - A local date key remains the same civil date when the device timezone changes. It is not shifted.

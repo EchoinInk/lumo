@@ -232,3 +232,26 @@ WP2.6 is complete. Shared UI primitives now compose caller styles with their req
 | **Scope preserved** | No screen redesign, feature-specific layout consolidation, storage behavior, navigation structure, haptics preference wiring or Phase 3 work was introduced. |
 | **Status** | **Verified** |
 | **Gate effect** | WP2.6 and the Card/Button regression criterion are satisfied. **G2 remains blocked** by the previously recorded WP2.4 interactive clock/timezone background-resume check, WP2.5 manual cross-screen planning navigation evidence, and the gate's native restart verification of tasks, habits and preferences. Phase 3 has not begun. |
+
+---
+
+## WP3.1 - Verified
+
+WP3.1 is complete. Every supported user-editable task field now round-trips through the canonical store/repository, arbitrary valid dates are editable, schedule validation is shared by UI and persistence, success waits for durable writes, and date filters use one explicit local-day contract.
+
+## Completion record
+
+| Field | Record |
+|---|---|
+| **Package** | **WP3.1 — Complete task CRUD, dates and times** |
+| **Dependency context** | G2 retains the previously recorded manual evidence gaps. The product owner explicitly authorized this bounded WP3.1 package on 2026-09-27. No WP3.2 or later Phase 3 work was started. |
+| **Field round-trip** | The canonical local repository now validates and preserves title, description, priority, energy, recurrence, arbitrary local due date and wall-clock due time on create/edit/restart. The form opens non-preset dates as an explicit Choose date selection instead of mapping them to No date. Today, Tomorrow and No date remain shortcuts. |
+| **Schedule validation** | New/changed dates must be real `YYYY-MM-DD` calendar dates; new/changed times must be 24-hour `HH:mm`; a time requires a date; selecting No date clears the submitted time. Validation is repeated in `taskLocalRepository`, returning the durable `invalid-input` failure contract to every caller. Unchanged ambiguous legacy values remain preservable under the existing compatibility policy. |
+| **Durable UI behavior** | The canonical form, compatibility add modal and Quick Capture task path await the task mutation before clearing or closing. Failed writes retain entered Quick Capture text or the open form for retry, while durable-first stores leave in-memory state at the last saved value. |
+| **Date-filter contract** | Today contains active overdue, due-today and undated tasks. Upcoming contains only active tasks strictly after today. Done contains every completed task regardless of date. All contains every non-deleted task. Completed work is excluded from Today and Upcoming. The contract is documented in [local-date-time-policy.md](/Users/echoin.ink/Developer/lumo/docs/local-date-time-policy.md). |
+| **Compact CRUD actions** | Full task metadata exposed a native compact-width regression that pushed Delete off-card. The task content now shrinks within the row while edit/delete actions remain visible; the rebuilt iPhone 17 Pro simulator showed both actions and opened the native Delete/Park/Cancel confirmation. |
+| **Automated checks (2026-09-27)** | Credential-free config validation passed; TypeScript passed; tests **163 passed, 0 failed**; lint **0 errors, 80 existing warnings**; Expo Doctor **20/20**; web export passed; iOS Hermes production export passed; Android Hermes production export passed; iOS Release simulator compilation/install passed twice (initial and compact-layout verification); `git diff --check` passed. Five focused WP3.1 tests cover complete create/edit/restart round-trip, arbitrary-date form preservation, invalid date/time rejection, injected failed create plus retry, and Today/Upcoming/Done/All boundaries. Existing tests cover toggle serialization and soft deletion. |
+| **Manual verification** | Production web: created a task with custom date/time, priority, energy, recurrence and notes; rejected an invalid time; edited title without changing the schedule; completed and undid it; created via Quick Capture; reloaded from a fresh root navigation; and confirmed both tasks and their filter placement persisted. Updated iOS Release simulator: created and edited a custom-date/time task with priority, energy and recurrence; completed and undid it; created through Quick Capture; terminated and relaunched the process; confirmed the undated task in Today and scheduled task in Upcoming with all edited fields still populated. After explicit confirmation, deleted the scheduled test task through the native Delete/Park/Cancel prompt, confirmed Upcoming became empty, terminated and relaunched again, and confirmed the deleted task remained absent while the Quick Capture task persisted. Simulator evidence is not physical-device evidence. |
+| **Architecture and scope** | Task ownership remains `useTaskStore` → `taskLocalRepository` → existing versioned storage. No project, tag, subtask, cloud-sync, recurrence-execution or later Phase 3 functionality was added. The unrelated concurrent edits in `lumo-launch-master-implementation-plan.md` were not modified by this work. |
+| **Status** | **Verified** |
+| **Gate effect** | WP3.1 Definition of Done is satisfied. **WP3.2 has not begun.** Phase 3 remains active. |

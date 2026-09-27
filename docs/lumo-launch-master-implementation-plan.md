@@ -362,107 +362,221 @@ Key placeholder findings: S03–S07, S16–S27, S28–S31.
 - Dependencies: G2.
 - Definition of Done: No field disappears; failed saves remain recoverable; date filters behave consistently.
 
+## Phase 3 — Core Product Completion
+
+Phase 3 completes the existing Lumo product surfaces before Phase 4 begins.
+
+Implementation is grouped into **four execution prompts** rather than one prompt per work package.
+
+### Execution grouping
+
+* **Prompt 1:** WP3.1 — Complete task CRUD, dates and times
+* **Prompt 2:** WP3.2 + WP3.3 — Task recurrence + Habit management/history
+* **Prompt 3:** WP3.4 + WP3.5 — Planning/recovery + Capture/conversion durability
+* **Prompt 4:** WP3.6 + WP3.7 + WP3.8 — Calendar + Onboarding/preferences + Navigation cleanup, followed by G3
+
+Each prompt must update `docs/lumo-implementation-progress.md` before stopping.
+
+---
+
+#### WP3.1 — Complete task CRUD, dates and times
+
+* **Objective:** Make every currently supported task field survive create, edit, persistence and restart correctly.
+* **Current problem:** Task creation can drop `dueTime`; editing can replace arbitrary dates; date selection is restricted; save completion can precede durable persistence.
+* **Intended implementation:** Fix field round-tripping, support arbitrary valid dates, validate time consistently, await durable saves and define consistent filtering behavior for overdue, undated, Today and Upcoming tasks.
+* **Architectural constraints:** Preserve the canonical task store/repository architecture. Do not add projects, tags, subtasks or cloud synchronization.
+* **Modules:** Task form, task repository/store, Quick Capture task creation and task filtering utilities.
+* **Tests required:** Create/edit round trips for every supported field, arbitrary-date preservation, invalid time, failed saves and date-filter boundaries.
+* **Manual verification:** Create, edit, complete, undo and delete tasks through Tasks and Quick Capture, then terminate/reopen.
+* **Dependencies:** G2.
+* **Definition of Done:** No supported task field disappears, persistence failures remain recoverable and task date filters behave consistently.
+
+---
+
 #### WP3.2 — Execute task recurrence
 
-- Objective: Make exposed repeat controls operational.
-- Current problem: Recurrence is metadata without occurrence generation.
-- Intended implementation: Define series/occurrence identity using the smallest necessary model extension; advance supported recurrence exactly once; retain completion history and predictable undo/edit behavior.
-- Architectural constraints: Reuse the recurrence utility after correcting its tested edge cases. Do not generate an overwhelming backlog of missed occurrences.
-- Modules: Task recurrence types/utilities, task repository/store and recurrence picker.
-- Tests required: Daily/weekly/monthly patterns, intervals, month-end, leap years, DST, repeated completion, undo and restart.
-- Manual verification: Complete a repeating task, reopen, edit the next occurrence and undo completion.
-- Dependencies: WP3.1.
-- Definition of Done: Supported repeat controls create the correct next occurrence without duplication or history loss.
+* **Objective:** Make exposed repeat controls operational.
+* **Current problem:** Recurrence exists as metadata but does not reliably create or advance occurrences.
+* **Intended implementation:** Define the smallest necessary series/occurrence identity model, correct and reuse the existing recurrence utility, advance supported recurrence exactly once and retain completion history with predictable edit, undo and restart behavior.
+* **Architectural constraints:** Reuse the existing recurrence utility after correcting tested edge cases. Do not generate an overwhelming backlog of missed occurrences.
+* **Modules:** Task recurrence types/utilities, canonical task repository/store and recurrence picker.
+* **Tests required:** Daily, weekly, monthly, intervals, month-end, leap years, DST, repeated completion, repeated taps, undo and restart.
+* **Manual verification:** Complete a repeating task, reopen the app, edit the next occurrence and undo completion.
+* **Dependencies:** WP3.1.
+* **Definition of Done:** Every exposed recurrence option creates or advances the correct occurrence exactly once without duplicate records or lost history.
+
+---
 
 #### WP3.3 — Complete habit management and history
 
-- Objective: Make all habits manageable and feedback accurate.
-- Current problem: Off-day habits are difficult to manage; streaks are incorrect or stale; deletion lacks recovery.
-- Intended implementation: Add an all-habits management path, simple completion history, correct schedule-aware streak calculations, weekly-day validation and deletion confirmation/undo.
-- Architectural constraints: Use the canonical feature habit store and dated history; avoid a second statistics source.
-- Modules: Habit form/list/hooks/store/repository and Health/More consumers.
-- Tests required: Scheduled days, missed days, yesterday-only streak, undo, historical best, concurrent completions and deletion recovery.
-- Manual verification: Edit an off-day habit, inspect history, miss a day, resume and restart.
-- Dependencies: G2.
-- Definition of Done: Every habit is retrievable; history and streaks are truthful; deletion and failed saves are recoverable.
+* **Objective:** Make every habit manageable and ensure habit feedback is accurate.
+* **Current problem:** Off-day habits are difficult to access; streak calculations can become incorrect or stale; deletion lacks a reliable recovery path.
+* **Intended implementation:** Add an all-habits management path, simple dated completion history, correct schedule-aware streak calculations, truthful historical-best semantics, weekly-day validation and recoverable deletion.
+* **Architectural constraints:** Use the canonical feature habit store/repository and dated completion history. Do not introduce a second statistics source.
+* **Modules:** Habit form, lists, hooks, store/repository and Health/More consumers.
+* **Tests required:** Scheduled days, off days, missed days, yesterday-only streak, historical best, undo, concurrent completion, deletion recovery and restart.
+* **Manual verification:** Edit an off-day habit, inspect history, miss a scheduled day, resume the habit and restart.
+* **Dependencies:** G2.
+* **Definition of Done:** Every habit is retrievable and manageable; history and streaks reflect persisted records; deletion and failed operations remain recoverable.
+
+---
 
 #### WP3.4 — Complete planning and recovery behavior
 
-- Objective: Make morning/evening planning and parking dependable.
-- Current problem: Restoration leaves dates shifted, low-energy suggestions misclassify tasks, and selected steps can disappear.
-- Intended implementation: Connect screens to shared state; define explicit return-from-parking behavior; exclude inappropriate high-effort suggestions; retain source identity; distinguish remaining backlog from capped suggestions.
-- Architectural constraints: Planning references canonical entities and does not copy them.
-- Modules: Planning composer/store/hooks/screens, ParkedItemsScreen and Dashboard planning cards.
-- Tests required: Park/restore across days, deleted references, low-energy selection, completed habits, changing shortlist and mounted-screen synchronization.
-- Manual verification: Morning → task change → evening → Parked → restart.
-- Dependencies: WP2.5, WP3.1–WP3.3.
-- Definition of Done: No intention disappears and all planning screens show the same saved state.
+* **Objective:** Make morning planning, evening review, parking and recovery dependable.
+* **Current problem:** Restoring parked work can leave dates shifted; low-energy suggestions can misclassify tasks; selected steps can disappear when recommendations change.
+* **Intended implementation:** Connect planning screens to shared state, define explicit return-from-parking behavior, correctly restore parked work, retain stable source identity and prevent ranking changes from removing selected intentions.
+* **Architectural constraints:** Planning references canonical task and habit entities rather than copying them into a second data model.
+* **Modules:** Planning composer/store/hooks/screens, Parked Items and Dashboard planning surfaces.
+* **Tests required:** Park/restore across days, deleted references, low-energy selection, completed habits, changing shortlist rankings, simultaneous mounted planning screens and restart.
+* **Manual verification:** Morning Planning → modify task → Evening Review → Parked Items → restore → restart.
+* **Dependencies:** WP2.5, WP3.1–WP3.3.
+* **Definition of Done:** Planning cannot lose an intention and every planning surface represents the same persisted state.
+
+---
 
 #### WP3.5 — Make capture and conversion durable
 
-- Objective: Preserve thoughts across every capture/conversion action.
-- Current problem: Routine ideas become inaccessible and source conversion can precede durable destination creation.
-- Intended implementation: Await destination saves; use stable conversion identity to prevent duplicates; retain the source until completion. Keep routine ideas retrievable as notes rather than introducing a new routine-authoring system. Add brain-dump editing and reject empty bundles.
-- Architectural constraints: Use a small recoverable local operation for multi-record conversion, not a distributed transaction framework.
-- Modules: Brain-dump store/screens, QuickCaptureSheet, reminder records and routine bundle application.
-- Tests required: Failure at each conversion step, retry, duplicate tap, interrupted conversion, empty bundle and edit persistence.
-- Manual verification: Convert, interrupt/reopen, retry and confirm exactly one accessible result.
-- Dependencies: WP2.3, WP3.1, WP3.4.
-- Definition of Done: Every successful conversion has one durable destination; unsuccessful conversion retains an actionable source.
+* **Objective:** Preserve captured thoughts through every conversion path.
+* **Current problem:** Routine ideas can become inaccessible and a source can be marked converted before the destination has been durably created.
+* **Intended implementation:** Await destination persistence, introduce stable conversion identity/idempotency, retain recoverable sources on failure, keep routine ideas accessible as notes, add Brain Dump editing and reject empty conversion bundles.
+* **Architectural constraints:** Use a small recoverable local operation for multi-record conversion rather than a distributed transaction framework. Preserve the existing capture/task/reminder architecture.
+* **Modules:** Brain Dump store/screens, Quick Capture Sheet, reminder records and routine bundle application.
+* **Tests required:** Failure at each conversion step, retry, duplicate tap, interrupted conversion, restart, empty bundle and edit persistence.
+* **Manual verification:** Convert an item, interrupt/reopen, retry and confirm exactly one accessible destination exists.
+* **Dependencies:** WP2.3, WP3.1, WP3.4.
+* **Definition of Done:** Every successful conversion creates exactly one durable destination; unsuccessful conversion leaves an actionable source.
+
+---
 
 #### WP3.6 — Complete task-backed calendar interactions
 
-- Objective: Make Calendar an actionable schedule.
-- Current problem: Calendar displays tasks but cannot create/edit them; the calendar control is dead.
-- Intended implementation: Add task creation for the selected date, row editing, completion status and time ordering; implement a useful date action or remove the unused icon.
-- Architectural constraints: Tasks remain the source of truth. No separate event database, system-calendar integration or calendar redesign.
-- Modules: Existing calendar route/utilities and task form/domain operations.
-- Tests required: Selected-date creation, edit/date movement, time ordering, completion, deletion and week navigation.
-- Manual verification: Create in Calendar, edit in Tasks, return to Calendar and restart.
-- Dependencies: WP3.1–WP3.2.
-- Definition of Done: Calendar changes and Tasks changes are immediately consistent and durable.
+* **Objective:** Make Calendar an actionable task-backed schedule.
+* **Current problem:** Calendar can display tasks but cannot fully create or edit them and contains a dead control.
+* **Intended implementation:** Add task creation for the selected date, task editing, completion, correct time ordering and a useful date action or removal of the unused control.
+* **Architectural constraints:** Tasks remain the sole source of truth. Do not introduce a separate event database, system-calendar integration or Calendar redesign.
+* **Modules:** Existing Calendar route/utilities and canonical task form/domain operations.
+* **Tests required:** Selected-date creation, editing/date movement, time ordering, completion, deletion, navigation and restart.
+* **Manual verification:** Create from Calendar → edit from Tasks → return to Calendar → terminate/reopen.
+* **Dependencies:** WP3.1–WP3.2.
+* **Definition of Done:** Calendar and Tasks remain immediately consistent and durable.
+
+---
 
 #### WP3.7 — Apply onboarding and preferences
 
-- Objective: Make represented preferences affect the product.
-- Current problem: First launch skips onboarding; sensory and simplified settings are disconnected.
-- Intended implementation: Gate first-run navigation after hydration; apply supported selections; enforce haptics centrally; unify reduced-motion decisions; make simplified mode reduce secondary content while keeping core actions accessible. Remove dark-mode and unsupported profile controls.
-- Architectural constraints: One canonical preference per behavior. Keep light styling; do not invent personalization intelligence.
-- Modules: Root index, onboarding feature, settings store/screen, Button/haptic paths, reduced-motion and simplified-mode consumers.
-- Tests required: Fresh/completed onboarding, interrupted setup, persisted toggles, all haptic call paths and simplified-mode navigation.
-- Manual verification: Fresh install, complete/skip supported steps, restart, disable haptics and enable OS/user reduced motion.
-- Dependencies: G2 and completed core screens.
-- Definition of Done: Onboarding runs at the correct time; each remaining preference is persisted and demonstrably applied.
+* **Objective:** Make every retained onboarding/settings option affect the real product.
+* **Current problem:** First launch can bypass onboarding and several exposed preferences are disconnected from product behavior.
+* **Intended implementation:** Gate first-run navigation after hydration, correctly persist onboarding completion, apply supported selections, enforce haptic preferences centrally, unify reduced-motion behavior and make Simplified Mode meaningfully reduce secondary content.
+* **Architectural constraints:** Maintain one canonical preference per behavior. Keep the existing light visual system and do not invent adaptive personalization.
+* **Modules:** Root navigation, onboarding feature, settings store/screen, haptic call paths and reduced-motion/Simplified Mode consumers.
+* **Tests required:** Fresh install, completed onboarding, interrupted setup, persisted settings, restart, haptic paths and Simplified Mode navigation.
+* **Manual verification:** Fresh install → complete/skip supported onboarding → restart → disable haptics → enable reduced motion/Simplified Mode → verify behavior.
+* **Dependencies:** G2 and completed core product screens.
+* **Definition of Done:** Onboarding occurs at the correct time and every remaining exposed preference demonstrably affects behavior.
+
+---
 
 #### WP3.8 — Retire obsolete production routes and repair navigation
 
-- Objective: Eliminate blank, mock and dead-end production routes.
-- Current problem: Hidden routes remain reachable; old add actions only dismiss; fallback navigation is inconsistent.
-- Intended implementation: Remove or redirect the old add route/modal, mock weekly dashboard and Explore; repair cold-link/back fallbacks; remove production “Testing” entries.
-- Architectural constraints: Do not bulk-delete unused source modules or reset the project. Preserve useful feature code outside the active route graph.
-- Modules: Router layouts, obsolete routes, More menu/header and ScreenBackButton.
-- Tests required: Route resolution, removed-route behavior and valid cold-link fallbacks.
-- Manual verification: Open supported destinations directly and navigate back without existing history.
-- Dependencies: WP3.5–WP3.7.
-- Definition of Done: Every production route provides usable content or an intentional safe redirect.
+* **Objective:** Eliminate blank, starter, mock and dead-end production routes.
+* **Current problem:** Hidden or obsolete routes remain reachable; legacy add surfaces do not perform useful actions; fallback navigation is inconsistent.
+* **Intended implementation:** Remove or safely redirect obsolete Add routes/modals, the mock weekly Dashboard, Expo Explore/tutorial and production-facing Testing entries; repair cold-link and back-navigation fallbacks.
+* **Architectural constraints:** Do not bulk-delete unused source modules or reset the project. Preserve useful feature code outside the active production route graph.
+* **Modules:** Router layouts, obsolete routes, More/header navigation and `ScreenBackButton`.
+* **Tests required:** Route resolution, retired-route behavior, cold links, safe back behavior and restart.
+* **Manual verification:** Open supported destinations directly, navigate back without existing history and verify retired routes do not expose dead surfaces.
+* **Dependencies:** WP3.5–WP3.7.
+* **Definition of Done:** Every production route either provides usable content or intentionally redirects to a safe supported destination.
 
-#### Risk points
+---
 
-Recurrence and undo can duplicate records. Existing preferences may conflict. Date/filter changes can hide tasks. Moving route bodies can alter navigation state.
+## Risk points
 
-#### Explicitly out of scope
+* Recurrence, retry and undo flows can create duplicate records if idempotency is incomplete.
+* Date/filter changes can hide otherwise valid tasks.
+* Existing stored preferences may conflict with newer canonical preference behavior.
+* Planning references can become stale when source tasks or habits are deleted.
+* Route cleanup can unintentionally change navigation history or deep-link behavior.
+* Multi-step conversions can lose source state if persistence ordering is incorrect.
 
-Projects/subtasks, tags, adaptive AI planning, standalone calendar events, timers, customizable routine libraries and cloud accounts.
+---
 
-#### Phase Acceptance Gate — G3
+## Explicitly out of scope
 
-- Task dates, times and recurrence work through restart.
-- Habit CRUD/history and deletion recovery pass.
-- Planning, parking and conversion failures cannot lose intentions.
-- Calendar and Tasks share real state.
-- First-run onboarding and retained preferences work.
-- Haptics/reduced motion behave as selected.
-- No obsolete core production route remains.
+* Projects
+* Subtasks
+* Tags
+* Adaptive AI planning
+* Standalone calendar events
+* System-calendar integration
+* Timers
+* Customizable routine libraries
+* Cloud accounts/synchronization
+* Dark Mode
+* New personalization intelligence
+
+---
+
+## Phase Acceptance Gate — G3
+
+Phase 3 passes only when the integrated product satisfies all of the following:
+
+### Tasks
+
+* Supported task fields persist correctly through create/edit/restart.
+* Arbitrary dates and valid times are preserved.
+* Overdue, undated, Today and Upcoming behavior is consistent.
+* Task recurrence advances exactly once.
+* Recurrence does not create duplicate occurrences.
+* Completion history survives restart.
+* Recurrence edit and undo behavior is predictable.
+
+### Habits
+
+* Every habit is retrievable and manageable.
+* Completion history is persisted.
+* Current and historical streak calculations are schedule-aware and truthful.
+* Deletion remains recoverable.
+
+### Planning and capture
+
+* Morning/evening planning surfaces use the same persisted state.
+* Parking and restoration cannot silently lose or shift an intention incorrectly.
+* Quick Capture and Brain Dump conversions cannot lose the source on failure.
+* Conversion retries do not create duplicate destinations.
+
+### Calendar
+
+* Calendar and Tasks use the same canonical task records.
+* Creation, editing, movement, completion and deletion remain synchronized.
+* State survives termination/restart.
+
+### Onboarding and preferences
+
+* First-run onboarding occurs correctly after hydration.
+* Completed onboarding remains completed after restart.
+* Haptics respect the canonical setting.
+* Reduced motion behaves consistently.
+* Simplified Mode changes presentation without hiding essential actions.
+* Unsupported controls are removed.
+
+### Navigation
+
+* No obsolete core production route remains as a blank, starter, mock or dead-end surface.
+* Direct/cold navigation has a safe fallback.
+* Back navigation behaves correctly without existing history.
+
+### G3 result
+
+Record the gate as:
+
+* **PASS** when all acceptance criteria are verified, or
+* **BLOCKED** when implementation is complete but specific verification evidence remains outstanding.
+
+Update `docs/lumo-implementation-progress.md` with the status of each completed work package, validation evidence and final G3 result.
+
+**STOP before Phase 4.**
 
 ### Phase 4 — Replace Lifestyle Placeholders With Real Local Workflows
 

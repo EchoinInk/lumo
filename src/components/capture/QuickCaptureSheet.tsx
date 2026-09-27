@@ -18,11 +18,11 @@ interface QuickCaptureSheetProps {
   defaultTarget?: QuickCaptureTarget;
 }
 
-const targets: Array<{
+const targets: {
   value: QuickCaptureTarget;
   label: string;
   icon: typeof CheckSquare;
-}> = [
+}[] = [
   { value: "task", label: "Task", icon: CheckSquare },
   { value: "brain_dump", label: "Brain dump", icon: Cloud },
   { value: "reminder", label: "Reminder", icon: Bell },
@@ -36,6 +36,7 @@ export function QuickCaptureSheet({
   const [target, setTarget] = useState<QuickCaptureTarget>(defaultTarget);
   const [text, setText] = useState("");
   const [isSaving, setIsSaving] = useState(false);
+  const [saveError, setSaveError] = useState<string | null>(null);
   const { createTask } = useTasks();
   const brainDump = useBrainDump();
   const reminders = useReminders();
@@ -45,26 +46,32 @@ export function QuickCaptureSheet({
       setText("");
       setTarget(defaultTarget);
       setIsSaving(false);
+      setSaveError(null);
     }
   }, [visible, defaultTarget]);
 
-  const handleSave = () => {
+  const handleSave = async () => {
     const value = text.trim();
     if (!value || isSaving) return;
 
     setIsSaving(true);
+    setSaveError(null);
     try {
       if (target === "task") {
-        createTask({ title: value, priority: "medium" });
+        await createTask({ title: value, priority: "medium" });
       } else if (target === "reminder") {
-        reminders.addReminder({ title: value, tone: reminders.settings.tone });
+        await Promise.resolve(
+          reminders.addReminder({ title: value, tone: reminders.settings.tone }),
+        );
       } else {
-        brainDump.addEntry({ text: value });
+        await Promise.resolve(brainDump.addEntry({ text: value }));
       }
 
       setText("");
       setTarget(defaultTarget);
       onClose();
+    } catch {
+      setSaveError("This item wasn't saved. Your text is still here to retry.");
     } finally {
       setIsSaving(false);
     }
@@ -115,6 +122,16 @@ export function QuickCaptureSheet({
           multiline
           helperText="No category needed right now."
         />
+
+        {saveError && (
+          <Text
+            variant="small"
+            color={Colors.danger}
+            accessibilityRole="alert"
+          >
+            {saveError}
+          </Text>
+        )}
 
         <View style={styles.actions}>
         <Button

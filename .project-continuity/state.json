@@ -119,12 +119,36 @@
       "from": "task:wp2.6",
       "to": "test:wp2.6-verification",
       "type": "verified_by"
+    },
+    {
+      "created_at": "2026-09-27T05:48:01.908674Z",
+      "from": "phase:3",
+      "to": "task:wp3.1",
+      "type": "contains"
+    },
+    {
+      "created_at": "2026-09-27T05:48:02.001260Z",
+      "from": "task:wp3.1",
+      "to": "phase:2",
+      "type": "depends_on"
+    },
+    {
+      "created_at": "2026-09-27T06:11:35.104007Z",
+      "from": "task:wp3.1",
+      "to": "test:wp3.1-automated",
+      "type": "verified_by"
+    },
+    {
+      "created_at": "2026-09-27T06:11:35.209616Z",
+      "from": "task:wp3.1",
+      "to": "test:wp3.1-manual",
+      "type": "verified_by"
     }
   ],
   "meta": {
     "created_at": "2026-09-24T11:53:49.499720Z",
     "schema_version": "1.0",
-    "updated_at": "2026-09-25T09:38:14.163784Z"
+    "updated_at": "2026-09-27T06:15:03.949486Z"
   },
   "nodes": {
     "artifact:wp2.1-ownership": {
@@ -249,6 +273,19 @@
       "type": "phase",
       "updated_at": "2026-09-24T11:53:49.542334Z"
     },
+    "phase:3": {
+      "gate": "G3",
+      "id": "phase:3",
+      "sources": [
+        "docs/lumo-launch-master-implementation-plan.md",
+        "user:2026-09-27-wp3.1-authorization"
+      ],
+      "status": "active",
+      "title": "Complete the existing core planner",
+      "truth": "declared",
+      "type": "phase",
+      "updated_at": "2026-09-27T05:48:01.720942Z"
+    },
     "project:lumo": {
       "id": "project:lumo",
       "repository_roots": [
@@ -328,6 +365,21 @@
       "truth": "observed",
       "type": "task",
       "updated_at": "2026-09-25T09:38:13.906818Z"
+    },
+    "task:wp3.1": {
+      "id": "task:wp3.1",
+      "sources": [
+        "docs/lumo-implementation-progress.md",
+        "docs/local-date-time-policy.md#task-scheduling-and-list-filters",
+        "src/features/tasks/services/taskLocalRepository.ts",
+        "src/features/tasks/utils/taskValidation.ts",
+        "src/testing/tasks/taskCrud.test.ts"
+      ],
+      "status": "complete",
+      "title": "Complete task CRUD, dates and times",
+      "truth": "observed",
+      "type": "task",
+      "updated_at": "2026-09-27T06:15:03.583028Z"
     },
     "test:wp2.1-verification": {
       "id": "test:wp2.1-verification",
@@ -425,6 +477,31 @@
       "truth": "observed",
       "type": "test",
       "updated_at": "2026-09-25T09:38:14.011905Z"
+    },
+    "test:wp3.1-automated": {
+      "actual": "All required commands passed; 163 tests, 0 failures; lint 0 errors and 80 warnings; Expo Doctor 20/20.",
+      "command": "config check, typecheck, tests, lint, doctor, web/iOS/Android exports and iOS Release build",
+      "id": "test:wp3.1-automated",
+      "sources": [
+        "docs/lumo-implementation-progress.md#wp31-implementation-complete-final-manual-delete-action-pending"
+      ],
+      "status": "complete",
+      "title": "WP3.1 automated validation",
+      "truth": "observed",
+      "type": "test",
+      "updated_at": "2026-09-27T06:11:34.876456Z"
+    },
+    "test:wp3.1-manual": {
+      "actual": "Web and iOS simulator create, edit, complete, undo, Quick Capture, delete, and process-restart persistence checks passed. The deleted native task remained absent after relaunch.",
+      "id": "test:wp3.1-manual",
+      "sources": [
+        "docs/lumo-implementation-progress.md"
+      ],
+      "status": "complete",
+      "title": "WP3.1 manual task lifecycle verification",
+      "truth": "observed",
+      "type": "test",
+      "updated_at": "2026-09-27T06:15:03.949352Z"
     }
   },
   "project": "project:lumo"

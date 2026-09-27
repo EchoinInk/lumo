@@ -154,13 +154,14 @@ export const TaskRow = React.memo<TaskRowProps>(
             )}
           </View>
         </View>
-        {showMetadata && task.dueDate && (
+        {showMetadata && (task.dueDate || task.dueTime) && (
           <Text
             variant="caption"
             color={Colors.textTertiary}
             style={styles.dueDate}
           >
-            Due: {formatLocalDate(task.dueDate, {})}
+            Due: {task.dueDate ? formatLocalDate(task.dueDate, {}) : "No date"}
+            {task.dueTime ? ` at ${task.dueTime}` : ""}
           </Text>
         )}
       </Card>
@@ -174,6 +175,9 @@ export const TaskRow = React.memo<TaskRowProps>(
       prevProps.task.completed === nextProps.task.completed &&
       prevProps.task.priority === nextProps.task.priority &&
       prevProps.task.dueDate === nextProps.task.dueDate &&
+      prevProps.task.dueTime === nextProps.task.dueTime &&
+      prevProps.task.energyRequired === nextProps.task.energyRequired &&
+      prevProps.task.recurrence === nextProps.task.recurrence &&
       prevProps.isFocusTask === nextProps.isFocusTask &&
       prevProps.showSecondaryActions === nextProps.showSecondaryActions &&
       prevProps.showMetadata === nextProps.showMetadata

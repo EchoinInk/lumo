@@ -13,6 +13,7 @@ export type DurableMutationOperation =
 export type DurableMutationFailureKind =
   | "not-found"
   | "conflict"
+  | "invalid-input"
   | "write-failed";
 
 /** A mutation only returns this value after its local write has completed. */

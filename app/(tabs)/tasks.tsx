@@ -21,6 +21,11 @@ import {
   TaskPriority,
 } from "@/src/features/tasks/types/task";
 import { summarizeRecurrence } from "@/src/features/tasks/utils/recurrence";
+import {
+  filterTasksByDate,
+  isTaskOverdue,
+  type TaskDateFilter,
+} from "@/src/features/tasks/utils/taskHelpers";
 import { useLocalDay } from "@/src/hooks/useLocalDay";
 import { Colors, Radius, Shadows, Spacing } from "@/src/theme/tokens";
 import { addLocalDays, formatLocalDate, isLocalDateKey } from "@/src/utils/dateTime";
@@ -44,31 +49,15 @@ import {
   View,
 } from "react-native";
 
-type FilterType = "all" | "today" | "upcoming" | "done";
-
-const filters: { key: FilterType; label: string }[] = [
+const filters: { key: TaskDateFilter; label: string }[] = [
   { key: "all", label: "All" },
   { key: "today", label: "Today" },
   { key: "upcoming", label: "Upcoming" },
   { key: "done", label: "Done" },
 ];
 
-// Priority to filter mapping
-const getPriorityFromKey = (key: string): TaskPriority | null => {
-  switch (key) {
-    case "high":
-      return "high";
-    case "medium":
-      return "medium";
-    case "low":
-      return "low";
-    default:
-      return null;
-  }
-};
-
 export default function TasksScreen() {
-  const [activeFilter, setActiveFilter] = useState<FilterType>("today");
+  const [activeFilter, setActiveFilter] = useState<TaskDateFilter>("today");
   const [isModalVisible, setIsModalVisible] = useState(false);
   const [isQuickCaptureVisible, setIsQuickCaptureVisible] = useState(false);
   const [modalMode, setModalMode] = useState<"create" | "edit">("create");
@@ -106,21 +95,7 @@ export default function TasksScreen() {
   const today = useLocalDay();
   const tomorrow = addLocalDays(today, 1);
 
-  const filteredTasks = tasks.filter((task) => {
-    if (activeFilter === "all") return true;
-    if (activeFilter === "done") return task.completed;
-    if (activeFilter === "today") {
-      // Show incomplete tasks due today or without a due date
-      if (task.completed) return false;
-      return !task.dueDate || task.dueDate === today;
-    }
-    if (activeFilter === "upcoming") {
-      // Show incomplete tasks due tomorrow or later
-      if (task.completed) return false;
-      return isLocalDateKey(task.dueDate) && task.dueDate > today;
-    }
-    return true;
-  });
+  const filteredTasks = filterTasksByDate(tasks, activeFilter, today);
 
   const handleAddPress = () => {
     setModalMode("create");
@@ -316,7 +291,9 @@ export default function TasksScreen() {
               ? "No completed tasks yet"
               : activeFilter === "upcoming"
                 ? "No upcoming tasks"
-                : "No tasks for today"}
+                : activeFilter === "all"
+                  ? "No tasks yet"
+                  : "No tasks for today"}
           </Text>
           <Text variant="caption" color={Colors.textTertiary}>
             {activeFilter === "done"
@@ -396,6 +373,11 @@ export default function TasksScreen() {
                             ? "Today"
                             : task.dueDate === tomorrow
                               ? "Tomorrow"
+                              : isTaskOverdue(task, today)
+                                ? `Overdue · ${formatLocalDate(task.dueDate!, {
+                                  month: "short",
+                                  day: "numeric",
+                                })}`
                               : task.dueDate
                                 ? isLocalDateKey(task.dueDate)
                                   ? formatLocalDate(task.dueDate, {
@@ -612,6 +594,8 @@ const styles = StyleSheet.create({
     borderLeftColor: Colors.pink,
   },
   taskContent: {
+    flex: 1,
+    minWidth: 0,
     flexDirection: "row",
     alignItems: "center",
     gap: Spacing.md,
@@ -737,6 +721,7 @@ const styles = StyleSheet.create({
   taskActions: {
     flexDirection: "row",
     alignItems: "center",
+    flexShrink: 0,
     gap: Spacing.xs,
   },
   actionButton: {

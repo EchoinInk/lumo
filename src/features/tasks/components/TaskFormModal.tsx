@@ -3,9 +3,6 @@ import { Text } from "@/src/components/ui/Text";
 import { Colors, Radius, Shadows, Spacing } from "@/src/theme/tokens";
 import { MutationSubmissionGuard } from "@/src/services/storage/durableMutation";
 import {
-  addLocalDays,
-  isLocalDateKey,
-  isWallClockTime,
   toLocalDateKey,
 } from "@/src/utils/dateTime";
 import { LinearGradient } from "expo-linear-gradient";
@@ -27,6 +24,12 @@ import { RecurringTaskPicker } from "./RecurringTaskPicker";
 import type { EnergyLevel } from "../types/energy";
 import type { RecurrencePattern } from "../types/recurrence";
 import { CreateTaskInput, Task, TaskPriority } from "../types/task";
+import {
+  getTaskDateSelection,
+  resolveTaskFormSchedule,
+  TaskDateSelection,
+  TaskScheduleValidationError,
+} from "../utils/taskValidation";
 
 interface TaskFormModalProps {
   visible: boolean;
@@ -43,9 +46,10 @@ const priorities: { key: TaskPriority; label: string; color: string }[] = [
 ];
 
 const dateOptions = [
-  { key: "today", label: "Today" },
-  { key: "tomorrow", label: "Tomorrow" },
-  { key: "none", label: "No date" },
+  { key: "today" as const, label: "Today" },
+  { key: "tomorrow" as const, label: "Tomorrow" },
+  { key: "custom" as const, label: "Choose date" },
+  { key: "none" as const, label: "No date" },
 ];
 
 export function TaskFormModal({
@@ -58,7 +62,9 @@ export function TaskFormModal({
   const [title, setTitle] = useState("");
   const [notes, setNotes] = useState("");
   const [priority, setPriority] = useState<TaskPriority>("medium");
-  const [selectedDate, setSelectedDate] = useState<string>("none");
+  const [selectedDate, setSelectedDate] =
+    useState<TaskDateSelection>("none");
+  const [customDate, setCustomDate] = useState("");
   const [dueTime, setDueTime] = useState<string>("");
   const [energyRequired, setEnergyRequired] = useState<EnergyLevel | undefined>();
   const [recurrence, setRecurrence] = useState<RecurrencePattern | undefined>();
@@ -80,20 +86,12 @@ export function TaskFormModal({
         setRecurrence(initialTask.recurrence);
         setDueTime(initialTask.dueTime || "");
 
-        // Determine date selection from dueDate
-        if (initialTask.dueDate) {
-          const today = toLocalDateKey();
-          const tomorrow = addLocalDays(today, 1);
-          if (initialTask.dueDate === today) {
-            setSelectedDate("today");
-          } else if (initialTask.dueDate === tomorrow) {
-            setSelectedDate("tomorrow");
-          } else {
-            setSelectedDate(initialTask.dueDate);
-          }
-        } else {
-          setSelectedDate("none");
-        }
+        const dateState = getTaskDateSelection(
+          initialTask.dueDate,
+          toLocalDateKey(),
+        );
+        setSelectedDate(dateState.selection);
+        setCustomDate(dateState.customDate);
       } else {
         // Reset for create mode
         setTitle("");
@@ -102,21 +100,28 @@ export function TaskFormModal({
         setEnergyRequired(undefined);
         setRecurrence(undefined);
         setSelectedDate("none");
+        setCustomDate("");
         setDueTime("");
       }
     }
   }, [visible, mode, initialTask, submissionGuard]);
 
   const handleSubmit = async () => {
-    const normalizedDueTime = dueTime.trim();
-    const unchangedLegacyTime =
-      mode === "edit" && normalizedDueTime === initialTask?.dueTime;
-    if (
-      normalizedDueTime &&
-      !isWallClockTime(normalizedDueTime) &&
-      !unchangedLegacyTime
-    ) {
-      setSubmitError("Use a 24-hour time like 09:30.");
+    let schedule: Pick<CreateTaskInput, "dueDate" | "dueTime">;
+    try {
+      schedule = resolveTaskFormSchedule({
+        selection: selectedDate,
+        customDate,
+        dueTime,
+        today: toLocalDateKey(),
+        currentTask: mode === "edit" ? initialTask : undefined,
+      });
+    } catch (error) {
+      setSubmitError(
+        error instanceof TaskScheduleValidationError
+          ? error.message
+          : "Check the task date and time.",
+      );
       return;
     }
     if (!title.trim() || !submissionGuard.begin()) return;
@@ -125,18 +130,6 @@ export function TaskFormModal({
     setSubmitError(null);
     Keyboard.dismiss();
 
-    // Calculate dueDate from selection
-    let dueDate: string | undefined;
-    if (selectedDate === "today") {
-      dueDate = toLocalDateKey();
-    } else if (selectedDate === "tomorrow") {
-      dueDate = addLocalDays(toLocalDateKey(), 1);
-    } else if (isLocalDateKey(selectedDate)) {
-      dueDate = selectedDate;
-    } else if (mode === "edit" && selectedDate === initialTask?.dueDate) {
-      dueDate = initialTask.dueDate;
-    }
-
     try {
       await onSubmit({
         title: title.trim(),
@@ -144,8 +137,7 @@ export function TaskFormModal({
         priority,
         energyRequired,
         recurrence,
-        dueDate,
-        dueTime: normalizedDueTime || undefined,
+        ...schedule,
       });
       onClose();
     } catch {
@@ -242,7 +234,10 @@ export function TaskFormModal({
                         {dateOptions.map((option) => (
                           <TouchableOpacity
                             key={option.key}
-                            onPress={() => setSelectedDate(option.key)}
+                            onPress={() => {
+                              setSelectedDate(option.key);
+                              setSubmitError(null);
+                            }}
                             activeOpacity={0.7}
                             accessibilityLabel={`Set due date: ${option.label}`}
                             accessibilityRole="button"
@@ -282,6 +277,24 @@ export function TaskFormModal({
                           </TouchableOpacity>
                         ))}
                       </View>
+                      {selectedDate === "custom" && (
+                        <View style={styles.customDateInput}>
+                          <Input
+                            label="Date"
+                            placeholder="YYYY-MM-DD"
+                            value={customDate}
+                            onChangeText={(value) => {
+                              setCustomDate(value);
+                              setSubmitError(null);
+                            }}
+                            autoCapitalize="none"
+                            autoCorrect={false}
+                            keyboardType="numbers-and-punctuation"
+                            accessibilityLabel="Task due date"
+                            helperText="Use a valid calendar date, for example 2026-10-15."
+                          />
+                        </View>
+                      )}
                     </View>
 
                     {/* Due Time (Optional) */}
@@ -289,9 +302,12 @@ export function TaskFormModal({
                       <View style={styles.inputGroup}>
                         <Input
                           label="Time (optional)"
-                          placeholder="e.g., 2:30 PM"
+                          placeholder="09:30"
                           value={dueTime}
-                          onChangeText={setDueTime}
+                          onChangeText={(value) => {
+                            setDueTime(value);
+                            setSubmitError(null);
+                          }}
                           leftIcon={
                             <Clock size={18} color={Colors.textTertiary} />
                           }
@@ -519,7 +535,11 @@ const styles = StyleSheet.create({
   },
   dateContainer: {
     flexDirection: "row",
+    flexWrap: "wrap",
     gap: Spacing.md,
+  },
+  customDateInput: {
+    marginTop: Spacing.md,
   },
   dateChip: {
     flexDirection: "row",
