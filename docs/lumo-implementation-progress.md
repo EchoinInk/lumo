@@ -78,9 +78,38 @@ WP1.2 is complete. The repository now uses a Doctor-aligned Expo SDK 55 dependen
 
 ---
 
-## WP1.3 - Implementation complete; partial acceptance
+### Android native verification — 2026-09-28
 
-The repeatable native build baseline is implemented. By product-owner direction on 2026-09-24, G1 is provisionally open for Phase 2 development while final device acceptance remains outstanding. This validation host has no Java runtime or `adb`, and no physical devices are attached, so Android compilation and the required physical-device cold-launch and airplane-mode evidence cannot be completed here. That evidence remains mandatory before G8 release qualification.
+The previously recorded Android host/tooling blocker has been resolved.
+
+Host/tooling evidence:
+
+- OpenJDK 17 is installed and working.
+- Android Debug Bridge is installed and working.
+- Android API 36 ARM64 emulator is available and connected as `emulator-5554`.
+- `./gradlew app:assembleRelease` completed successfully.
+- Release APK was generated at:
+  `android/app/build/outputs/apk/release/app-release.apk`
+- `adb install -r app/build/outputs/apk/release/app-release.apk` completed successfully.
+- `com.meltmyheart.lumo` launched successfully on the Android emulator.
+- Force-stop and relaunch completed successfully.
+- Persisted local application state remained available after relaunch.
+- Wi-Fi and mobile data were disabled, the app was force-stopped, and Lumo relaunched successfully in its local guest experience without requiring network access or account sign-in.
+- Network access was restored after verification.
+
+## WP1.3 — Implementation complete; simulator/emulator acceptance verified; physical-device acceptance outstanding
+
+- iOS Release simulator compile/install/relaunch: passed
+- Android Release compile: passed
+- Android emulator install/cold launch: passed
+- Android emulator process restart: passed
+- Android emulator offline reopen: passed
+- Physical iOS device acceptance: not performed
+- Physical Android device acceptance: not performed
+
+**WP1.3 status:** Implementation complete; simulator/emulator acceptance verified; physical-device acceptance outstanding.
+
+**G1 effect:** Android tooling and emulator acceptance blockers are closed. G1 remains open only for the explicitly required physical-device smoke checks, which remain mandatory before G8 release qualification.
 
 ## Completion record
 
@@ -92,10 +121,10 @@ The repeatable native build baseline is implemented. By product-owner direction 
 | **Local-first guard** | Config and export scripts set `EXPO_NO_DOTENV=1` and remove Lumo's public API/Supabase variables. The config gate also rejects an EAS Update URL and checks that no backend variable name is exposed in resolved public config. No update channel, runtime version, submit profile, backend secret, account bootstrap, or cloud runtime dependency was added. |
 | **Commands and runbook** | Exact clean-generation, export, local compilation, EAS build, and physical-device smoke-test commands are recorded in [native-build-validation.md](/Users/echoin.ink/Developer/lumo/docs/native-build-validation.md). |
 | **Automated evidence (2026-09-24)** | Credential-free config resolution passed; TypeScript passed; tests **106 passed, 0 failed**; lint **0 errors, 88 existing warnings**; Expo Doctor **20/20**; web export passed; iOS Hermes export passed; Android Hermes export passed; clean `expo prebuild --clean --no-install` passed in an isolated copy; iOS CocoaPods resolution passed. |
-| **Native compile evidence (2026-09-24)** | iOS unsigned Release simulator compilation **passed** from the clean generated project with Xcode 26.6 and CocoaPods 1.17.0. The artifact installed on an iPhone 17 Pro / iOS 26.5 simulator; initial cold launch and terminate/relaunch both succeeded, the process remained active, and visual inspection confirmed the guest Dashboard without an account prompt. Android `:app:assembleRelease` was attempted and is blocked before Gradle starts because this host has no Java runtime; `adb` is also unavailable. |
-| **Unavailable acceptance evidence** | **Blocking:** no physical iOS or Android device is attached, so install, cold launch, process restart, airplane-mode reopen, and confirmation of account-free guest startup on real devices remain unverified. **Blocking:** Android native compilation requires a supported JDK and Android SDK/ADB. The successful iOS simulator run is useful evidence but is not treated as a substitute for the required physical-device checks. |
-| **Status** | **Implementation complete; partial acceptance** |
-| **Gate effect** | **G1 is provisionally open for Phase 2 development by product-owner direction.** Final acceptance still requires Android Release compilation and the documented preview/release smoke checklist on physical iOS and Android devices, and must be completed before G8 release qualification. |
+| **Native compile and runtime evidence (updated 2026-09-28)** | iOS unsigned Release simulator compilation passed with Xcode 26.6 and CocoaPods 1.17.0. The Release build installed on an iPhone 17 Pro / iOS 26.5 simulator and passed cold launch and terminate/relaunch. Android tooling is now available with OpenJDK 17 and ADB. An Android API 36 ARM64 emulator was connected as `emulator-5554`; `./gradlew app:assembleRelease` completed successfully, the Release APK installed successfully, Lumo launched successfully, force-stop/relaunch passed, persisted local state remained available, and offline reopen passed with Wi-Fi/mobile data disabled. |
+| **Unavailable acceptance evidence** | Physical iOS and Android device verification has not been performed. Simulator/emulator evidence does not substitute for the explicitly required physical-device smoke checks. |
+| **Status** | **Implementation complete; simulator/emulator acceptance verified; physical-device acceptance outstanding** |
+| **Gate effect** | Android tooling, Release compilation, emulator install, process restart and offline-launch blockers are closed. G1 remains open only for the required physical-device acceptance checks, which must be completed before G8 release qualification. |
 
 ---
 
@@ -446,7 +475,7 @@ WP4.2 is complete. Meals now represents only food actually consumed. The former 
 | **Status** | **COMPLETE — implementation, automated checks and native terminate/reopen verification passed.** |
 | **Gate effect** | WP4.2 Definition of Done is satisfied. **WP4.3 / Phase 4 Prompt 2 has not begun.** |
 
-## WP4.3 — Implementation complete; native verification deferred
+## WP4.3 — Complete; automated and native acceptance verified
 
 Recipes now has a routed local CRUD screen at `/(tabs)/more/recipes`, backed by the canonical versioned recipe repository/store.
 
@@ -471,49 +500,43 @@ Recipe-to-meal logging copies an immutable recipe snapshot.
 - `npm run lint` — **0 errors**, 78 pre-existing warnings
 - `npm run export:ios` — passed
 
-### Native verification
+### Native verification — 2026-09-28
 
-Required native terminate/reopen verification was attempted with:
-
-`npm run native:ios:release`
-
-The host could not complete this check because Expo could not determine an available Simulator app and reported that Xcode/Simulator was not installed or selected:
-
-`sudo xcode-select -s /Applications/Xcode.app`
-
-This is an environment limitation, not an identified WP4.3 implementation defect.
-
-Native terminate/reopen verification therefore remains **deferred** and must be completed before release qualification.
+Built and installed the current Release configuration on the booted **iPhone 17 Pro / iOS 26.5 simulator**, UDID `0BF61143-2DFC-40E8-95EA-CFD153ACBE8C`, using Xcode 26.6 (17F113). Created **Native lentil bowl**, edited it to **Native lentil bowl edited** with 3 servings, logged it as a consumed dinner, terminated `com.meltmyheart.lumo`, and relaunched it. The edited recipe and consumed-meal snapshot both rehydrated. Deleting the source recipe did not change the historical meal: it remained **Native lentil bowl edited**, Dinner, **Saved recipe · 3 servings**.
 
 ### Status
 
 - **WP4.3 implementation:** Complete
-- **WP4.3 native restart acceptance:** Deferred
-- **WP4.3 overall:** Implementation complete; verification exception open
+- **WP4.3 native restart acceptance:** Passed on the named simulator
+- **WP4.3 overall:** Complete
 - **Development progression:** May continue to WP4.4
-- **Release requirement:** Deferred native restart verification must be closed before G8
+- **Physical-device status:** Not performed; simulator evidence only
 
-WP4.4 and WP4.5 remain incomplete from the prior foundational work and have not yet been accepted.
-
-## WP4.4 - Implemented; native restart verification deferred
+## WP4.4 - Complete; automated and native acceptance verified
 
 Groceries now replaces the static list with a routed canonical local vertical slice. `/(tabs)/more/groceries` provides accessible creation, edit, deletion, quantity/unit validation, check/undo, and loading, empty, hydration-error and failed-save states. The canonical `groceryLocalRepository` performs serialized, versioned durable mutations; the screen prevents duplicate form submission while a save is in progress.
 
 Recipe integration is exposed by `addRecipeIngredients(recipe)`, which uses a stable recipe source identity. Repeated imports are idempotent and manually created grocery rows or manual edits are preserved. Targeted food tests cover durable checked state, repeated generation, and preservation of manual items/edits during recipe ingredient import.
 
-Automated evidence on 2026-09-28: `npm run typecheck` passed; `npm test` passed (**200 passed, 0 failed**); `npm run lint` reported **0 errors** and 78 existing warnings; `npm run export:ios` passed. Native terminate/reopen verification is deferred for the same unavailable Simulator/Xcode runtime recorded for WP4.3. WP4.4 is implementation-complete and ready for planner integration, but not fully Verified until release-qualification native restart evidence is recorded.
+Original package evidence on 2026-09-28: `npm run typecheck` passed; `npm test` passed (**200 passed, 0 failed**); `npm run lint` reported **0 errors** and 78 existing warnings; `npm run export:ios` passed.
 
-Per the explicit scope of this run, WP4.5 was not started or continued.
+Native verification on 2026-09-28 used the booted **iPhone 17 Pro / iOS 26.5 simulator** (`0BF61143-2DFC-40E8-95EA-CFD153ACBE8C`). Created **Native apples**, changed 2 kg to **5 items**, checked it, unchecked it, then left it checked. Generated the saved recipe ingredient **Carrots** twice through the implemented planner integration; one 3-item generated row existed before manual modification, demonstrating initial idempotency. After terminate/relaunch, **Native apples**, its 5-item edit and checked state persisted. This is simulator evidence, not physical-device verification.
 
-## WP4.5 - Implementation complete; native verification deferred
+## WP4.5 — Complete; automated and native acceptance verified
 
 Weekly Meal Planner is now routed at `/(tabs)/more/meal-planner` and backed by the versioned canonical weekly-plan repository/store. It provides local-week identity/range navigation, day and meal-slot assignments, saved-recipe snapshots or manual meal descriptions, removal, explicit edit/cancel/save controls, validation/save-failure feedback, loading/error display, and grocery generation through the existing grocery repository interface. Recipes are snapshotted at assignment time, so a later deletion is safe. Plans contain no consumed-meal records and have no path into meal nutrition totals; an item only becomes consumed when it is explicitly logged through Meals.
 
-Generation uses assignment source IDs through the grocery-domain boundary, so repeated generation is idempotent and preserves checked state, manually created items, and manually edited generated items. Existing targeted food tests cover recipe deletion snapshots, local week rollover, durable plan persistence, and idempotent grocery integration.
+Root cause of the failed native verification was in the existing canonical grocery-generation boundary: generated rows durably stored planner assignment source IDs, but regeneration searched for a row by mutable normalized name and unit before consulting that source relationship. Renaming a generated row therefore made its durable source link unreachable and allowed a second row to be created.
 
-Automated evidence on 2026-09-28: `npm run typecheck` passed; `npm test` passed (**200 passed, 0 failed**); `npm run lint` reported **0 errors** and 79 warnings; `npm run export:ios` passed. Native terminate/reopen verification remains deferred for the previously documented unavailable Simulator/Xcode runtime. WP4.5 is implementation complete; native restart verification remains open for release qualification.
+The fix keeps the existing planner → grocery architecture and gives each snapshotted recipe ingredient a durable generation key composed from the persisted meal-plan ID, assignment ID and recipe-ingredient ID (with index fallback for legacy snapshots). The grocery repository now matches this identity before display fields, preserves manually edited name, quantity, unit and checked state, upgrades legacy assignment-only links without duplicating the row, reconciles stale planner links after reassignment, preserves unrelated manual rows and manually modified generated rows, and retains deletion tombstones so the same source does not resurrect a deleted generated item. Recipe snapshots remain the generation input after source-recipe deletion; planned and consumed meals remain separate.
 
-## WP4.6 - Implementation complete; native verification deferred
+Regression evidence on 2026-09-28: focused WP4.5 tests cover generation before and after manual edit, edited name/quantity/unit and checked-state preservation, repository rehydration and regeneration, legacy identity upgrade, planner reassignment, recipe-deletion snapshot safety, manual grocery isolation and deletion non-resurrection. `npm run typecheck` passed; `npm test` passed (**232 passed, 0 failed**); `npm run lint` reported **0 errors and 76 warnings**; `npm run export:ios` passed; the Release iOS build succeeded with **0 errors**; and `git diff --check` passed.
+
+Native verification on 2026-09-28 used the booted **iPhone 17 Pro / iOS 26.5 simulator** (`0BF61143-2DFC-40E8-95EA-CFD153ACBE8C`). Created saved recipe **WP4.5 identity roast** with one ingredient, **Parsnips**, quantity 4 items; assigned it to the weekly planner; generated groceries; and confirmed one generated **Parsnips** row. Renamed that row to **Parsnips hand edited**, changed its quantity to 9, and checked it. Regeneration produced no duplicate and preserved the edited name, quantity, unit and checked state. After terminating and relaunching `com.meltmyheart.lumo`, the same single checked **Parsnips hand edited**, 9 items row remained. Regeneration after restart again produced no duplicate and preserved all manual edits. Existing manual grocery **Native apples** remained unchanged, and the planner UI continued to state and demonstrate that plans do not count as consumed meals. This is simulator evidence, not physical-device verification.
+
+**Status:** **WP4.5 — Complete; automated and native acceptance verified.** WP4.6 and later work packages were not modified by this repair.
+
+## WP4.6 - Complete; automated and native acceptance verified
 
 Budget now replaces the routed static/sample surface with one canonical local-first category domain: `app/(tabs)/more/budget.tsx` → `useBudgetCategoryStore` → `budgetCategoryRepository` → versioned storage. Categories have stable IDs, editable names, exact integer minor-unit planned amounts, fixed monthly period and NZD currency scope, lifecycle metadata, version increments and soft deletion so future expense history can retain category references safely. The UI supports create/edit/delete, a truthful planned-total summary with no fabricated actual spending, duplicate-submit protection, validation, loading, empty, hydration-recovery, actionable save-failure and delete-confirmation states.
 
@@ -521,9 +544,11 @@ The legacy `useBudgetStore` now delegates to the canonical feature store instead
 
 Automated evidence on 2026-09-28: `npm run typecheck` passed; `npm test` passed (**204 passed, 0 failed**, including four WP4.6 targeted tests); `npm run lint` passed with **0 errors** and 79 existing warnings; `npm run export:ios` passed; `npm run export:web` also passed; `git diff --check` passed. Targeted coverage verifies create/edit/delete, stable identity and versioning, exact minor-unit parsing and excess-precision rejection, invalid input, duplicate-submission guarding, repository/store hydration, failed-write rollback, soft-delete safety and malformed-storage recovery.
 
-Available browser verification confirmed the exported app reaches the routed Budget screen, displays the monthly NZD zero-data summary without actual-spend claims, shows the empty state and opens the accessible category form. Browser automation could not reliably submit the React Native Web text fields, so no browser CRUD result is claimed. Native terminate/reopen verification was not rerun because this host still lacks the previously recorded selectable Simulator/Xcode runtime. It remains deferred for release qualification and is not claimed as passed.
+Available browser verification confirmed the exported app reaches the routed Budget screen, displays the monthly NZD zero-data summary without actual-spend claims, shows the empty state and opens the accessible category form. Browser automation could not reliably submit the React Native Web text fields, so no browser CRUD result is claimed.
 
-**Gate effect:** WP4.6 implementation Definition of Done is satisfied with native restart verification deferred under the accepted host exception. WP4.7 subsequently connected this budget to its canonical persisted ledger; no independent editable balance was introduced.
+**Gate effect:** WP4.6 Definition of Done is satisfied with simulator restart evidence. WP4.7 subsequently connected this budget to its canonical persisted ledger; no independent editable balance was introduced.
+
+Native verification on 2026-09-28 used the booted **iPhone 17 Pro / iOS 26.5 simulator** (`0BF61143-2DFC-40E8-95EA-CFD153ACBE8C`). Created **Native food** at NZD 250.50, edited it to **Native essentials** at NZD 300.75, then deleted it through the implemented soft-delete path. After terminate/relaunch the canonical visible state remained empty and the summary truthfully showed **$0.00 spent**, **$0.00 planned**, and **$0.00 income**. No fabricated actual-spend data appeared. Physical-device verification was not performed.
 
 ## WP4.7 - Implementation complete; native verification deferred
 
@@ -534,6 +559,8 @@ The routed Budget screen now presents real current-month planned, spent, remaini
 Automated evidence on 2026-09-28: `npm run typecheck` passed; `npm test` passed (**210 passed, 0 failed**), including exact minor-unit validation, zero-data totals, month/year boundaries, category calculations, category-deletion snapshots, edit/delete reconciliation, moving an expense across periods and hydration restart coverage. `npm run lint` passed with **0 errors** (existing warnings only); `npm run doctor`, `npm run export:web` and `npm run export:native` passed; `git diff --check` passed.
 
 Native terminate/reopen verification could not be performed: `xcrun simctl list devices available` failed because CoreSimulatorService was unavailable and no usable Simulator runtime/device set could be obtained. Repository hydration tests verify persisted restart semantics, but are not a substitute for native restart acceptance.
+
+The environment blocker was resolved later on 2026-09-28. Native UI verification created a NZD 500 category, a NZD 42.25 expense and NZD 100 manual income, then edited the expense date from 2026-09-28 to 2026-10-01; September actual spending immediately reconciled from NZD 42.25 to NZD 0.00 while income remained NZD 100.00. The final terminate/relaunch check was not completed before the host UI locked, so WP4.7 native restart acceptance remains open.
 
 **Gate effect:** WP4.7 implementation is complete and automated reconciliation evidence passes. Its native restart acceptance remains deferred and is not claimed as passed.
 
@@ -547,6 +574,8 @@ Automated evidence on 2026-09-28: the same **210 passed, 0 failed** suite includ
 
 Native mark-paid/reopen inspection could not be performed because CoreSimulatorService was unavailable, as recorded above. Automated hydration and interrupted-operation recovery pass, but physical/simulator restart acceptance remains deferred.
 
+The environment blocker was resolved later on 2026-09-28. Native UI verification created **Native power bill** for NZD 65.40, marked it paid, observed **Paid · linked to one expense**, undid payment, and marked it paid again without a second visible payment record. The final terminate/relaunch and linked-ledger recount were not completed before the host UI locked, so WP4.8 native restart acceptance remains open.
+
 **Gate effect:** WP4.8 implementation is complete and payment/budget consistency is verified automatically without duplicate transactions. Native restart acceptance remains open. WP4.9 / Phase 4 Prompt 4 has not begun.
 
 ## WP4.9 - Implementation complete; native verification deferred
@@ -558,6 +587,8 @@ Quick intake capture opens the canonical consumed-meal form with the viewed date
 Automated evidence on 2026-09-28: `npm run typecheck` passed; `npm test` passed (**216 passed, 0 failed**). WP4.9 coverage verifies planned-versus-consumed separation, known and unknown calorie handling, no-goal behavior, preference validation and hydration persistence, canonical meal edits/deletes, moving intake across local-date boundaries, and recalculated daily totals. `npm run lint` passed with **0 errors and 78 existing warnings**; `npm run doctor`, `npm run export:web` and `npm run export:native` passed; `git diff --check` passed.
 
 Native terminate/reopen verification could not be performed because `xcrun simctl list devices available` again failed to connect to CoreSimulatorService and could not locate a Simulator device set. Repository/store hydration verifies persisted restart semantics automatically, but native restart acceptance is not claimed.
+
+The environment blocker was resolved later on 2026-09-28. The persisted consumed-meal snapshot from WP4.3 was visible after native restart, but the full Calories create/edit/delete, goal and terminate/relaunch sequence was not performed before the host UI locked. WP4.9 native acceptance therefore remains open.
 
 **Gate effect:** WP4.9 implementation is complete and every displayed calorie value is traceable to persisted consumed meals. Native restart acceptance remains deferred.
 
@@ -571,6 +602,8 @@ Automated evidence on 2026-09-28: the same **216 passed, 0 failed** suite includ
 
 Native log/edit/reopen verification remains unavailable because CoreSimulatorService could not provide a Simulator device set. Automated durable hydration passes, but it is not a substitute for native restart acceptance.
 
+The environment blocker was resolved later on 2026-09-28. Native UI verification recorded 70 kg and 155 lb dated entries, displayed the deterministic conversion/history, edited the older entry to 156 lb, and deleted the newer entry. The final terminate/relaunch inspection was interrupted by the host lock, so WP4.10 native restart acceptance remains open.
+
 **Gate effect:** WP4.10 implementation is complete and all current/history/change values derive exclusively from real persisted records. Native restart acceptance remains open. WP4.11 / Phase 4 Prompt 5 has not begun.
 
 ## WP4.11 - Implementation complete; native verification deferred
@@ -583,6 +616,8 @@ Automated evidence on 2026-09-28: `npm run typecheck` passed; `npm test` passed 
 
 Native terminate/reopen verification could not be performed. `xcrun simctl list devices available` failed because CoreSimulatorService rejected the connection and could not initialize a Simulator device set. Automated durable hydration passed, but is not represented as native restart acceptance.
 
+The environment blocker was resolved later on 2026-09-28. Native UI verification created **Native walk** with 30 minutes and a manually supplied 120 kcal estimate, then edited it to **Native brisk walk** and 35 minutes; weekly totals updated to 1 workout / 35 min / 120 manually recorded kcal. Delete and final terminate/relaunch verification were not completed before the host UI locked, so WP4.11 native acceptance remains open.
+
 **Status:** WP4.11 implementation and automated Definition of Done evidence pass; native restart acceptance remains deferred.
 
 ## WP4.12 - Implementation complete; native verification deferred
@@ -593,6 +628,8 @@ Automated evidence on 2026-09-28: the same **222 passed, 0 failed** suite includ
 
 Native terminate/reopen verification could not be performed because CoreSimulatorService exposed no usable Simulator device set. Repository/store hydration verifies persistence semantics automatically, but does not substitute for the required native check.
 
+The environment blocker was resolved later on 2026-09-28. Native UI verification created an 80 cm waist record. The requested second-unit, edit/delete and terminate/relaunch sequence was interrupted when macOS locked and computer control became unavailable. WP4.12 therefore remains open; no native restart pass is claimed.
+
 **Status:** WP4.12 implementation and automated Definition of Done evidence pass; native terminate/reopen acceptance remains deferred.
 
 ## G4 Phase Acceptance Gate - BLOCKED
@@ -602,7 +639,62 @@ Phase 4 implementation is complete through WP4.12, but G4 is **BLOCKED**. The ga
 | Field | Record |
 |---|---|
 | **Twelve-domain implementation** | Cleaning, consumed meals, recipes, groceries, weekly meal planning, budget/categories, expenses/manual income, payments, calories, weight, workouts and body measurements now use real canonical local data with their required CRUD or preference operations. The Phase 4 screens no longer contain sample records or disabled future creation controls; conditional controls that require a selected date or budget category remain explicit prerequisites rather than placeholders. |
-| **Integration and regression evidence (2026-09-28)** | Final TypeScript passed; tests **222 passed, 0 failed**, including food idempotency/snapshot behavior, financial interruption/retry and double-count prevention, workout and measurement coverage, and the existing planner suites. Lint reported **0 errors and 78 existing warnings**; Expo Doctor, web export, iOS Hermes export, Android Hermes export and `git diff --check` passed. |
-| **Native restart evidence** | WP4.1 and WP4.2 have recorded native terminate/reopen evidence. WP4.3-WP4.12 retain explicit native verification gaps. The current attempt failed before launch because CoreSimulatorService rejected the connection and could not initialize a device set. Native exports and automated hydration tests are not counted as restart acceptance. |
-| **Result** | **BLOCKED — Phase 4 implementation and automated verification are complete; G4 requires native terminate/reopen verification for every domain.** |
-| **Stop condition** | **Phase 5 has not begun.** The next bounded action is to execute and record the outstanding native Phase 4 restart matrix on an available simulator or physical device. |
+| **Integration and regression evidence (2026-09-28)** | This verification-only pass: TypeScript passed; tests **228 passed, 0 failed**; lint reported **0 errors and 76 warnings**; iOS Hermes export passed; the current Release build compiled with Xcode 26.6 and installed on the named simulator; `git diff --check` passed. Earlier package evidence remains recorded above. |
+| **Native restart evidence** | WP4.1-WP4.4 and WP4.6 have recorded simulator terminate/reopen evidence. WP4.5 failed its native integration check due to duplicate regeneration after a generated grocery was manually renamed. WP4.7-WP4.12 retain incomplete native restart or manual sequences as recorded above. No physical-device verification is claimed. |
+| **Result** | **BLOCKED — WP4.5 has a reproduced integration defect, and WP4.7-WP4.12 retain incomplete native acceptance evidence.** |
+| **Stop condition** | Phase 5 was subsequently authorized without waiving this gate. G4 remains blocked until the outstanding native Phase 4 restart matrix is executed and recorded on an available simulator or physical device. |
+
+## WP5.1 - PASS
+
+Every operational number still displayed on the active Dashboard, Health, routed Habits and Budget summary surfaces now has one documented definition in `docs/phase-5-summary-metric-definitions.md`. The inventory records the local-civil date window, canonical source domain, denominator and completion attribution, deleted-data behavior, unknown/unset behavior and unit for daily task/habit progress, current habit streak, calorie intake/goal progress, weight/change, workout week and monthly budget/category totals.
+
+Reusable selectors in `src/features/dashboard/utils/summarySelectors.ts` derive those values directly from canonical task, habit, consumed-meal, weight, workout, budget-category and transaction-ledger state. No summary total or cache was added. Today's task denominator is now restricted to active tasks whose due date equals today; future, overdue, unscheduled and deleted tasks cannot satisfy today's progress. Consumed-meal inputs are structurally separate from meal-plan assignments, and paid payments enter budget actuals only through their single canonical `sourcePaymentId`-linked expense in the transaction ledger.
+
+Automated fixture evidence on 2026-09-28: `npm run typecheck` passed and `npm test` passed (**228 passed, 0 failed**). The Phase 5 fixtures cover future, overdue, unscheduled and deleted tasks; exact-date and historical habit completion; empty habit/streak state; known, unknown, deleted and other-day calorie records; future weight records; Monday-inclusive/next-Monday-exclusive workout boundaries; unknown workout calories; calendar-month budget boundaries; and single-count payment-linked expenses.
+
+**Result:** **PASS — each live operational metric has a documented canonical calculation and passing boundary fixtures.**
+
+## WP5.2 - Implementation complete; manual verification blocked
+
+The active Dashboard now consumes the canonical daily progress selector and no longer derives today's task count from the entire task store. Its static time-of-day greeting was replaced with a neutral “Today” heading. Health now consumes the shared habit, calorie, weight-as-of and workout-week selectors; the ambiguous sum of every habit streak was replaced by the longest current canonical streak, no-habit state is explicit, future weight entries cannot become today's current value, and unknown workout calorie estimates remain disclosed. Budget now consumes the canonical monthly selector whose actuals come only from the transaction ledger.
+
+Retired fake implementations were removed: the default `WeeklyProgress` values, the unused mock-habit screen/data, and the unused duplicate Dashboard screen/progress utility. The placeholder Health note was removed. Create/edit/delete mutations continue to update their Zustand domain arrays after durable persistence, so selector inputs and mounted consumers update without a forced reload; existing store/repository tests plus the Phase 5 surface scan cover this wiring automatically.
+
+Automated evidence on 2026-09-28: TypeScript passed; tests **228 passed, 0 failed**; lint passed with **0 errors and 76 existing warnings**; Expo Doctor passed; web, iOS Hermes and Android Hermes exports passed; and `git diff --check` passed.
+
+The required representative-day manual comparison and terminate/reopen run were not completed. `xcrun simctl list devices available` failed before launch because CoreSimulatorService rejected the connection and could not initialize a Simulator device set. Exports and fixture/store hydration tests are not represented as native restart or cross-screen manual evidence.
+
+**Result:** **BLOCKED — implementation and automated verification pass, but the required representative-day cross-screen comparison and native restart verification remain unavailable.**
+
+## G5 Phase Acceptance Gate - BLOCKED
+
+| Field | Record |
+|---|---|
+| **No hard-coded operational metric** | Active Dashboard, Health and Budget summary values use canonical selectors. Retired fake weekly goals and mock habit wins were removed. Automated source scanning passes. |
+| **Date and attribution correctness** | Fixtures verify that future/overdue/unscheduled/deleted tasks cannot affect today's progress, habit completion is attributed to the exact local day, workout weeks and budget months use explicit inclusive/exclusive civil-date boundaries, and future weights are excluded from current state. |
+| **Food and finance truthfulness** | Calorie summaries accept consumed meals only and preserve unknown nutrition. Budget actuals use ledger transactions only; payment-owned expenses are not separately added or double-counted. |
+| **Live source mutation evidence** | Canonical store/repository and selector tests pass, but the required representative cross-screen create/edit/delete comparison was not run manually. |
+| **Restart evidence** | Native terminate/reopen verification is blocked by the unavailable Simulator device set. Web/iOS/Android exports and automated hydration tests are not substitutes. |
+| **Earlier dependency** | The governing plan declares G4 as a WP5.1 dependency. G4 remains blocked by its outstanding native restart matrix and is not silently promoted here. |
+| **Result** | **BLOCKED — WP5.1 passes; WP5.2 implementation passes but its manual/restart acceptance is incomplete, and G4 remains open.** |
+| **Stop condition** | **Phase 6 has not begun.** The next bounded action is to execute the outstanding native restart matrices and the Phase 5 representative-day cross-screen comparison on an available simulator or physical device, then reevaluate G4 and G5. |
+
+
+### Android native verification — 2026-09-28
+
+The previously recorded Android host/tooling blocker has been resolved.
+
+Host/tooling evidence:
+
+- OpenJDK 17 is installed and working.
+- Android Debug Bridge is installed and working.
+- Android API 36 ARM64 emulator is available and connected as `emulator-5554`.
+- `./gradlew app:assembleRelease` completed successfully.
+- Release APK was generated at:
+  `android/app/build/outputs/apk/release/app-release.apk`
+- `adb install -r app/build/outputs/apk/release/app-release.apk` completed successfully.
+- `com.meltmyheart.lumo` launched successfully on the Android emulator.
+- Force-stop and relaunch completed successfully.
+- Persisted local application state remained available after relaunch.
+- Wi-Fi and mobile data were disabled, the app was force-stopped, and Lumo relaunched successfully in its local guest experience without requiring network access or account sign-in.
+- Network access was restored after verification.

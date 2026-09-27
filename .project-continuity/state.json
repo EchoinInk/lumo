@@ -407,12 +407,54 @@
       "from": "finding:g4-native-restart",
       "to": "phase:4",
       "type": "blocks"
+    },
+    {
+      "created_at": "2026-09-27T16:14:52.695578Z",
+      "from": "phase:5",
+      "to": "task:wp5.1",
+      "type": "contains"
+    },
+    {
+      "created_at": "2026-09-27T16:14:52.743899Z",
+      "from": "phase:5",
+      "to": "task:wp5.2",
+      "type": "contains"
+    },
+    {
+      "created_at": "2026-09-27T16:14:52.793555Z",
+      "from": "task:wp5.1",
+      "to": "phase:4",
+      "type": "depends_on"
+    },
+    {
+      "created_at": "2026-09-27T16:14:52.846771Z",
+      "from": "task:wp5.2",
+      "to": "task:wp5.1",
+      "type": "depends_on"
+    },
+    {
+      "created_at": "2026-09-27T16:14:52.906054Z",
+      "from": "task:wp5.1",
+      "to": "test:wp5-automated",
+      "type": "verified_by"
+    },
+    {
+      "created_at": "2026-09-27T16:14:52.959348Z",
+      "from": "task:wp5.2",
+      "to": "test:wp5-automated",
+      "type": "verified_by"
+    },
+    {
+      "created_at": "2026-09-27T16:14:53.011587Z",
+      "from": "finding:g5-manual-restart",
+      "to": "phase:5",
+      "type": "blocks"
     }
   ],
   "meta": {
     "created_at": "2026-09-24T11:53:49.499720Z",
     "schema_version": "1.0",
-    "updated_at": "2026-09-27T16:00:26.620241Z"
+    "updated_at": "2026-09-27T16:14:53.011799Z"
   },
   "nodes": {
     "artifact:wp2.1-ownership": {
@@ -630,6 +672,20 @@
       "type": "finding",
       "updated_at": "2026-09-27T16:00:18.673198Z"
     },
+    "finding:g5-manual-restart": {
+      "classification": "evidence-gap",
+      "id": "finding:g5-manual-restart",
+      "note": "CoreSimulatorService could not initialize a device set; required representative-day cross-screen comparison and terminate/reopen verification were not performed.",
+      "severity": "blocking",
+      "sources": [
+        "docs/lumo-implementation-progress.md#g5-phase-acceptance-gate---blocked"
+      ],
+      "status": "blocked",
+      "title": "G5 representative-day and native restart evidence gap",
+      "truth": "observed",
+      "type": "finding",
+      "updated_at": "2026-09-27T16:14:36.681025Z"
+    },
     "phase:2": {
       "gate": "G2",
       "id": "phase:2",
@@ -672,6 +728,21 @@
       "truth": "observed",
       "type": "phase",
       "updated_at": "2026-09-27T16:00:18.763843Z"
+    },
+    "phase:5": {
+      "gate": "G5",
+      "id": "phase:5",
+      "note": "WP5.1 passes; WP5.2 implementation and automated evidence pass, but representative-day cross-screen and native restart evidence are incomplete; G4 also remains blocked.",
+      "sources": [
+        "docs/lumo-launch-master-implementation-plan.md",
+        "docs/lumo-implementation-progress.md#g5-phase-acceptance-gate---blocked",
+        "user:2026-09-28-phase5-authorization"
+      ],
+      "status": "blocked",
+      "title": "Make Dashboard / Health / Summaries Truthful",
+      "truth": "observed",
+      "type": "phase",
+      "updated_at": "2026-09-27T16:14:36.494535Z"
     },
     "project:lumo": {
       "id": "project:lumo",
@@ -948,6 +1019,31 @@
       "type": "task",
       "updated_at": "2026-09-27T15:24:00.276491Z"
     },
+    "task:wp5.1": {
+      "id": "task:wp5.1",
+      "sources": [
+        "docs/lumo-implementation-progress.md#wp51---pass",
+        "docs/phase-5-summary-metric-definitions.md",
+        "src/features/dashboard/utils/summarySelectors.ts"
+      ],
+      "status": "complete",
+      "title": "Canonical summary selectors",
+      "truth": "observed",
+      "type": "task",
+      "updated_at": "2026-09-27T16:14:36.541980Z"
+    },
+    "task:wp5.2": {
+      "id": "task:wp5.2",
+      "note": "Implementation and automated verification pass; representative-day cross-screen and native terminate/reopen evidence remain unavailable.",
+      "sources": [
+        "docs/lumo-implementation-progress.md#wp52---implementation-complete-manual-verification-blocked"
+      ],
+      "status": "partial",
+      "title": "Connect and verify all summary surfaces",
+      "truth": "observed",
+      "type": "task",
+      "updated_at": "2026-09-27T16:14:36.588365Z"
+    },
     "test:wp2.1-verification": {
       "id": "test:wp2.1-verification",
       "results": [
@@ -1165,6 +1261,19 @@
       "truth": "observed",
       "type": "test",
       "updated_at": "2026-09-27T15:24:00.567497Z"
+    },
+    "test:wp5-automated": {
+      "actual": "typecheck passed; 228 tests passed, 0 failed; lint 0 errors and 76 warnings; Expo Doctor and web/iOS/Android exports passed; diff check passed",
+      "id": "test:wp5-automated",
+      "sources": [
+        "src/testing/dashboard/summarySelectors.test.ts"
+      ],
+      "status": "passing",
+      "timestamp": "2026-09-28",
+      "title": "WP5.1-WP5.2 automated verification",
+      "truth": "observed",
+      "type": "test",
+      "updated_at": "2026-09-27T16:14:36.635943Z"
     }
   },
   "project": "project:lumo"
