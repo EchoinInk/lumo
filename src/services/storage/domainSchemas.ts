@@ -1,6 +1,10 @@
 import type { BrainDumpEntry } from "@/features/brain-dump/types/brainDump";
 import type { CleaningItem } from "@/features/cleaning/types/cleaning";
 import { mealTypes, type MealEntry } from "@/features/meals/types/meal";
+import type { Recipe } from "@/features/recipes/types/recipe";
+import type { GroceryItem } from "@/features/groceries/types/grocery";
+import { mealSlots, type WeeklyMealPlan } from "@/features/meal-plans/types/mealPlan";
+import type { BudgetCategory } from "@/features/budget/types/budgetCategory";
 import type { Habit } from "@/features/habits/types/habit";
 import type {
   FocusArea,
@@ -106,7 +110,33 @@ export function isMealEntry(value: unknown): value is MealEntry {
   return isString(value.id) && isString(value.date) && isOneOf(value.mealType, mealTypes) &&
     isString(value.name) && isOptionalString(value.description) &&
     (nutrition === undefined || (isObject(nutrition) && ["calories", "proteinGrams", "carbohydrateGrams", "fatGrams"].every((field) => nutrition[field] === undefined || isFiniteNonNegative(nutrition[field])))) &&
+    (value.recipeSnapshot === undefined || (isObject(value.recipeSnapshot) && isString(value.recipeSnapshot.recipeId) && isString(value.recipeSnapshot.name) && isFiniteNonNegative(value.recipeSnapshot.servings) && Array.isArray(value.recipeSnapshot.ingredients))) &&
     isString(value.createdAt) && isString(value.updatedAt) && isNullableString(value.deletedAt) && Number.isInteger(value.version);
+}
+
+export function isRecipe(value: unknown): value is Recipe {
+  if (!isObject(value) || !Array.isArray(value.ingredients)) return false;
+  return isString(value.id) && isString(value.name) && isFiniteNonNegative(value.servings) && (value.servings as number) > 0 && isString(value.instructions) &&
+    value.ingredients.every((item) => isObject(item) && isString(item.id) && isString(item.name) && isFiniteNonNegative(item.quantity) && (item.quantity as number) > 0 && isString(item.unit)) &&
+    isString(value.createdAt) && isString(value.updatedAt) && isNullableString(value.deletedAt) && Number.isInteger(value.version);
+}
+export function isGroceryItem(value: unknown): value is GroceryItem {
+  return isObject(value) && isString(value.id) && isString(value.name) && isFiniteNonNegative(value.quantity) && (value.quantity as number) > 0 && isString(value.unit) &&
+    typeof value.checked === "boolean" && isStringArray(value.sourceIds) && typeof value.generated === "boolean" && typeof value.manuallyModified === "boolean" &&
+    isString(value.createdAt) && isString(value.updatedAt) && isNullableString(value.deletedAt) && Number.isInteger(value.version);
+}
+export function isWeeklyMealPlan(value: unknown): value is WeeklyMealPlan {
+  return isObject(value) && isString(value.id) && isString(value.weekStart) && Array.isArray(value.assignments) && isString(value.createdAt) && isString(value.updatedAt) && Number.isInteger(value.version) && value.assignments.every((item) =>
+    isObject(item) && isString(item.id) && isString(item.date) && isOneOf(item.slot, mealSlots) && isString(item.createdAt) && isString(item.updatedAt) &&
+    ((isString(item.recipeId) && isObject(item.recipeSnapshot) && isString(item.recipeSnapshot.name) && Array.isArray(item.recipeSnapshot.ingredients)) || (!item.recipeId && isString(item.manualDescription))),
+  );
+}
+export function isBudgetCategory(value: unknown): value is BudgetCategory {
+  return isObject(value) && isString(value.id) && isString(value.name) &&
+    Number.isInteger(value.plannedAmountMinor) && (value.plannedAmountMinor as number) > 0 &&
+    value.currencyCode === "NZD" && value.period === "monthly" &&
+    isString(value.createdAt) && isString(value.updatedAt) &&
+    isNullableString(value.deletedAt) && Number.isInteger(value.version);
 }
 
 const struggleAreas: readonly StruggleArea[] = ["remembering_tasks", "building_routines", "meal_planning", "budgeting", "staying_consistent", "feeling_overwhelmed"];
@@ -236,6 +266,10 @@ export const taskStorageDefinition = arrayDefinition("tasks", StorageKeys.TASKS,
 export const habitStorageDefinition = arrayDefinition("habits", StorageKeys.HABITS, isHabit);
 export const cleaningStorageDefinition = arrayDefinition("cleaning", StorageKeys.CLEANING, isCleaningItem);
 export const mealStorageDefinition = arrayDefinition("meals", StorageKeys.MEALS, isMealEntry);
+export const recipeStorageDefinition = arrayDefinition("recipes", StorageKeys.RECIPES, isRecipe);
+export const groceryStorageDefinition = arrayDefinition("groceries", StorageKeys.GROCERIES, isGroceryItem);
+export const mealPlanStorageDefinition = arrayDefinition("meal-plans", StorageKeys.MEAL_PLANS, isWeeklyMealPlan);
+export const budgetCategoryStorageDefinition = arrayDefinition("budget-categories", StorageKeys.BUDGET_CATEGORIES, isBudgetCategory);
 export const brainDumpStorageDefinition = arrayDefinition("brain-dump", StorageKeys.BRAIN_DUMP_ENTRIES, isBrainDumpEntry);
 export const reminderStorageDefinition = arrayDefinition("reminders", StorageKeys.REMINDERS, isReminder);
 
@@ -286,6 +320,10 @@ export const activeStorageDefinitions = {
   habits: habitStorageDefinition,
   cleaning: cleaningStorageDefinition,
   meals: mealStorageDefinition,
+  recipes: recipeStorageDefinition,
+  groceries: groceryStorageDefinition,
+  "meal-plans": mealPlanStorageDefinition,
+  "budget-categories": budgetCategoryStorageDefinition,
   settings: settingsStorageDefinition,
   onboarding: onboardingStorageDefinition,
   "brain-dump": brainDumpStorageDefinition,

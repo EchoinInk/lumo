@@ -445,3 +445,82 @@ WP4.2 is complete. Meals now represents only food actually consumed. The former 
 | **Native verification (2026-09-28)** | Installed the updated Release build on the booted iPhone 17 Pro / iOS 26.5 simulator. Logged **Native avocado toast** as Lunch on 2026-09-28 with manually entered **420 kcal** and 14 g protein; Meals showed one entry and 420 known kcal. Terminated `com.meltmyheart.lumo`, relaunched it and reopened Meals; the exact name, type, date, 420-kcal history value and 420-kcal total rehydrated. |
 | **Status** | **COMPLETE — implementation, automated checks and native terminate/reopen verification passed.** |
 | **Gate effect** | WP4.2 Definition of Done is satisfied. **WP4.3 / Phase 4 Prompt 2 has not begun.** |
+
+## WP4.3 — Implementation complete; native verification deferred
+
+Recipes now has a routed local CRUD screen at `/(tabs)/more/recipes`, backed by the canonical versioned recipe repository/store.
+
+Implemented functionality includes:
+
+- recipe name
+- servings
+- ingredient quantity/unit rows
+- instructions
+- create/edit/delete
+- hydration/loading/empty/error/save-failure states
+- logging a saved recipe as a consumed meal
+
+Recipe-to-meal logging copies an immutable recipe snapshot.
+
+`testRecipeSnapshotSurvivesEditDeleteAndRestart` verifies that editing or deleting the original recipe does not alter the historical consumed meal.
+
+### Automated evidence — 2026-09-28
+
+- `npm run typecheck` — passed
+- `npm test` — **199 passed, 0 failed**
+- `npm run lint` — **0 errors**, 78 pre-existing warnings
+- `npm run export:ios` — passed
+
+### Native verification
+
+Required native terminate/reopen verification was attempted with:
+
+`npm run native:ios:release`
+
+The host could not complete this check because Expo could not determine an available Simulator app and reported that Xcode/Simulator was not installed or selected:
+
+`sudo xcode-select -s /Applications/Xcode.app`
+
+This is an environment limitation, not an identified WP4.3 implementation defect.
+
+Native terminate/reopen verification therefore remains **deferred** and must be completed before release qualification.
+
+### Status
+
+- **WP4.3 implementation:** Complete
+- **WP4.3 native restart acceptance:** Deferred
+- **WP4.3 overall:** Implementation complete; verification exception open
+- **Development progression:** May continue to WP4.4
+- **Release requirement:** Deferred native restart verification must be closed before G8
+
+WP4.4 and WP4.5 remain incomplete from the prior foundational work and have not yet been accepted.
+
+## WP4.4 - Implemented; native restart verification deferred
+
+Groceries now replaces the static list with a routed canonical local vertical slice. `/(tabs)/more/groceries` provides accessible creation, edit, deletion, quantity/unit validation, check/undo, and loading, empty, hydration-error and failed-save states. The canonical `groceryLocalRepository` performs serialized, versioned durable mutations; the screen prevents duplicate form submission while a save is in progress.
+
+Recipe integration is exposed by `addRecipeIngredients(recipe)`, which uses a stable recipe source identity. Repeated imports are idempotent and manually created grocery rows or manual edits are preserved. Targeted food tests cover durable checked state, repeated generation, and preservation of manual items/edits during recipe ingredient import.
+
+Automated evidence on 2026-09-28: `npm run typecheck` passed; `npm test` passed (**200 passed, 0 failed**); `npm run lint` reported **0 errors** and 78 existing warnings; `npm run export:ios` passed. Native terminate/reopen verification is deferred for the same unavailable Simulator/Xcode runtime recorded for WP4.3. WP4.4 is implementation-complete and ready for planner integration, but not fully Verified until release-qualification native restart evidence is recorded.
+
+Per the explicit scope of this run, WP4.5 was not started or continued.
+
+## WP4.5 - Implementation complete; native verification deferred
+
+Weekly Meal Planner is now routed at `/(tabs)/more/meal-planner` and backed by the versioned canonical weekly-plan repository/store. It provides local-week identity/range navigation, day and meal-slot assignments, saved-recipe snapshots or manual meal descriptions, removal, explicit edit/cancel/save controls, validation/save-failure feedback, loading/error display, and grocery generation through the existing grocery repository interface. Recipes are snapshotted at assignment time, so a later deletion is safe. Plans contain no consumed-meal records and have no path into meal nutrition totals; an item only becomes consumed when it is explicitly logged through Meals.
+
+Generation uses assignment source IDs through the grocery-domain boundary, so repeated generation is idempotent and preserves checked state, manually created items, and manually edited generated items. Existing targeted food tests cover recipe deletion snapshots, local week rollover, durable plan persistence, and idempotent grocery integration.
+
+Automated evidence on 2026-09-28: `npm run typecheck` passed; `npm test` passed (**200 passed, 0 failed**); `npm run lint` reported **0 errors** and 79 warnings; `npm run export:ios` passed. Native terminate/reopen verification remains deferred for the previously documented unavailable Simulator/Xcode runtime. WP4.5 is implementation complete; native restart verification remains open for release qualification.
+
+## WP4.6 - Implementation complete; native verification deferred
+
+Budget now replaces the routed static/sample surface with one canonical local-first category domain: `app/(tabs)/more/budget.tsx` → `useBudgetCategoryStore` → `budgetCategoryRepository` → versioned storage. Categories have stable IDs, editable names, exact integer minor-unit planned amounts, fixed monthly period and NZD currency scope, lifecycle metadata, version increments and soft deletion so future expense history can retain category references safely. The UI supports create/edit/delete, a truthful planned-total summary with no fabricated actual spending, duplicate-submit protection, validation, loading, empty, hydration-recovery, actionable save-failure and delete-confirmation states.
+
+The legacy `useBudgetStore` now delegates to the canonical feature store instead of owning RAM-only budget state. The legacy `budgetRepository` is a compatibility adapter over the canonical category repository; transaction methods explicitly remain deferred to WP4.7 and no expense, income, payment, banking or sync behavior was added. `budget-categories` is registered in the active local-data recovery gate, so malformed current-schema data is preserved for explicit recovery rather than overwritten.
+
+Automated evidence on 2026-09-28: `npm run typecheck` passed; `npm test` passed (**204 passed, 0 failed**, including four WP4.6 targeted tests); `npm run lint` passed with **0 errors** and 79 existing warnings; `npm run export:ios` passed; `npm run export:web` also passed; `git diff --check` passed. Targeted coverage verifies create/edit/delete, stable identity and versioning, exact minor-unit parsing and excess-precision rejection, invalid input, duplicate-submission guarding, repository/store hydration, failed-write rollback, soft-delete safety and malformed-storage recovery.
+
+Available browser verification confirmed the exported app reaches the routed Budget screen, displays the monthly NZD zero-data summary without actual-spend claims, shows the empty state and opens the accessible category form. Browser automation could not reliably submit the React Native Web text fields, so no browser CRUD result is claimed. Native terminate/reopen verification was not rerun because this host still lacks the previously recorded selectable Simulator/Xcode runtime. It remains deferred for release qualification and is not claimed as passed.
+
+**Gate effect:** WP4.6 implementation Definition of Done is satisfied with native restart verification deferred under the accepted host exception. WP4.7, WP4.8 and WP4.9 have not begun in this work package.

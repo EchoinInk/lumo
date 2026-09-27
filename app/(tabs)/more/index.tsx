@@ -84,6 +84,13 @@ export default function MoreScreen() {
       route: "/(tabs)/more/meals",
     },
     {
+      title: "Recipes",
+      icon: <Utensils size={22} color={Colors.purple} />,
+      color: Colors.purple,
+      route: "/(tabs)/more/recipes",
+    },
+    { title: "Weekly Meal Planner", icon: <Utensils size={22} color={Colors.purple} />, color: Colors.purple, route: "/(tabs)/more/meal-planner" },
+    {
       title: "Cleaning Schedule",
       icon: <Home size={22} color={Colors.warning} />,
       color: Colors.warning,

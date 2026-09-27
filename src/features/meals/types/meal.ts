@@ -15,6 +15,7 @@ export interface MealEntry {
   name: string;
   description?: string;
   nutrition?: MealNutrition;
+  recipeSnapshot?: { recipeId: string; name: string; servings: number; ingredients: { name: string; quantity: number; unit: string }[] };
   createdAt: string;
   updatedAt: string;
   deletedAt?: string | null;

@@ -3,6 +3,7 @@ import { mealStorageDefinition } from "@/services/storage/domainSchemas";
 import { loadVersionedData, saveVersionedData } from "@/services/storage/versionedStorage";
 import { isLocalDateKey } from "@/utils/dateTime";
 import { mealTypes, type MealEntry, type MealEntryInput, type MealNutrition } from "../types/meal";
+import type { Recipe } from "@/features/recipes/types/recipe";
 
 const mutations = new SerializedMutationQueue();
 const nutritionFields: (keyof MealNutrition)[] = ["calories", "proteinGrams", "carbohydrateGrams", "fatGrams"];
@@ -44,6 +45,10 @@ export function createMeal(input: MealEntryInput): Promise<MealEntry> {
     const meal: MealEntry = { ...valid, id: `meal_${Date.now()}_${Math.random().toString(36).slice(2, 10)}`, createdAt: now, updatedAt: now, deletedAt: null, version: 1 };
     saveAll([...meals, meal]); return meal;
   });
+}
+/** Copies the recipe at logging time so later recipe edits/deletion cannot rewrite consumed history. */
+export function createMealFromRecipe(recipe: Recipe, input: Omit<MealEntryInput, "name" | "description">): Promise<MealEntry> {
+  return mutate("create", () => { const valid = validate({ ...input, name: recipe.name, description: `Saved recipe · ${recipe.servings} servings` }, "create"); const meals = loadAll(); const now = new Date().toISOString(); const meal: MealEntry = { ...valid, recipeSnapshot: { recipeId: recipe.id, name: recipe.name, servings: recipe.servings, ingredients: recipe.ingredients.map(({ name, quantity, unit }) => ({ name, quantity, unit })) }, id: `meal_${Date.now()}_${Math.random().toString(36).slice(2, 10)}`, createdAt: now, updatedAt: now, deletedAt: null, version: 1 }; saveAll([...meals, meal]); return meal; });
 }
 
 export function updateMeal(id: string, input: MealEntryInput): Promise<MealEntry> {
