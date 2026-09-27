@@ -5,6 +5,7 @@ import {
 } from "@/features/planning/services/planningStorage";
 import { usePlanningStore } from "@/features/planning/store/usePlanningStore";
 import {
+  getLowEnergyOptions,
   getSuggestedNextSteps,
 } from "@/features/planning/services/planningComposer";
 import type { Task } from "@/features/tasks/types/task";
@@ -206,5 +207,55 @@ export async function testParkingRestoreRemovesDurableRecord(): Promise<void> {
     reloaded.parking.parkedItems.length,
     0,
     "restoring a parked source should remove its durable parking record",
+  );
+}
+
+export function testLowEnergySelectionRejectsHighEffortOverdueWork(): void {
+  const today = toLocalDateKey();
+  const highEffort = {
+    ...makeTask("high-overdue", "Hard overdue work", "high"),
+    energyRequired: "high" as const,
+    dueDate: addLocalDays(today, -1),
+  };
+  const lowEffort = {
+    ...makeTask("low-energy", "Small useful step", "medium"),
+    energyRequired: "low" as const,
+  };
+
+  const options = getLowEnergyOptions({
+    tasks: [highEffort, lowEffort],
+    reminders: [],
+    routineLabels: [],
+    brainDumpEntries: [],
+    today,
+  });
+
+  assert(
+    !options.some((option) => option.sourceId === highEffort.id),
+    "overdue or high-priority work must not be relabeled as tiny",
+  );
+  assertEqual(
+    options[0]?.sourceId,
+    lowEffort.id,
+    "an explicitly low-energy task should remain eligible",
+  );
+}
+
+export async function testUndatedParkingRecordsExplicitReturnSchedule(): Promise<void> {
+  resetPlanningState();
+  const today = toLocalDateKey();
+  usePlanningStore.getState().hydratePlanning(today);
+  usePlanningStore.getState().parkSource(
+    { sourceType: "task", sourceId: "undated" },
+    { parkedFrom: "morning", originalDueDate: null },
+  );
+
+  resetPlanningStore();
+  usePlanningStore.getState().hydratePlanning(addLocalDays(today, 2));
+
+  assertEqual(
+    usePlanningStore.getState().parking.parkedItems[0]?.originalDueDate,
+    null,
+    "restart and day rollover should preserve that the task was originally undated",
   );
 }

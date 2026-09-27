@@ -298,3 +298,45 @@ WP3.3 is implemented. Every active habit is exposed through one all-habits manag
 | **Architecture and scope** | Habit ownership remains `useHabitStore` → `habitLocalRepository` → existing versioned habit storage with `completedDates` as the only history source. No schema fork, second statistics source, cloud sync expansion, broad Health redesign, or WP3.4 planning work was introduced. The unrelated pre-existing untracked `assets/branding/` and `docs/brand/` content was not modified. |
 | **Status** | **Implementation complete; automated acceptance verified; manual acceptance pending.** |
 | **Gate effect** | WP3.3 implementation and automated Definition of Done are satisfied. Phase 3 remains active. **WP3.4 has not begun.** |
+
+---
+
+## WP3.4 - Implementation complete; automated acceptance verified
+
+WP3.4 is implemented. Morning planning, evening review, Dashboard and Parked Items now retain one shared persisted intention model while resolving every source from its canonical task, habit, reminder or Brain Dump store.
+
+## Completion record
+
+| Field | Record |
+|---|---|
+| **Package** | **WP3.4 — Complete planning and recovery behavior** |
+| **Dependency context** | WP2.5 and WP3.1–WP3.3 were complete or implementation-complete before this package. G2 and WP3.3 retain their previously recorded manual/native evidence gaps. Expo SDK 55 versioned Router and persistent-storage documentation was reviewed before code changes. |
+| **Parking return contract** | A parked task records its exact prior schedule, including an explicit `null` marker for an intentionally undated task. Parking still moves the task out of the active horizon, but Bring back durably restores the captured due date (or undated state) before removing the parking record. Legacy parking without captured metadata retains the safe current-day fallback. Failed task parking removes the new parking ref; failed restoration leaves the parked intention available to retry. Parking metadata survives day rollover and restart. |
+| **Recommendation correctness** | Low-energy task choices now require explicit low energy; due-ness, no date and low priority no longer relabel high/unknown-effort work as tiny. Completed habits are excluded by building routine anchors from today's pending habits. Selected next steps continue resolving by stable source type/id from the uncapped candidate set, independent of visible ranking changes. |
+| **Truthful counts and shared surfaces** | Visible carry-over, Brain Dump and recommendation lists remain capped for calm presentation, while Dashboard and completion summaries receive uncapped remaining-backlog counts. Every planning surface uses `usePlanningStore`; mounted subscribers receive the same functional persisted updates. Canonical tasks/habits/reminders/Brain Dump records remain in their existing stores and planning retains only refs plus recovery metadata. Missing refs remain safely removable. |
+| **Automated checks (2026-09-27)** | Credential-free config validation passed; TypeScript passed; the combined WP3.4/WP3.5 suite finished at **183 passed, 0 failed**; lint **0 errors, 77 existing warnings**; Expo Doctor **20/20**; production web export passed; iOS Hermes production export passed; Android Hermes production export passed; `git diff --check` passed. Focused planning coverage includes multiple subscribers, functional simultaneous updates, rollover/restart parking, deleted refs, ranking changes beyond the visible cap, low-energy exclusion and explicit undated return metadata. Existing planning coverage retains visible caps, reminders, local-day boundaries and persisted summaries. |
+| **Manual verification** | Production web export: opened Dashboard → Morning Planning, selected Low energy and confirmed the rendered choice was an explicitly low-energy task. Dashboard, Brain Dump and Morning Planning navigation all rendered from the same persisted browser state. The full required native Morning → task edit → Evening → Parked → restore → process-restart sequence was not performed; automated persistence/restart coverage is not represented as native-device evidence. |
+| **Architecture and scope** | No canonical entity was copied into planning, no storage key was replaced, and no new database, cloud state, screen redesign or later Phase 3 behavior was introduced. The unrelated untracked branding asset was not modified. |
+| **Status** | **Implementation complete; automated acceptance verified; native manual sequence pending.** |
+| **Gate effect** | WP3.4 implementation and automated Definition of Done are satisfied. WP3.5 was begun only after the WP3.4 implementation and focused checks passed. Phase 3 remains active. |
+
+---
+
+## WP3.5 - Implementation complete; automated acceptance verified
+
+WP3.5 is implemented. Capture conversion now records a stable retry identity before destination creation, marks a source converted only after its canonical destination is durable, and keeps interrupted or failed sources actionable.
+
+## Completion record
+
+| Field | Record |
+|---|---|
+| **Package** | **WP3.5 — Make capture and conversion durable** |
+| **Dependency context** | WP2.3, WP3.1 and WP3.4 implementation were complete before this package. Existing Brain Dump, task, reminder, Quick Capture and routine-bundle architecture was retained. |
+| **Recoverable conversion operation** | Brain Dump stores a stable conversion identity and pending target on the source before creating a task/reminder. Task and reminder creation recognize that identity and return the existing canonical destination on retry. Only after destination persistence succeeds is the source marked converted and linked to the destination. A destination failure leaves the source open; interruption after destination save is retry-safe and resolves to exactly one destination; a pending operation cannot silently switch target types. |
+| **Capture and notes** | Brain Dump entries can be edited with persistence across reload/restart. Routine ideas remain visible in a dedicated editable Brain Dump notes section instead of disappearing from accessible UI. Quick Capture now treats a null task/reminder/note result as failure and retains the entered text for retry. Brain Dump writes persist before updating memory, so a failed write cannot present unsaved success. |
+| **Routine bundle durability** | Empty edited bundles are disabled in UI and rejected by the conversion helper instead of reporting false success. Each bundle item has a stable operation identity stored on its canonical task. Duplicate taps, partial failure, retry and restart reuse existing items and create only missing tasks; a fully applied starter bundle remains visibly applied after hydration. |
+| **Automated checks (2026-09-27)** | Credential-free config validation passed; TypeScript passed; tests **183 passed, 0 failed**; lint **0 errors, 77 existing warnings**; Expo Doctor **20/20**; production web export passed; iOS Hermes production export passed; Android Hermes production export passed; `git diff --check` passed. Focused tests cover destination failure, interrupted source completion, retry identity, exactly-one destination, pending-operation restart, Brain Dump edit persistence, empty bundles and partial-bundle restart/retry idempotency. |
+| **Manual verification** | Production web export: captured a Brain Dump thought, edited and saved it, converted it to a routine idea, returned through a fresh root navigation, and confirmed the exact edited note remained visible and editable under Routine ideas. The exported static server returned 404 when directly refreshing a client route, so restart was verified by re-entering from `/`; this is browser-local persistence evidence, not native process-restart evidence. Failure injection and duplicate-tap behavior were verified deterministically in tests rather than through UI. |
+| **Architecture and scope** | Canonical destinations remain in `useTaskStore`/`taskLocalRepository` and `useReminderStore`; Brain Dump holds source state and identity metadata only. The implementation uses small local idempotency records, not a transaction framework or duplicate destination store. No notification delivery, routine entity model, cloud sync expansion or WP3.6 work was introduced. |
+| **Status** | **Implementation complete; automated acceptance verified; native manual interruption/restart sequence pending.** |
+| **Gate effect** | WP3.5 implementation and automated Definition of Done are satisfied. Phase 3 remains active. **WP3.6 has not begun.** |

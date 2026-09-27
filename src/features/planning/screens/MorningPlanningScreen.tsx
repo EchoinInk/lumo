@@ -5,7 +5,7 @@ import type {
   BrainDumpConversionTarget,
   BrainDumpEntry,
 } from "@/src/features/brain-dump";
-import { useBrainDump } from "@/src/features/brain-dump";
+import { convertBrainDumpEntry, useBrainDump } from "@/src/features/brain-dump";
 import { useFocusMode } from "@/src/features/focus/hooks/useFocusMode";
 import { MorningPlanningCard } from "@/src/features/planning/components/MorningPlanningCard";
 import { useDailyPlanningFlow } from "@/src/features/planning/hooks/useDailyPlanningFlow";
@@ -19,35 +19,28 @@ import { Alert } from "react-native";
 export function MorningPlanningScreen() {
   const flow = useDailyPlanningFlow("morning");
   const { createTask } = useTasks();
-  const { convertEntry, openEntries } = useBrainDump();
+  const brainDump = useBrainDump();
+  const { openEntries } = brainDump;
   const reminders = useReminders();
   const { enableFocusMode, setActiveFocusTask } = useFocusMode();
 
   const handleConvert = useCallback(
     async (entry: BrainDumpEntry, target: BrainDumpConversionTarget) => {
-      if (target === "task") {
-        try {
-          const result = await createTask({
-            title: entry.text,
-            priority: "medium",
-          });
-          convertEntry(entry.id, target, result.value.id);
-        } catch {
-          Alert.alert(
-            "Task wasn't created",
-            "Your note is still here. Please try converting it again.",
-          );
-        }
-        return;
+      try {
+        await convertBrainDumpEntry(entry, target, {
+          beginConversion: brainDump.beginConversion,
+          completeConversion: brainDump.convertEntry,
+          createTask,
+          createReminder: reminders.addReminder,
+        });
+      } catch {
+        Alert.alert(
+          "Conversion wasn't completed",
+          "Your note is still here. Please try converting it again.",
+        );
       }
-      if (target === "reminder") {
-        const reminder = reminders.addReminder({ title: entry.text });
-        convertEntry(entry.id, target, reminder?.id);
-        return;
-      }
-      convertEntry(entry.id, target);
     },
-    [createTask, convertEntry, reminders],
+    [brainDump.beginConversion, brainDump.convertEntry, createTask, reminders.addReminder],
   );
 
   const handleStart = useCallback(
@@ -105,8 +98,8 @@ export function MorningPlanningScreen() {
       <MorningPlanningCard
         morningComplete={flow.morningComplete}
         energyLevel={flow.energyLevel}
-        carryOverCount={flow.summary.carryOverIds.length}
-        brainDumpCount={flow.brainDumpQueue.length}
+        carryOverCount={flow.carryOverBacklogCount}
+        brainDumpCount={flow.brainDumpBacklogCount}
         carryOverItems={flow.carryOverItems}
         brainDumpQueue={flow.brainDumpQueue}
         brainDumpEntries={openEntries}

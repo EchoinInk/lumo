@@ -57,7 +57,9 @@ export const useTaskStore = create<TaskStore>((set) => ({
     set({ mutationError: null });
     try {
       const task = await taskLocalRepository.createTask(input);
-      set((state) => ({ tasks: [task, ...state.tasks] }));
+      set((state) => ({
+        tasks: [task, ...state.tasks.filter((item) => item.id !== task.id)],
+      }));
       return savedMutation(task);
     } catch (error) {
       set({ mutationError: "Couldn't save your task. Please try again." });

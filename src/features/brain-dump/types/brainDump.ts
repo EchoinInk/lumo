@@ -15,6 +15,9 @@ export interface BrainDumpEntry {
   convertedAt?: string;
   convertedTo?: BrainDumpConversionTarget;
   linkedEntityId?: string;
+  /** Stable idempotency key retained while a conversion is pending or complete. */
+  conversionId?: string;
+  pendingConversionTarget?: BrainDumpConversionTarget;
 }
 
 export interface CreateBrainDumpInput {

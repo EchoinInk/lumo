@@ -73,7 +73,8 @@ export interface PlanningParkedItem extends PlanningSourceRef {
   id: string;
   parkedAt: string;
   parkedFrom: PlanningFlowMode;
-  originalDueDate?: string;
+  /** null means the task was intentionally undated when parked. */
+  originalDueDate?: string | null;
 }
 
 export interface PlanningParkingState {

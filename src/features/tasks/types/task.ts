@@ -46,6 +46,10 @@ export interface Task {
   lastSyncedAt?: string;
   /** True when entity has unsynced local changes */
   pendingSync?: boolean;
+  /** Stable source identity used to make local capture conversion idempotent. */
+  sourceBrainDumpId?: string;
+  /** Stable local operation identity for retry-safe multi-record creation. */
+  sourceOperationId?: string;
 }
 
 export interface CreateTaskInput {
@@ -56,6 +60,8 @@ export interface CreateTaskInput {
   recurrence?: RecurrencePattern;
   dueDate?: string;
   dueTime?: string;
+  sourceBrainDumpId?: string;
+  sourceOperationId?: string;
 }
 
 export interface UpdateTaskInput {

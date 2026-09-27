@@ -7,6 +7,7 @@ import { Text } from "@/src/components/ui/Text";
 import {
   createRoutineBundleApplyGuard,
   createTasksFromBundle,
+  routineBundleTaskOperationId,
   starterRoutineBundles,
 } from "@/src/features/routines";
 import { useTasks } from "@/src/features/tasks";
@@ -16,7 +17,7 @@ import { StyleSheet, View } from "react-native";
 import { RoutineBundleCard } from "../components/RoutineBundleCard";
 
 export default function RoutineBundlesScreen() {
-  const { createTask, mutationError } = useTasks();
+  const { createTask, mutationError, tasks } = useTasks();
   const applyGuard = useRef(createRoutineBundleApplyGuard()).current;
   const releaseTimers = useRef<ReturnType<typeof setTimeout>[]>([]);
   const [applyingBundleIds, setApplyingBundleIds] = useState<string[]>([]);
@@ -91,7 +92,16 @@ export default function RoutineBundlesScreen() {
               bundle={bundle}
               onUse={handleUseBundle}
               isApplying={applyingBundleIds.includes(bundle.id)}
-              isApplied={appliedBundleIds.includes(bundle.id)}
+              isApplied={
+                appliedBundleIds.includes(bundle.id) ||
+                bundle.items.every((_, index) =>
+                  tasks.some(
+                    (task) =>
+                      task.sourceOperationId ===
+                      routineBundleTaskOperationId(bundle.id, index),
+                  ),
+                )
+              }
             />
           ))
         )}

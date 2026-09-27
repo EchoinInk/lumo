@@ -85,6 +85,9 @@ export function sanitizeReminder(raw: unknown): Reminder | null {
       : undefined,
     createdAt: isIsoString(reminder.createdAt) ? reminder.createdAt : now,
     updatedAt: isIsoString(reminder.updatedAt) ? reminder.updatedAt : now,
+    sourceBrainDumpId: isIsoString(reminder.sourceBrainDumpId)
+      ? reminder.sourceBrainDumpId
+      : undefined,
   };
 }
 

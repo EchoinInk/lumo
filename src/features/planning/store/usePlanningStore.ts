@@ -25,7 +25,7 @@ type PlanningState = {
 
 type ParkOptions = {
   parkedFrom: PlanningFlowMode;
-  originalDueDate?: string;
+  originalDueDate?: string | null;
 };
 
 type PlanningActions = {

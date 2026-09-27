@@ -21,6 +21,7 @@ export function RoutineBundleCard({
   isApplied = false,
 }: RoutineBundleCardProps) {
   const [items, setItems] = useState(bundle.items);
+  const hasActionableItem = items.some((item) => item.title.trim().length > 0);
 
   const updateItem = (index: number, title: string) => {
     setItems((current) =>
@@ -54,11 +55,13 @@ export function RoutineBundleCard({
             items: items.filter((item) => item.title.trim().length > 0),
           })
         }
-        disabled={isApplying || isApplied}
+        disabled={isApplying || isApplied || !hasActionableItem}
         loading={isApplying}
         accessibilityLabel={`Use ${bundle.title} bundle`}
         accessibilityHint={
-          isApplied
+          !hasActionableItem
+            ? "Enter at least one routine step"
+            : isApplied
             ? "Tasks were created from this bundle"
             : "Creates tasks from the edited bundle items"
         }

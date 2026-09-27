@@ -48,7 +48,7 @@ export function useDailyPlanningFlow(mode: PlanningFlowMode = "morning") {
   const { openEntries, archiveEntry, restoreEntry, hasHydrated: brainDumpHydrated } =
     useBrainDump();
   const { reminders, hasHydrated: remindersHydrated } = useReminders();
-  const { todayHabits, isHydrated: habitsHydrated } = useHabits();
+  const { pendingToday, isHydrated: habitsHydrated } = useHabits();
   const {
     summary,
     parking,
@@ -66,8 +66,8 @@ export function useDailyPlanningFlow(mode: PlanningFlowMode = "morning") {
 
   const energyLevel = summary.energyLevel;
   const routineAnchors = useMemo(
-    () => todayHabits.map((habit) => ({ id: habit.id, label: habit.title })),
-    [todayHabits],
+    () => pendingToday.map((habit) => ({ id: habit.id, label: habit.title })),
+    [pendingToday],
   );
   const routineLabels = useMemo(
     () => routineAnchors.map((anchor) => anchor.label),
@@ -125,6 +125,10 @@ export function useDailyPlanningFlow(mode: PlanningFlowMode = "morning") {
     () => getBrainDumpReviewQueue(openEntries),
     [openEntries],
   );
+  const brainDumpBacklogCount = useMemo(
+    () => openEntries.filter((entry) => entry.status === "open").length,
+    [openEntries],
+  );
   const nextStepOptions = useMemo(
     () => {
       return getSuggestedNextSteps(composerInput).filter(
@@ -157,6 +161,21 @@ export function useDailyPlanningFlow(mode: PlanningFlowMode = "morning") {
       ),
     [composerInput, isParked],
   );
+  const carryOverBacklogCount = useMemo(() => {
+    const carriedSourceIds = new Set(
+      summary.carryOverIds.map((id) => id.replace(/^carry-/, "")),
+    );
+    const items =
+      mode === "evening"
+        ? getEveningCarryOverItems(tasks, today, ALL_OPTIONS_LIMIT)
+        : getGentleCarryOverItems(tasks, today, ALL_OPTIONS_LIMIT);
+    return items.filter(
+      (item) =>
+        !isParked({ sourceType: item.sourceType, sourceId: item.sourceId }) &&
+        !carriedSourceIds.has(item.sourceId) &&
+        !summary.eveningCarriedIds.includes(item.sourceId),
+    ).length;
+  }, [tasks, mode, today, isParked, summary.carryOverIds, summary.eveningCarriedIds]);
 
   const selectedNextStep = useMemo((): PlanningNextStep | undefined => {
     const allOptions = [...allNextStepOptions, ...allLowEnergyOptions];
@@ -272,7 +291,7 @@ export function useDailyPlanningFlow(mode: PlanningFlowMode = "morning") {
   );
 
   const parkItem = useCallback(
-    (sourceId: string, sourceType: PlanningSourceType = "task") => {
+    async (sourceId: string, sourceType: PlanningSourceType = "task") => {
       const ref = { sourceType, sourceId };
       const parkedSelectedNextStep =
         selectedNextStep && sameSource(stepRef(selectedNextStep), ref);
@@ -281,9 +300,14 @@ export function useDailyPlanningFlow(mode: PlanningFlowMode = "morning") {
         const task = tasks.find((item) => item.id === sourceId);
         parkSource(ref, {
           parkedFrom: mode,
-          originalDueDate: task?.dueDate,
+          originalDueDate: task?.dueDate ?? null,
         });
-        updateTask(sourceId, { dueDate: addLocalDays(today, 7) });
+        try {
+          await updateTask(sourceId, { dueDate: addLocalDays(today, 7) });
+        } catch (error) {
+          unparkSource(ref);
+          throw error;
+        }
       } else if (sourceType === "brainDump") {
         parkSource(ref, { parkedFrom: mode });
         archiveEntry(sourceId);
@@ -306,19 +330,23 @@ export function useDailyPlanningFlow(mode: PlanningFlowMode = "morning") {
       mode,
       selectedNextStep,
       parkSource,
+      unparkSource,
       updateSummary,
       today,
     ],
   );
 
   const bringBackParkedItem = useCallback(
-    (sourceId: string, sourceType: PlanningSourceType = "task") => {
+    async (sourceId: string, sourceType: PlanningSourceType = "task") => {
       const item = parkedItems.find(
         (parked) =>
           parked.sourceId === sourceId && parked.sourceType === sourceType,
       );
       if (item?.sourceType === "task") {
-        updateTask(sourceId, { dueDate: today });
+        await updateTask(sourceId, {
+          dueDate:
+            item.originalDueDate === null ? undefined : item.originalDueDate ?? today,
+        });
       } else if (item?.sourceType === "brainDump") {
         restoreEntry(sourceId);
       }
@@ -384,6 +412,8 @@ export function useDailyPlanningFlow(mode: PlanningFlowMode = "morning") {
     eveningParkedItems: parkedItems.filter((item) => item.parkedFrom === "evening"),
     carryOverItems,
     brainDumpQueue,
+    brainDumpBacklogCount,
+    carryOverBacklogCount,
     nextStepOptions: visibleNextStepOptions,
     lowEnergyOptions: visibleLowEnergyOptions,
     selectedNextStep,

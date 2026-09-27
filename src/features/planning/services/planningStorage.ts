@@ -99,7 +99,9 @@ export function normalizePlanningParkingState(
       parkedAt: item.parkedAt,
       parkedFrom,
       originalDueDate:
-        typeof item.originalDueDate === "string" ? item.originalDueDate : undefined,
+        typeof item.originalDueDate === "string" || item.originalDueDate === null
+          ? item.originalDueDate
+          : undefined,
     };
     deduped.set(normalized.id, normalized);
   }

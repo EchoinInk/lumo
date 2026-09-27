@@ -44,6 +44,7 @@ function isReminderDueToday(reminder: Reminder, today: string): boolean {
 export function getGentleCarryOverItems(
   tasks: Task[],
   today: string = toLocalDateKey(),
+  limit = 3,
 ): CarryOverItem[] {
   const yesterday = addLocalDays(today, -1);
 
@@ -53,7 +54,7 @@ export function getGentleCarryOverItems(
       if (!isLocalDateKey(task.dueDate)) return false;
       return task.dueDate < today || task.dueDate === yesterday;
     })
-    .slice(0, 3)
+    .slice(0, limit)
     .map((task) => ({
       id: `carry-${task.id}`,
       label: task.title,
@@ -66,6 +67,7 @@ export function getGentleCarryOverItems(
 export function getEveningCarryOverItems(
   tasks: Task[],
   today: string = toLocalDateKey(),
+  limit = 3,
 ): CarryOverItem[] {
   return tasks
     .filter(isActiveTask)
@@ -74,7 +76,7 @@ export function getEveningCarryOverItems(
         !task.dueDate ||
         (isLocalDateKey(task.dueDate) && task.dueDate <= today),
     )
-    .slice(0, 3)
+    .slice(0, limit)
     .map((task) => ({
       id: `evening-${task.id}`,
       label: task.title,
@@ -107,13 +109,7 @@ export function getLowEnergyOptions(
 
   const tinyTask = input.tasks
     .filter(isActiveTask)
-    .find(
-      (task) =>
-        task.energyRequired === "low" ||
-        task.priority === "low" ||
-        !task.dueDate ||
-        task.dueDate <= today,
-    );
+    .find((task) => task.energyRequired === "low");
 
   if (tinyTask) {
     options.push({

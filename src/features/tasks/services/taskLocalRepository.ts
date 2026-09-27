@@ -188,6 +188,23 @@ export class TaskLocalRepository implements ITaskRepository {
       const now = this.now();
       const normalizedInput = normalizeCreateTaskInput(input);
 
+      if (normalizedInput.sourceBrainDumpId) {
+        const existing = tasks.find(
+          (task) =>
+            !task.deletedAt &&
+            task.sourceBrainDumpId === normalizedInput.sourceBrainDumpId,
+        );
+        if (existing) return existing;
+      }
+      if (normalizedInput.sourceOperationId) {
+        const existing = tasks.find(
+          (task) =>
+            !task.deletedAt &&
+            task.sourceOperationId === normalizedInput.sourceOperationId,
+        );
+        if (existing) return existing;
+      }
+
       const id = this.generateId();
       const newTask: Task = {
         ...normalizedInput,

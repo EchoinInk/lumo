@@ -3,7 +3,7 @@ import { Input } from "@/src/components/ui/Input";
 import { Screen } from "@/src/components/ui/Screen";
 import { ScreenBackButton } from "@/src/components/ui/ScreenBackButton";
 import { SectionHeader } from "@/src/components/ui/SectionHeader";
-import { useBrainDump } from "@/src/features/brain-dump";
+import { convertBrainDumpEntry, useBrainDump } from "@/src/features/brain-dump";
 import type {
   BrainDumpConversionTarget,
   BrainDumpEntry,
@@ -19,7 +19,8 @@ import { BrainDumpEntryCard } from "../components/BrainDumpEntryCard";
 
 export default function BrainDumpScreen() {
   const [text, setText] = useState("");
-  const { addEntry, convertEntry, deleteEntry, openEntries } = useBrainDump();
+  const brainDump = useBrainDump();
+  const { addEntry, deleteEntry, openEntries, updateEntry } = brainDump;
   const { createTask } = useTasks();
   const reminders = useReminders();
 
@@ -35,29 +36,19 @@ export default function BrainDumpScreen() {
     target: BrainDumpConversionTarget,
     scheduledAt?: string,
   ) => {
-    if (target === "task") {
-      try {
-        const result = await createTask({
-          title: entry.text,
-          priority: "medium",
-        });
-        convertEntry(entry.id, target, result.value.id);
-      } catch {
-        Alert.alert(
-          "Task wasn't created",
-          "Your note is still here. Please try converting it again.",
-        );
-      }
-      return;
+    try {
+      await convertBrainDumpEntry(entry, target, {
+        beginConversion: brainDump.beginConversion,
+        completeConversion: brainDump.convertEntry,
+        createTask,
+        createReminder: reminders.addReminder,
+      }, scheduledAt);
+    } catch {
+      Alert.alert(
+        "Conversion wasn't completed",
+        "Your note is still here. Please try converting it again.",
+      );
     }
-
-    if (target === "reminder") {
-      const reminder = reminders.addReminder({ title: entry.text, scheduledAt });
-      convertEntry(entry.id, target, reminder?.id);
-      return;
-    }
-
-    convertEntry(entry.id, target);
   };
 
   const handleDelete = (entry: BrainDumpEntry) => {
@@ -68,7 +59,7 @@ export default function BrainDumpScreen() {
         { text: "Cancel", style: "cancel" },
         {
           text: "Park instead",
-          onPress: () => convertEntry(entry.id, "archived_note"),
+          onPress: () => void handleConvert(entry, "archived_note"),
         },
         {
           text: "Delete",
@@ -130,10 +121,35 @@ export default function BrainDumpScreen() {
               entry={entry}
               onConvert={handleConvert}
               onDelete={handleDelete}
+              onEdit={updateEntry}
             />
           ))
         )}
       </View>
+      {brainDump.entries.some(
+        (entry) => entry.status === "converted" && entry.convertedTo === "routine_idea",
+      ) && (
+        <View style={styles.list}>
+          <SectionHeader
+            title="Routine ideas"
+            subtitle="Saved notes you can revisit and edit."
+          />
+          {brainDump.entries
+            .filter(
+              (entry) =>
+                entry.status === "converted" && entry.convertedTo === "routine_idea",
+            )
+            .map((entry) => (
+              <BrainDumpEntryCard
+                key={entry.id}
+                entry={entry}
+                onConvert={handleConvert}
+                onEdit={updateEntry}
+                readOnlyNote
+              />
+            ))}
+        </View>
+      )}
     </Screen>
   );
 }

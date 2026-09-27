@@ -106,3 +106,29 @@ export async function testBrainDumpEntryCanBeDeletedPermanently(): Promise<void>
     "deleted thought should not reload from storage",
   );
 }
+
+export async function testPendingConversionAndEditSurviveRestart(): Promise<void> {
+  resetTestState();
+  useBrainDumpStore.setState({ entries: [], hasHydrated: false });
+  const entry = useBrainDumpStore.getState().addEntry({ text: "Original note" })!;
+  const conversionId = useBrainDumpStore
+    .getState()
+    .beginConversion(entry.id, "task");
+  useBrainDumpStore.getState().updateEntry(entry.id, "Edited note");
+
+  useBrainDumpStore.setState({ entries: [], hasHydrated: false });
+  useBrainDumpStore.getState().hydrate();
+  const restored = useBrainDumpStore.getState().entries[0];
+
+  assertEqual(restored?.text, "Edited note", "edits should persist across restart");
+  assertEqual(
+    restored?.conversionId,
+    conversionId,
+    "an interrupted conversion should retain stable identity",
+  );
+  assertEqual(
+    restored?.status,
+    "open",
+    "an interrupted conversion should remain actionable",
+  );
+}

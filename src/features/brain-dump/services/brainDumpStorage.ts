@@ -52,6 +52,11 @@ export function sanitizeBrainDumpEntry(raw: unknown): BrainDumpEntry | null {
     linkedEntityId: isIsoString(entry.linkedEntityId)
       ? entry.linkedEntityId
       : undefined,
+    conversionId: isIsoString(entry.conversionId) ? entry.conversionId : undefined,
+    pendingConversionTarget:
+      entry.pendingConversionTarget && VALID_TARGETS.has(entry.pendingConversionTarget)
+        ? entry.pendingConversionTarget
+        : undefined,
   };
 }
 

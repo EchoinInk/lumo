@@ -173,12 +173,66 @@
       "from": "task:wp3.2",
       "to": "test:wp3.2-manual",
       "type": "verified_by"
+    },
+    {
+      "created_at": "2026-09-27T09:08:24.778767Z",
+      "from": "phase:3",
+      "to": "task:wp3.3",
+      "type": "contains"
+    },
+    {
+      "created_at": "2026-09-27T09:08:24.828029Z",
+      "from": "phase:3",
+      "to": "task:wp3.4",
+      "type": "contains"
+    },
+    {
+      "created_at": "2026-09-27T09:08:24.875732Z",
+      "from": "task:wp3.4",
+      "to": "task:wp3.3",
+      "type": "depends_on"
+    },
+    {
+      "created_at": "2026-09-27T09:08:24.923155Z",
+      "from": "task:wp3.4",
+      "to": "artifact:wp3.4-planning-recovery",
+      "type": "produces"
+    },
+    {
+      "created_at": "2026-09-27T09:08:25.031174Z",
+      "from": "task:wp3.4",
+      "to": "test:wp3.4-automated",
+      "type": "verified_by"
+    },
+    {
+      "created_at": "2026-09-27T09:08:25.085469Z",
+      "from": "phase:3",
+      "to": "task:wp3.5",
+      "type": "contains"
+    },
+    {
+      "created_at": "2026-09-27T09:08:25.143734Z",
+      "from": "task:wp3.5",
+      "to": "task:wp3.4",
+      "type": "depends_on"
+    },
+    {
+      "created_at": "2026-09-27T09:08:25.197840Z",
+      "from": "task:wp3.5",
+      "to": "artifact:wp3.5-durable-conversion",
+      "type": "produces"
+    },
+    {
+      "created_at": "2026-09-27T09:08:25.252417Z",
+      "from": "task:wp3.5",
+      "to": "test:wp3.5-automated",
+      "type": "verified_by"
     }
   ],
   "meta": {
     "created_at": "2026-09-24T11:53:49.499720Z",
     "schema_version": "1.0",
-    "updated_at": "2026-09-27T06:29:06.521776Z"
+    "updated_at": "2026-09-27T09:08:25.252553Z"
   },
   "nodes": {
     "artifact:wp2.1-ownership": {
@@ -267,6 +321,32 @@
       "truth": "observed",
       "type": "artifact",
       "updated_at": "2026-09-27T06:29:06.084539Z"
+    },
+    "artifact:wp3.4-planning-recovery": {
+      "id": "artifact:wp3.4-planning-recovery",
+      "sources": [
+        "src/features/planning/hooks/useDailyPlanningFlow.ts",
+        "src/features/planning/services/planningComposer.ts",
+        "src/features/planning/services/planningStorage.ts"
+      ],
+      "status": "current",
+      "title": "Shared planning recovery and explicit parking return contract",
+      "truth": "observed",
+      "type": "artifact",
+      "updated_at": "2026-09-27T09:08:24.464498Z"
+    },
+    "artifact:wp3.5-durable-conversion": {
+      "id": "artifact:wp3.5-durable-conversion",
+      "sources": [
+        "src/features/brain-dump/services/convertBrainDumpEntry.ts",
+        "src/features/brain-dump/store/useBrainDumpStore.ts",
+        "src/features/routines/services/createRoutineTasks.ts"
+      ],
+      "status": "current",
+      "title": "Retry-safe local capture and bundle conversion contract",
+      "truth": "observed",
+      "type": "artifact",
+      "updated_at": "2026-09-27T09:08:24.604821Z"
     },
     "decision:g1-partial-acceptance": {
       "id": "decision:g1-partial-acceptance",
@@ -438,6 +518,47 @@
       "type": "task",
       "updated_at": "2026-09-27T06:29:06.013900Z"
     },
+    "task:wp3.3": {
+      "id": "task:wp3.3",
+      "note": "Implementation and automated acceptance complete; native manual sequence pending.",
+      "sources": [
+        "docs/lumo-implementation-progress.md",
+        "docs/lumo-launch-master-implementation-plan.md"
+      ],
+      "status": "partial",
+      "title": "Complete habit management and history",
+      "truth": "observed",
+      "type": "task",
+      "updated_at": "2026-09-27T09:08:24.373581Z"
+    },
+    "task:wp3.4": {
+      "id": "task:wp3.4",
+      "note": "Implementation and automated acceptance complete; native manual sequence pending.",
+      "sources": [
+        "docs/lumo-implementation-progress.md",
+        "docs/lumo-launch-master-implementation-plan.md",
+        "src/features/planning/hooks/useDailyPlanningFlow.ts"
+      ],
+      "status": "partial",
+      "title": "Complete planning and recovery behavior",
+      "truth": "observed",
+      "type": "task",
+      "updated_at": "2026-09-27T09:08:24.416971Z"
+    },
+    "task:wp3.5": {
+      "id": "task:wp3.5",
+      "note": "Implementation and automated acceptance complete; native manual interruption/restart sequence pending.",
+      "sources": [
+        "docs/lumo-implementation-progress.md",
+        "docs/lumo-launch-master-implementation-plan.md",
+        "src/features/brain-dump/services/convertBrainDumpEntry.ts"
+      ],
+      "status": "partial",
+      "title": "Make capture and conversion durable",
+      "truth": "observed",
+      "type": "task",
+      "updated_at": "2026-09-27T09:08:24.559892Z"
+    },
     "test:wp2.1-verification": {
       "id": "test:wp2.1-verification",
       "results": [
@@ -585,6 +706,33 @@
       "truth": "observed",
       "type": "test",
       "updated_at": "2026-09-27T06:29:06.204445Z"
+    },
+    "test:wp3.4-automated": {
+      "actual": "183 passed, 0 failed combined suite",
+      "command": "npm test",
+      "id": "test:wp3.4-automated",
+      "sources": [
+        "src/testing/planning/planningStore.test.ts"
+      ],
+      "status": "passed",
+      "title": "WP3.4 planning and recovery verification",
+      "truth": "observed",
+      "type": "test",
+      "updated_at": "2026-09-27T09:08:24.515121Z"
+    },
+    "test:wp3.5-automated": {
+      "actual": "183 passed, 0 failed combined suite",
+      "command": "npm test",
+      "id": "test:wp3.5-automated",
+      "sources": [
+        "src/testing/brainDump/conversionDurability.test.ts",
+        "src/testing/routines/starterBundles.test.ts"
+      ],
+      "status": "passed",
+      "title": "WP3.5 conversion durability verification",
+      "truth": "observed",
+      "type": "test",
+      "updated_at": "2026-09-27T09:08:24.729384Z"
     }
   },
   "project": "project:lumo"

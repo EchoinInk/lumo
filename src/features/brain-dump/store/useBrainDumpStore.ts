@@ -19,6 +19,11 @@ type BrainDumpState = {
 type BrainDumpActions = {
   hydrate: () => void;
   addEntry: (input: CreateBrainDumpInput) => BrainDumpEntry | null;
+  updateEntry: (id: string, text: string) => boolean;
+  beginConversion: (
+    id: string,
+    target: BrainDumpConversionTarget,
+  ) => string | null;
   convertEntry: (
     id: string,
     target: BrainDumpConversionTarget,
@@ -71,9 +76,43 @@ export const useBrainDumpStore = create<BrainDumpStore>((set, get) => ({
     };
 
     const entries = [entry, ...get().entries];
-    set({ entries });
     persist(entries);
+    set({ entries });
     return entry;
+  },
+
+  updateEntry: (id, text) => {
+    const normalized = text.trim();
+    if (!normalized) return false;
+    const now = new Date().toISOString();
+    const entries = get().entries.map((entry) =>
+      entry.id === id ? { ...entry, text: normalized, updatedAt: now } : entry,
+    );
+    persist(entries);
+    set({ entries });
+    return true;
+  },
+
+  beginConversion: (id, target) => {
+    const entry = get().entries.find((item) => item.id === id);
+    if (!entry || entry.status !== "open") return null;
+    if (entry.pendingConversionTarget && entry.pendingConversionTarget !== target) {
+      return null;
+    }
+    const conversionId = entry.conversionId ?? `brain-dump:${entry.id}`;
+    const entries = get().entries.map((item) =>
+      item.id === id
+        ? {
+            ...item,
+            conversionId,
+            pendingConversionTarget: target,
+            updatedAt: new Date().toISOString(),
+          }
+        : item,
+    );
+    persist(entries);
+    set({ entries });
+    return conversionId;
   },
 
   convertEntry: (id, target, linkedEntityId) => {
@@ -91,12 +130,14 @@ export const useBrainDumpStore = create<BrainDumpStore>((set, get) => ({
             convertedAt: now,
             convertedTo: target,
             linkedEntityId,
+            conversionId: entry.conversionId ?? `brain-dump:${entry.id}`,
+            pendingConversionTarget: undefined,
             updatedAt: now,
           }
         : entry,
     );
-    set({ entries });
     persist(entries);
+    set({ entries });
   },
 
   archiveEntry: (id) => {
@@ -116,23 +157,24 @@ export const useBrainDumpStore = create<BrainDumpStore>((set, get) => ({
             convertedAt: undefined,
             convertedTo: undefined,
             linkedEntityId: undefined,
+            pendingConversionTarget: undefined,
             updatedAt: now,
           }
         : entry,
     );
-    set({ entries });
     persist(entries);
+    set({ entries });
   },
 
   deleteEntry: (id) => {
     const entries = get().entries.filter((entry) => entry.id !== id);
-    set({ entries });
     persist(entries);
+    set({ entries });
   },
 
   clearConverted: () => {
     const entries = get().entries.filter((entry) => entry.status === "open");
-    set({ entries });
     persist(entries);
+    set({ entries });
   },
 }));

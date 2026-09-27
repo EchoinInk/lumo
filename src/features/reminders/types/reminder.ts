@@ -9,6 +9,7 @@ export interface Reminder {
   archivedAt?: string;
   createdAt: string;
   updatedAt: string;
+  sourceBrainDumpId?: string;
 }
 
 export interface ReminderSettings {
@@ -23,4 +24,5 @@ export interface CreateReminderInput {
   title: string;
   scheduledAt?: string;
   tone?: ReminderTone;
+  sourceBrainDumpId?: string;
 }

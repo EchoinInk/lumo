@@ -56,6 +56,15 @@ export const useReminderStore = create<ReminderState & ReminderActions>(
       const title = input.title.trim();
       if (!title) return null;
 
+      if (input.sourceBrainDumpId) {
+        const existing = get().reminders.find(
+          (reminder) =>
+            !reminder.archivedAt &&
+            reminder.sourceBrainDumpId === input.sourceBrainDumpId,
+        );
+        if (existing) return existing;
+      }
+
       const now = new Date().toISOString();
       const reminder: Reminder = {
         id: createId(),
@@ -64,11 +73,12 @@ export const useReminderStore = create<ReminderState & ReminderActions>(
         tone: input.tone ?? get().settings.tone,
         createdAt: now,
         updatedAt: now,
+        sourceBrainDumpId: input.sourceBrainDumpId,
       };
 
       const reminders = [reminder, ...get().reminders];
-      set({ reminders });
       persistReminders(reminders);
+      set({ reminders });
       return reminder;
     },
 

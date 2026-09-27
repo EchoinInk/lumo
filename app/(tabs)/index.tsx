@@ -149,8 +149,8 @@ export default function DashboardScreen() {
       <CalmDailySummary
         nextStep={planning.selectedNextStep}
         energyLevel={planning.energyLevel}
-        carryOverCount={planning.summary.carryOverIds.length}
-        brainDumpCount={planning.brainDumpQueue.length}
+        carryOverCount={planning.carryOverBacklogCount}
+        brainDumpCount={planning.brainDumpBacklogCount}
         morningComplete={planning.morningComplete}
         eveningCompleted={planning.summary.eveningCompleted}
         showEveningReset={planning.showEveningReset}

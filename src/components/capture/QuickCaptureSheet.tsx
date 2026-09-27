@@ -60,11 +60,13 @@ export function QuickCaptureSheet({
       if (target === "task") {
         await createTask({ title: value, priority: "medium" });
       } else if (target === "reminder") {
-        await Promise.resolve(
+        const reminder = await Promise.resolve(
           reminders.addReminder({ title: value, tone: reminders.settings.tone }),
         );
+        if (!reminder) throw new Error("Reminder was not saved.");
       } else {
-        await Promise.resolve(brainDump.addEntry({ text: value }));
+        const entry = await Promise.resolve(brainDump.addEntry({ text: value }));
+        if (!entry) throw new Error("Brain dump entry was not saved.");
       }
 
       setText("");

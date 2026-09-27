@@ -65,6 +65,8 @@ export function isTask(value: unknown): value is Task {
     (value.syncStatus === undefined || isOneOf(value.syncStatus, ["pending", "synced", "failed"])) &&
     (value.version === undefined || Number.isInteger(value.version)) &&
     isOptionalString(value.lastSyncedAt) &&
+    isOptionalString(value.sourceBrainDumpId) &&
+    isOptionalString(value.sourceOperationId) &&
     (value.pendingSync === undefined || typeof value.pendingSync === "boolean");
 }
 
@@ -140,6 +142,8 @@ export function isBrainDumpEntry(value: unknown): value is BrainDumpEntry {
     isOneOf(value.status, ["open", "converted", "archived"]) &&
     isString(value.createdAt) && isString(value.updatedAt) &&
     isOptionalString(value.convertedAt) && isOptionalString(value.linkedEntityId) &&
+    isOptionalString(value.conversionId) &&
+    (value.pendingConversionTarget === undefined || isOneOf(value.pendingConversionTarget, ["task", "reminder", "routine_idea", "archived_note"])) &&
     (value.convertedTo === undefined || isOneOf(value.convertedTo, ["task", "reminder", "routine_idea", "archived_note"]));
 }
 
@@ -148,7 +152,7 @@ export function isReminder(value: unknown): value is Reminder {
   return isString(value.id) && isString(value.title) &&
     isOneOf(value.tone, ["gentle", "practical", "encouraging"]) &&
     isOptionalString(value.scheduledAt) && isOptionalString(value.completedAt) &&
-    isOptionalString(value.archivedAt) && isString(value.createdAt) && isString(value.updatedAt);
+    isOptionalString(value.archivedAt) && isOptionalString(value.sourceBrainDumpId) && isString(value.createdAt) && isString(value.updatedAt);
 }
 
 export function isReminderSettings(value: unknown): value is ReminderSettings {
@@ -191,7 +195,7 @@ export function isPlanningParkingState(value: unknown): value is PlanningParking
     isPlanningSourceRef(item) &&
     isString(item.parkedAt) &&
     isOneOf(item.parkedFrom, ["morning", "evening"]) &&
-    isOptionalString(item.originalDueDate),
+    (item.originalDueDate === undefined || item.originalDueDate === null || typeof item.originalDueDate === "string"),
   );
 }
 
