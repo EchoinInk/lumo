@@ -6,7 +6,7 @@ import { Input } from "@/components/ui/Input";
 import { Screen } from "@/components/ui/Screen";
 import { Text } from "@/components/ui/Text";
 import { parseNzdAmountToMinor } from "@/features/budget/services/budgetMoney";
-import { calculateBudgetTotals } from "@/features/budget/services/budgetSummary";
+import { budgetSummaryForMonth } from "@/features/dashboard/utils/summarySelectors";
 import { useBudgetCategoryStore } from "@/features/budget/store/useBudgetCategoryStore";
 import { useBudgetTransactionStore } from "@/features/budget/store/useBudgetTransactionStore";
 import type { BudgetCategory } from "@/features/budget/types/budgetCategory";
@@ -28,7 +28,7 @@ export default function BudgetScreen() {
   const [name, setName] = useState(""); const [amount, setAmount] = useState(""); const [date, setDate] = useState("");
   const [type, setType] = useState<BudgetTransactionType>("expense"); const [categoryId, setCategoryId] = useState("");
   const [formError, setFormError] = useState<string | null>(null); const submitting = useRef(false);
-  const totals = useMemo(() => calculateBudgetTotals(categories.categories, ledger.transactions, toLocalDateKey()), [categories.categories, ledger.transactions]);
+  const totals = useMemo(() => budgetSummaryForMonth(categories.categories, ledger.transactions, toLocalDateKey()), [categories.categories, ledger.transactions]);
 
   const openCategory = (value?: BudgetCategory) => { setCategoryForm(value ?? "new"); setName(value?.name ?? ""); setAmount(value ? (value.plannedAmountMinor / 100).toFixed(2) : ""); setFormError(null); };
   const openTransaction = (value?: BudgetTransaction) => { setTransactionForm(value ?? "new"); setName(value?.title ?? ""); setAmount(value ? (value.amountMinor / 100).toFixed(2) : ""); setDate(value?.date ?? toLocalDateKey()); setType(value?.type ?? "expense"); setCategoryId(value?.categoryId ?? categories.categories[0]?.id ?? ""); setFormError(null); };

@@ -3,7 +3,7 @@ import { Screen } from "@/src/components/ui/Screen";
 import { SectionHeader } from "@/src/components/ui/SectionHeader";
 import { DailyProgressCard } from "@/src/features/dashboard/components/DailyProgressCard";
 import { FocusSuggestionList } from "@/src/features/dashboard/components/FocusSuggestionList";
-import { calculateDailyProgress } from "@/src/features/dashboard/utils/dashboardProgress";
+import { todayProgressSummary } from "@/src/features/dashboard/utils/summarySelectors";
 import { getFocusSuggestions } from "@/src/features/dashboard/utils/focusSuggestions";
 import { FocusModeBanner } from "@/src/features/focus/components/FocusModeBanner";
 import { useFocusMode } from "@/src/features/focus/hooks/useFocusMode";
@@ -103,31 +103,24 @@ export default function DashboardScreen() {
   // Get real data from Tasks and Habits
   const {
     tasks,
-    completedCount: completedTasks,
     toggleTask,
     updateTask,
     hasHydrated: tasksHydrated,
   } = useTasks();
-  const { todayHabits, completedToday: completedHabits } = useHabits();
+  const { habits } = useHabits();
   const today = useLocalDay();
 
-  // Calculate daily progress combining tasks and habits
-  const totalTasks = tasks.length;
-  const totalHabits = todayHabits.length;
-  const completedTaskCount = completedTasks;
-  const completedHabitIds = completedHabits.map((h) => h.id);
-
-  const {
-    completionRate,
-    supportiveLabel,
-    totalTodayItems,
-    completedTodayItems,
-  } = calculateDailyProgress(
-    totalTasks,
-    completedTaskCount,
-    totalHabits,
-    completedHabitIds.length,
-  );
+  const progress = todayProgressSummary(tasks, habits, today);
+  const supportiveLabel =
+    progress.total === 0
+      ? "A quiet day is still a valid day."
+      : progress.percent === 0
+        ? "Nothing urgent here. Start when you're ready."
+        : progress.percent < 50
+          ? "You've started. That counts."
+          : progress.percent < 100
+            ? "You're making steady progress."
+            : "Today's essentials are complete.";
 
   const focusSuggestions = tasksHydrated
     ? getFocusSuggestions(tasks, 3, today)
@@ -147,9 +140,8 @@ export default function DashboardScreen() {
     <Screen scrollable padded>
       {isFocusModeEnabled && <FocusModeBanner onExit={disableFocusMode} />}
 
-      {/* Greeting Header */}
       <SectionHeader
-        title="Good morning"
+        title="Today"
         subtitle={preferences.struggleAreas.includes("feeling_overwhelmed") ? "One gentle step is enough" : "You've got this"}
       />
 
@@ -194,10 +186,10 @@ export default function DashboardScreen() {
 
       {!simplifiedMode && <DailyProgressCard
         title="Today's Progress"
-        progress={completionRate}
+        progress={progress.percent}
         subtitle={supportiveLabel}
-        completedCount={completedTodayItems}
-        totalCount={totalTodayItems}
+        completedCount={progress.completed}
+        totalCount={progress.total}
         variant="default"
       />}
 

@@ -1,4 +1,5 @@
 import type { MealEntry } from "@/features/meals/types/meal";
+import { calorieSummaryForDate } from "@/features/dashboard/utils/summarySelectors";
 
 export interface DailyCalorieSummary {
   date: string;
@@ -9,13 +10,12 @@ export interface DailyCalorieSummary {
 }
 
 export function dailyCalorieSummary(meals: MealEntry[], date: string): DailyCalorieSummary {
-  const entries = meals.filter((meal) => !meal.deletedAt && meal.date === date);
-  const known = entries.filter((meal) => meal.nutrition?.calories !== undefined);
+  const summary = calorieSummaryForDate(meals, date);
   return {
     date,
-    entries,
-    knownCalories: known.reduce((sum, meal) => sum + (meal.nutrition?.calories ?? 0), 0),
-    knownEntryCount: known.length,
-    unknownEntryCount: entries.length - known.length,
+    entries: summary.entries,
+    knownCalories: summary.knownKcal,
+    knownEntryCount: summary.knownEntryCount,
+    unknownEntryCount: summary.unknownEntryCount,
   };
 }

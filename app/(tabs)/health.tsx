@@ -11,15 +11,18 @@ import { HabitFormModal } from "@/src/features/habits/components/HabitFormModal"
 import { HabitListItem } from "@/src/features/habits/components/HabitListItem";
 import { useHabits } from "@/src/features/habits/hooks/useHabits";
 import { CreateHabitInput, Habit } from "@/src/features/habits/types/habit";
-import { dailyCalorieSummary } from "@/src/features/calories/services/calorieSelectors";
+import {
+  calorieSummaryForDate,
+  habitSummaryForDate,
+  weightSummaryAsOf,
+  workoutSummaryForWeek,
+} from "@/src/features/dashboard/utils/summarySelectors";
 import { useCaloriePreferencesStore } from "@/src/features/calories/store/useCaloriePreferencesStore";
 import { MealFormSheet } from "@/src/features/meals/components/MealFormSheet";
 import { useMealStore } from "@/src/features/meals/store/useMealStore";
 import type { MealEntry, MealEntryInput } from "@/src/features/meals/types/meal";
-import { latestWeight, weightChangeGrams } from "@/src/features/weight/services/weightSelectors";
 import { formatWeight, gramsToUnit } from "@/src/features/weight/services/weightUnits";
 import { useWeightStore } from "@/src/features/weight/store/useWeightStore";
-import { workoutSummaryForRange } from "@/src/features/workouts/services/workoutSelectors";
 import { useWorkoutStore } from "@/src/features/workouts/store/useWorkoutStore";
 import { useLocalDay } from "@/src/hooks/useLocalDay";
 import { addLocalDays, formatLocalDate } from "@/src/utils/dateTime";
@@ -39,8 +42,6 @@ import {
 } from "lucide-react-native";
 import { useMemo, useState } from "react";
 import { StyleSheet, TouchableOpacity, View } from "react-native";
-
-function mondayFor(date: string): string { const value = new Date(`${date}T12:00:00`); return addLocalDays(date, -((value.getDay() + 6) % 7)); }
 
 // Quick links to health screens
 const healthLinks = [
@@ -78,10 +79,10 @@ const healthLinks = [
 
 export default function HealthScreen() {
   const today = useLocalDay(); const meals = useMealStore(); const caloriePreferences = useCaloriePreferencesStore(); const weight = useWeightStore(); const workouts = useWorkoutStore();
-  const [calorieDate, setCalorieDate] = useState(today); const calorieSummary = useMemo(() => dailyCalorieSummary(meals.meals, calorieDate), [meals.meals, calorieDate]);
-  const goal = caloriePreferences.preferences.dailyGoalKcal; const calorieProgress = goal ? Math.min(100, calorieSummary.knownCalories * 100 / goal) : 0;
-  const latestWeightEntry = latestWeight(weight.state.entries); const weightChange = weightChangeGrams(weight.state.entries); const weightUnit = weight.state.preferredUnit;
-  const workoutWeekStart = mondayFor(today); const workoutSummary = useMemo(() => workoutSummaryForRange(workouts.workouts, workoutWeekStart, addLocalDays(workoutWeekStart, 7)), [workouts.workouts, workoutWeekStart]);
+  const [calorieDate, setCalorieDate] = useState(today); const calorieSummary = useMemo(() => calorieSummaryForDate(meals.meals, calorieDate), [meals.meals, calorieDate]);
+  const goal = caloriePreferences.preferences.dailyGoalKcal; const calorieProgress = goal ? Math.min(100, calorieSummary.knownKcal * 100 / goal) : 0;
+  const weightSummary = useMemo(() => weightSummaryAsOf(weight.state.entries, today), [weight.state.entries, today]); const weightUnit = weight.state.preferredUnit;
+  const workoutSummary = useMemo(() => workoutSummaryForWeek(workouts.workouts, today), [workouts.workouts, today]);
   const [mealVisible, setMealVisible] = useState(false); const [editingMeal, setEditingMeal] = useState<MealEntry | null>(null); const [mealSaving, setMealSaving] = useState(false);
   const [goalVisible, setGoalVisible] = useState(false); const [goalInput, setGoalInput] = useState(""); const [goalError, setGoalError] = useState<string | null>(null);
   const saveMeal = async (input: MealEntryInput) => { setMealSaving(true); try { if (editingMeal) await meals.updateMeal(editingMeal.id, input); else await meals.createMeal(input); setMealVisible(false); setEditingMeal(null); } finally { setMealSaving(false); } };
@@ -91,8 +92,7 @@ export default function HealthScreen() {
   const {
     todayHabits,
     completedToday,
-    completionRate,
-    totalStreak,
+    habits,
     isHydrated,
     isLoading,
     error,
@@ -102,6 +102,7 @@ export default function HealthScreen() {
     toggleHabit,
     isCompletedToday,
   } = useHabits();
+  const habitSummary = useMemo(() => habitSummaryForDate(habits, today), [habits, today]);
 
   const [isModalVisible, setIsModalVisible] = useState(false);
   const [modalMode, setModalMode] = useState<"create" | "edit">("create");
@@ -173,7 +174,11 @@ export default function HealthScreen() {
               Habits
             </Text>
             <Text variant="caption" color={Colors.textSecondary}>
-              {isHydrated ? `${totalStreak} day total streak` : "Loading..."}
+              {isHydrated
+                ? habitSummary.longestCurrentStreakDays === null
+                  ? "No streak yet"
+                  : `${habitSummary.longestCurrentStreakDays} day current streak`
+                : "Loading..."}
             </Text>
           </View>
           <Text variant="subheading" style={styles.summaryValue}>
@@ -183,7 +188,7 @@ export default function HealthScreen() {
           </Text>
         </View>
         <ProgressBar
-          progress={isHydrated ? completionRate : 0}
+          progress={isHydrated ? habitSummary.percent : 0}
           height={8}
           variant="gradient"
         />
@@ -284,7 +289,7 @@ export default function HealthScreen() {
             <Text variant="caption" color={Colors.textSecondary}>{formatLocalDate(calorieDate, { month: "short", day: "numeric", year: "numeric" })}</Text>
           </View>
           <Text variant="subheading" style={styles.summaryValue}>
-            {calorieSummary.knownCalories} kcal
+            {calorieSummary.knownKcal} kcal
           </Text>
         </View>
         {goal !== null && <ProgressBar progress={calorieProgress} height={8} variant="default" />}
@@ -315,9 +320,9 @@ export default function HealthScreen() {
           </View>
           <View style={styles.weightValue}>
             <Text variant="subheading" style={styles.summaryValue}>
-              {latestWeightEntry ? formatWeight(latestWeightEntry.grams, weightUnit) : "No entries"}
+              {weightSummary.latest ? formatWeight(weightSummary.latest.grams, weightUnit) : "No entries"}
             </Text>
-            {weightChange !== null && <Text variant="small" color={Colors.textSecondary}>{weightChange > 0 ? "+" : ""}{gramsToUnit(weightChange, weightUnit).toFixed(1)} {weightUnit} from prior entry</Text>}
+            {weightSummary.changeGrams !== null && <Text variant="small" color={Colors.textSecondary}>{weightSummary.changeGrams > 0 ? "+" : ""}{gramsToUnit(weightSummary.changeGrams, weightUnit).toFixed(1)} {weightUnit} from prior entry</Text>}
           </View>
         </View>
       </Card>
@@ -349,7 +354,7 @@ export default function HealthScreen() {
               {workoutSummary.count}
             </Text>
             <Text variant="caption" color={Colors.textSecondary}>
-              {workoutSummary.durationMinutes} min{workoutSummary.calorieEntryCount ? ` · ${workoutSummary.knownCalories} manually recorded kcal` : " · no calorie estimates"}
+              {workoutSummary.durationMinutes} min{workoutSummary.knownCalorieEntryCount ? ` · ${workoutSummary.knownKcal} manually recorded kcal` : " · no calorie estimates"}{workoutSummary.unknownCalorieEntryCount ? ` · ${workoutSummary.unknownCalorieEntryCount} unknown` : ""}
             </Text>
           </View>
         </View>
@@ -385,15 +390,6 @@ export default function HealthScreen() {
         ))}
       </View>
 
-      {/* Calm note */}
-      <Card variant="outlined" style={styles.placeholderCard}>
-        <Text variant="body" color={Colors.textSecondary}>
-          This space is coming together.
-        </Text>
-        <Text variant="caption" color={Colors.textTertiary}>
-          Nothing needs your attention here yet.
-        </Text>
-      </Card>
     </Screen>
   );
 }
