@@ -2,6 +2,7 @@ export const StorageKeys = {
   // Domain data
   TASKS: "tasks",
   HABITS: "habits",
+  CLEANING: "cleaning",
   MEALS: "meals",
   BUDGET: "budget",
   BRAIN_DUMP_ENTRIES: "brain_dump_entries",

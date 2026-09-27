@@ -407,3 +407,41 @@ Phase 3 implementation is complete through WP3.8, but G3 is **BLOCKED** because 
 | **Blocking evidence gaps** | WP3.3 still requires its native habit edit/history/miss/resume/delete-undo/restart sequence. WP3.4 still requires the native Morning → task edit → Evening → Parked → restore → restart sequence. WP3.5 still requires native conversion interruption/retry/restart verification. WP3.6 still requires native Calendar termination/restart. WP3.7 still requires native haptic-off and reduced-motion behavior checks. WP3.8 still requires native direct/cold navigation and no-history back checks. Earlier G2 native/manual gaps remain recorded separately and were not reclassified here. |
 | **Result** | **BLOCKED — implementation complete; native/manual acceptance evidence outstanding.** |
 | **Stop condition** | **Phase 4 has not begun.** The next bounded action is the outstanding native G3 acceptance matrix; stop before Phase 4 until G3 passes. |
+
+---
+
+## WP4.1 - Complete; automated and native acceptance verified
+
+WP4.1 is complete under the owner's explicit Phase 4 authorization while G3's previously recorded native/manual gaps remain open. Cleaning is now a real local vertical slice with one canonical feature store/repository and no sample chores or duplicate task records.
+
+## Completion record
+
+| Field | Record |
+|---|---|
+| **Package** | **WP4.1 — Cleaning** |
+| **Canonical domain and persistence** | `CleaningItem` owns the user's name, notes, first local date, supported task recurrence pattern, dated completion history and lifecycle metadata. `cleaningLocalRepository` is the single serialized mutation boundary over schema-versioned `StorageKeys.CLEANING`; the feature store updates memory only after durable writes. The active local-data gate hydrates and recovers Cleaning with the established domain recovery contract. |
+| **CRUD, schedule and completion** | Cleaning supports create, read, edit, soft delete, completion and undo. Once/daily/weekly/monthly schedules reuse the existing civil-date recurrence service. Completion history belongs to occurrences, not duplicated tasks, and skipped days remain distinct occurrences. Weekly progress is derived from elapsed scheduled occurrences and persisted dated completions. |
+| **UI and states** | The routed Cleaning screen contains no samples or disabled creation. It provides accessible 44-point actions, checkbox state/hints, add/edit/delete flows, inline validation, empty/loading/hydration/retry/save-failure states and existing Lumo Card/Button/Input/ProgressBar/Screen conventions. |
+| **Automated checks (2026-09-28)** | Cleaning-focused tests cover civil recurrence, skipped days, occurrence-derived progress, CRUD, completion idempotency, undo, deletion, validation, injected save failure and hydration/restart. Integrated TypeScript passed; tests **196 passed, 0 failed** after both grouped packages; lint **0 errors, 78 warnings**; credential-free config validation passed; iOS and Android Hermes production exports passed; Release iOS simulator build succeeded; `git diff --check` passed. |
+| **Native verification (2026-09-28)** | Installed the Release build on the booted iPhone 17 Pro / iOS 26.5 simulator. Created daily item **Native kitchen reset** for 2026-09-28, completed it, and observed **1 / 1** and **100%**. Terminated `com.meltmyheart.lumo`, relaunched it and reopened Cleaning; the exact item, checked occurrence, schedule date and 1/1 progress rehydrated. |
+| **Status** | **COMPLETE — implementation, automated checks and native terminate/reopen verification passed.** |
+| **Gate effect** | WP4.1 Definition of Done is satisfied. This allowed WP4.2 to begin within Phase 4 Prompt 1. G3 remains blocked exactly as recorded above and was not reclassified. |
+
+---
+
+## WP4.2 - Complete; automated and native acceptance verified
+
+WP4.2 is complete. Meals now represents only food actually consumed. The former in-memory store and stub repository were replaced with compatibility aliases to one canonical local meal feature; planned meals remain a separate future domain.
+
+## Completion record
+
+| Field | Record |
+|---|---|
+| **Package** | **WP4.2 — Meals** |
+| **Canonical domain and persistence** | `MealEntry` owns local consumed date, meal type, name, optional description, optional manually entered calories/protein/carbohydrate/fat and lifecycle metadata. `mealLocalRepository` is the serialized CRUD boundary over schema-versioned `StorageKeys.MEALS`; `useMealStore` is canonical. Legacy import paths delegate to those modules and do not retain competing state. |
+| **CRUD, history and totals** | Meals supports create/read/edit/soft-delete and newest-date-first history. Date selectors use local date keys. Nutrition remains absent when the user enters none; known totals sum only persisted manual values and recalculate immediately after date/nutrition edits or deletion. No target, estimate, API or fabricated nutrition remains. |
+| **UI and states** | The routed Meals screen contains no sample records, fixed 1,350 total or fabricated 1,800 target. It provides accessible add/edit/delete actions, meal-type radio choices, optional nutrition fields, history, empty/loading/hydration/retry/save-failure states and explicit copy that unknown nutrition is not guessed. |
+| **Automated checks (2026-09-28)** | Meal-focused tests cover CRUD, local-date boundaries, optional nutrition, history ordering, edit/delete total recalculation, validation, injected write failure and hydration/restart. Final integrated TypeScript passed; tests **196 passed, 0 failed**; lint **0 errors, 78 warnings**; iOS and Android Hermes production exports passed; Release iOS simulator build succeeded; `git diff --check` passed. |
+| **Native verification (2026-09-28)** | Installed the updated Release build on the booted iPhone 17 Pro / iOS 26.5 simulator. Logged **Native avocado toast** as Lunch on 2026-09-28 with manually entered **420 kcal** and 14 g protein; Meals showed one entry and 420 known kcal. Terminated `com.meltmyheart.lumo`, relaunched it and reopened Meals; the exact name, type, date, 420-kcal history value and 420-kcal total rehydrated. |
+| **Status** | **COMPLETE — implementation, automated checks and native terminate/reopen verification passed.** |
+| **Gate effect** | WP4.2 Definition of Done is satisfied. **WP4.3 / Phase 4 Prompt 2 has not begun.** |

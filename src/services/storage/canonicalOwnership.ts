@@ -19,6 +19,23 @@ export const CanonicalLocalDomains = {
       `${StorageNamespaces.DEFAULT}:${LegacyStorageKeys.HABITS_PREFIXED_ZUSTAND}`,
     ],
   },
+  cleaning: {
+    store: "src/features/cleaning/store/useCleaningStore.ts",
+    repository: "src/features/cleaning/services/cleaningLocalRepository.ts",
+    namespace: StorageNamespaces.DEFAULT,
+    key: StorageKeys.CLEANING,
+    legacy: [],
+  },
+  meals: {
+    store: "src/features/meals/store/useMealStore.ts",
+    repository: "src/features/meals/services/mealLocalRepository.ts",
+    namespace: StorageNamespaces.DEFAULT,
+    key: StorageKeys.MEALS,
+    legacy: [
+      "src/store/useMealStore.ts (compatibility alias; formerly memory-only)",
+      "src/services/mealRepository.ts (compatibility alias; formerly a stub)",
+    ],
+  },
   settings: {
     store: "src/store/useSettingsStore.ts",
     repository: null,

@@ -8,8 +8,8 @@ const rootDir = path.resolve(__dirname, "../../..");
 export function testCanonicalOwnershipRegistryNamesAllRequiredDomains(): void {
   assertEqual(
     Object.keys(CanonicalLocalDomains).sort().join(","),
-    "habits,onboarding,settings,tasks",
-    "WP2.1 should inventory exactly the four required local domains",
+    "cleaning,habits,meals,onboarding,settings,tasks",
+    "the registry should inventory every active canonical local domain",
   );
 }
 
@@ -42,6 +42,10 @@ export function testLegacyRepositoriesDelegateToFeatureRepositories(): void {
     path.join(rootDir, "src/services/habitRepository.ts"),
     "utf8",
   );
+  const mealRepository = fs.readFileSync(
+    path.join(rootDir, "src/services/mealRepository.ts"),
+    "utf8",
+  );
 
   assertEqual(
     taskRepository.includes("taskLocalRepository"),
@@ -52,5 +56,10 @@ export function testLegacyRepositoriesDelegateToFeatureRepositories(): void {
     habitRepository.includes("habitLocalRepository"),
     true,
     "legacy habit repository should delegate to the canonical repository",
+  );
+  assertEqual(
+    mealRepository.includes("mealLocalRepository"),
+    true,
+    "legacy meal repository should delegate to the canonical repository",
   );
 }

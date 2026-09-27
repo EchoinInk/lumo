@@ -1,4 +1,4 @@
-export type DurableMutationDomain = "tasks" | "habits";
+export type DurableMutationDomain = "tasks" | "habits" | "cleaning" | "meals";
 
 export type DurableMutationOperation =
   | "create"

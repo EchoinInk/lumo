@@ -8,6 +8,8 @@ import {
 export type PersistenceDomain =
   | "tasks"
   | "habits"
+  | "cleaning"
+  | "meals"
   | "settings"
   | "onboarding"
   | "brain-dump"

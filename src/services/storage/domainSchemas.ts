@@ -1,4 +1,6 @@
 import type { BrainDumpEntry } from "@/features/brain-dump/types/brainDump";
+import type { CleaningItem } from "@/features/cleaning/types/cleaning";
+import { mealTypes, type MealEntry } from "@/features/meals/types/meal";
 import type { Habit } from "@/features/habits/types/habit";
 import type {
   FocusArea,
@@ -86,6 +88,25 @@ export function isHabit(value: unknown): value is Habit {
     (value.version === undefined || Number.isInteger(value.version)) &&
     isOptionalString(value.lastSyncedAt) &&
     (value.pendingSync === undefined || typeof value.pendingSync === "boolean");
+}
+
+export function isCleaningItem(value: unknown): value is CleaningItem {
+  if (!isObject(value)) return false;
+  return isString(value.id) && isString(value.name) &&
+    isOptionalString(value.notes) && isString(value.startDate) &&
+    isRecurrence(value.recurrence) && isStringArray(value.completedDates) &&
+    value.completedDates.every((date) => typeof date === "string") &&
+    isString(value.createdAt) && isString(value.updatedAt) &&
+    isNullableString(value.deletedAt) && Number.isInteger(value.version);
+}
+
+export function isMealEntry(value: unknown): value is MealEntry {
+  if (!isObject(value)) return false;
+  const nutrition = value.nutrition;
+  return isString(value.id) && isString(value.date) && isOneOf(value.mealType, mealTypes) &&
+    isString(value.name) && isOptionalString(value.description) &&
+    (nutrition === undefined || (isObject(nutrition) && ["calories", "proteinGrams", "carbohydrateGrams", "fatGrams"].every((field) => nutrition[field] === undefined || isFiniteNonNegative(nutrition[field])))) &&
+    isString(value.createdAt) && isString(value.updatedAt) && isNullableString(value.deletedAt) && Number.isInteger(value.version);
 }
 
 const struggleAreas: readonly StruggleArea[] = ["remembering_tasks", "building_routines", "meal_planning", "budgeting", "staying_consistent", "feeling_overwhelmed"];
@@ -213,6 +234,8 @@ const arrayDefinition = <T>(
 
 export const taskStorageDefinition = arrayDefinition("tasks", StorageKeys.TASKS, isTask);
 export const habitStorageDefinition = arrayDefinition("habits", StorageKeys.HABITS, isHabit);
+export const cleaningStorageDefinition = arrayDefinition("cleaning", StorageKeys.CLEANING, isCleaningItem);
+export const mealStorageDefinition = arrayDefinition("meals", StorageKeys.MEALS, isMealEntry);
 export const brainDumpStorageDefinition = arrayDefinition("brain-dump", StorageKeys.BRAIN_DUMP_ENTRIES, isBrainDumpEntry);
 export const reminderStorageDefinition = arrayDefinition("reminders", StorageKeys.REMINDERS, isReminder);
 
@@ -261,6 +284,8 @@ export const planningParkingStorageDefinition: VersionedStorageDefinition<Planni
 export const activeStorageDefinitions = {
   tasks: taskStorageDefinition,
   habits: habitStorageDefinition,
+  cleaning: cleaningStorageDefinition,
+  meals: mealStorageDefinition,
   settings: settingsStorageDefinition,
   onboarding: onboardingStorageDefinition,
   "brain-dump": brainDumpStorageDefinition,
