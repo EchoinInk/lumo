@@ -548,3 +548,27 @@ Automated evidence on 2026-09-28: the same **210 passed, 0 failed** suite includ
 Native mark-paid/reopen inspection could not be performed because CoreSimulatorService was unavailable, as recorded above. Automated hydration and interrupted-operation recovery pass, but physical/simulator restart acceptance remains deferred.
 
 **Gate effect:** WP4.8 implementation is complete and payment/budget consistency is verified automatically without duplicate transactions. Native restart acceptance remains open. WP4.9 / Phase 4 Prompt 4 has not begun.
+
+## WP4.9 - Implementation complete; native verification deferred
+
+Health now presents a date-aware calorie intake view derived exclusively from canonical persisted consumed-meal entries. The view totals only manually recorded calorie values for the selected local civil date, labels entries without calorie data as unknown, shows an honest empty day, and shows “No calorie goal configured” until the optional versioned preference is explicitly saved. Planned meal assignments are never queried by the calorie selector, exercise values are not subtracted, and missing nutrition is never inferred.
+
+Quick intake capture opens the canonical consumed-meal form with the viewed date preselected. Its create, edit and delete actions call `useMealStore`, so every displayed intake value remains traceable to the existing `meals` repository rather than a second calorie ledger. Only the optional daily goal is stored under the separately versioned `calorie-preferences` domain. Both domains participate in the active recovery gate, with loading, validation, empty, hydration and save-error handling.
+
+Automated evidence on 2026-09-28: `npm run typecheck` passed; `npm test` passed (**216 passed, 0 failed**). WP4.9 coverage verifies planned-versus-consumed separation, known and unknown calorie handling, no-goal behavior, preference validation and hydration persistence, canonical meal edits/deletes, moving intake across local-date boundaries, and recalculated daily totals. `npm run lint` passed with **0 errors and 78 existing warnings**; `npm run doctor`, `npm run export:web` and `npm run export:native` passed; `git diff --check` passed.
+
+Native terminate/reopen verification could not be performed because `xcrun simctl list devices available` again failed to connect to CoreSimulatorService and could not locate a Simulator device set. Repository/store hydration verifies persisted restart semantics automatically, but native restart acceptance is not claimed.
+
+**Gate effect:** WP4.9 implementation is complete and every displayed calorie value is traceable to persisted consumed meals. Native restart acceptance remains deferred.
+
+## WP4.10 - Implementation complete; native verification deferred
+
+Weight now replaces its fixed current value and sample history with a canonical versioned local domain. Dated entries support create/edit/delete, optional notes, history ordering, a latest-record summary, and neutral signed change from the immediately previous dated record. The More menu and screen use “Weight Tracker”; no change direction is coloured or described as good or bad, and no target is invented.
+
+Canonical weight values are stored as positive integer grams. The persisted display preference supports kilograms and pounds, while deterministic conversion helpers accept up to gram-level input precision and format without maintaining separate unit-specific histories. Editing dates or values and deleting the latest record immediately recalculates current weight and change. Empty, loading, hydration-recovery, validation and save-error states are explicit, and `weight` is registered in canonical ownership and the active recovery gate.
+
+Automated evidence on 2026-09-28: the same **216 passed, 0 failed** suite includes kg/lb conversion, precision and excess-precision rejection, local-date validation, date ordering, neutral trend recalculation, editing/deleting the latest entry, empty current-weight behavior, and history/unit hydration restart. Typecheck, lint (0 errors), Expo Doctor, web export, iOS export, Android export and diff checks passed.
+
+Native log/edit/reopen verification remains unavailable because CoreSimulatorService could not provide a Simulator device set. Automated durable hydration passes, but it is not a substitute for native restart acceptance.
+
+**Gate effect:** WP4.10 implementation is complete and all current/history/change values derive exclusively from real persisted records. Native restart acceptance remains open. WP4.11 / Phase 4 Prompt 5 has not begun.

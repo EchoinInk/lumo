@@ -97,7 +97,7 @@ export default function MoreScreen() {
       route: "/(tabs)/more/cleaning",
     },
     {
-      title: "Weight Loss Tracker",
+      title: "Weight Tracker",
       icon: <Scale size={22} color={Colors.primary} />,
       color: Colors.primary,
       route: "/(tabs)/more/weight",

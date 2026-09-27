@@ -1,0 +1,13 @@
+import { savedMutation, type DurableMutationResult } from "@/services/storage/durableMutation";
+import { create } from "zustand";
+import * as repository from "../services/weightRepository";
+import type { WeightEntry, WeightEntryInput, WeightState, WeightUnit } from "../types/weight";
+interface Store { state: WeightState; isHydrated: boolean; isLoading: boolean; isSaving: boolean; error: string | null; hydrate: () => Promise<void>; createEntry: (input: WeightEntryInput) => Promise<DurableMutationResult<WeightEntry>>; updateEntry: (id: string, input: WeightEntryInput) => Promise<DurableMutationResult<WeightEntry>>; deleteEntry: (id: string) => Promise<DurableMutationResult<void>>; setUnit: (unit: WeightUnit) => Promise<DurableMutationResult<WeightState>>; clearError: () => void; }
+const empty: WeightState = { preferredUnit: "kg", entries: [], updatedAt: null, version: 0 };
+export const useWeightStore = create<Store>((set) => ({ state: empty, isHydrated: false, isLoading: false, isSaving: false, error: null,
+  hydrate: async () => { set({ isLoading: true, error: null }); try { set({ state: await repository.getWeightState(), isHydrated: true, isLoading: false }); } catch (error) { set({ isHydrated: true, isLoading: false, error: "Weight data needs recovery before it can be used." }); throw error; } },
+  createEntry: async (input) => { set({ isSaving: true, error: null }); try { const entry = await repository.createWeightEntry(input); set({ state: await repository.getWeightState(), isSaving: false }); return savedMutation(entry); } catch (error) { set({ isSaving: false, error: "Could not save that weight entry." }); throw error; } },
+  updateEntry: async (id, input) => { set({ isSaving: true, error: null }); try { const entry = await repository.updateWeightEntry(id, input); set({ state: await repository.getWeightState(), isSaving: false }); return savedMutation(entry); } catch (error) { set({ isSaving: false, error: "Could not save weight changes." }); throw error; } },
+  deleteEntry: async (id) => { set({ isSaving: true, error: null }); try { await repository.deleteWeightEntry(id); set({ state: await repository.getWeightState(), isSaving: false }); return savedMutation(undefined); } catch (error) { set({ isSaving: false, error: "Could not delete that weight entry." }); throw error; } },
+  setUnit: async (unit) => { set({ isSaving: true, error: null }); try { const state = await repository.setWeightUnit(unit); set({ state, isSaving: false }); return savedMutation(state); } catch (error) { set({ isSaving: false, error: "Could not save the weight unit." }); throw error; } }, clearError: () => set({ error: null }),
+}));

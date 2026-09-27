@@ -16,6 +16,8 @@ export type PersistenceDomain =
   | "budget-categories"
   | "budget-transactions"
   | "payments"
+  | "calorie-preferences"
+  | "weight"
   | "settings"
   | "onboarding"
   | "brain-dump"

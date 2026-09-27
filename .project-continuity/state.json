@@ -317,12 +317,60 @@
       "from": "task:wp4.8",
       "to": "test:wp4.6-8-automated",
       "type": "verified_by"
+    },
+    {
+      "created_at": "2026-09-27T15:24:10.659960Z",
+      "from": "phase:4",
+      "to": "task:wp4.9",
+      "type": "contains"
+    },
+    {
+      "created_at": "2026-09-27T15:24:10.756771Z",
+      "from": "phase:4",
+      "to": "task:wp4.10",
+      "type": "contains"
+    },
+    {
+      "created_at": "2026-09-27T15:24:10.864060Z",
+      "from": "task:wp4.9",
+      "to": "task:wp4.8",
+      "type": "depends_on"
+    },
+    {
+      "created_at": "2026-09-27T15:24:10.962344Z",
+      "from": "task:wp4.10",
+      "to": "task:wp4.9",
+      "type": "depends_on"
+    },
+    {
+      "created_at": "2026-09-27T15:24:11.058078Z",
+      "from": "task:wp4.9",
+      "to": "artifact:wp4.9-10-wellness",
+      "type": "produces"
+    },
+    {
+      "created_at": "2026-09-27T15:24:11.155313Z",
+      "from": "task:wp4.10",
+      "to": "artifact:wp4.9-10-wellness",
+      "type": "produces"
+    },
+    {
+      "created_at": "2026-09-27T15:24:11.250139Z",
+      "from": "task:wp4.9",
+      "to": "test:wp4.9-10-automated",
+      "type": "verified_by"
+    },
+    {
+      "created_at": "2026-09-27T15:24:11.341896Z",
+      "from": "task:wp4.10",
+      "to": "test:wp4.9-10-automated",
+      "type": "verified_by"
     }
   ],
   "meta": {
     "created_at": "2026-09-24T11:53:49.499720Z",
     "schema_version": "1.0",
-    "updated_at": "2026-09-27T14:16:59.629094Z"
+    "updated_at": "2026-09-27T15:24:11.342184Z"
   },
   "nodes": {
     "artifact:wp2.1-ownership": {
@@ -451,6 +499,20 @@
       "truth": "observed",
       "type": "artifact",
       "updated_at": "2026-09-27T14:16:50.994462Z"
+    },
+    "artifact:wp4.9-10-wellness": {
+      "id": "artifact:wp4.9-10-wellness",
+      "sources": [
+        "app/(tabs)/health.tsx",
+        "app/(tabs)/more/weight.tsx",
+        "src/features/calories",
+        "src/features/weight"
+      ],
+      "status": "current",
+      "title": "Truthful calorie intake and canonical weight history",
+      "truth": "observed",
+      "type": "artifact",
+      "updated_at": "2026-09-27T15:24:00.460625Z"
     },
     "decision:g1-partial-acceptance": {
       "id": "decision:g1-partial-acceptance",
@@ -731,6 +793,18 @@
       "type": "task",
       "updated_at": "2026-09-27T09:23:38.071312Z"
     },
+    "task:wp4.10": {
+      "id": "task:wp4.10",
+      "note": "Implementation and automated evidence pass; native restart acceptance deferred.",
+      "sources": [
+        "docs/lumo-implementation-progress.md#wp410---implementation-complete-native-verification-deferred"
+      ],
+      "status": "partial",
+      "title": "Weight",
+      "truth": "observed",
+      "type": "task",
+      "updated_at": "2026-09-27T15:24:00.368349Z"
+    },
     "task:wp4.6": {
       "id": "task:wp4.6",
       "note": "Implementation and automated evidence pass; native restart acceptance deferred.",
@@ -766,6 +840,18 @@
       "truth": "observed",
       "type": "task",
       "updated_at": "2026-09-27T14:16:50.904790Z"
+    },
+    "task:wp4.9": {
+      "id": "task:wp4.9",
+      "note": "Implementation and automated evidence pass; native restart acceptance deferred.",
+      "sources": [
+        "docs/lumo-implementation-progress.md#wp49---implementation-complete-native-verification-deferred"
+      ],
+      "status": "partial",
+      "title": "Calories",
+      "truth": "observed",
+      "type": "task",
+      "updated_at": "2026-09-27T15:24:00.276491Z"
     },
     "test:wp2.1-verification": {
       "id": "test:wp2.1-verification",
@@ -956,6 +1042,20 @@
       "truth": "observed",
       "type": "test",
       "updated_at": "2026-09-27T14:16:51.085443Z"
+    },
+    "test:wp4.9-10-automated": {
+      "actual": "typecheck passed; 216 tests passed, 0 failed; lint 0 errors and 78 warnings; doctor and web/iOS/Android exports passed; diff check passed",
+      "id": "test:wp4.9-10-automated",
+      "sources": [
+        "src/testing/calories/calorieVerticalSlice.test.ts",
+        "src/testing/weight/weightVerticalSlice.test.ts"
+      ],
+      "status": "passing",
+      "timestamp": "2026-09-28",
+      "title": "WP4.9-WP4.10 automated verification",
+      "truth": "observed",
+      "type": "test",
+      "updated_at": "2026-09-27T15:24:00.567497Z"
     }
   },
   "project": "project:lumo"

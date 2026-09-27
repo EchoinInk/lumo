@@ -8,7 +8,7 @@ const rootDir = path.resolve(__dirname, "../../..");
 export function testCanonicalOwnershipRegistryNamesAllRequiredDomains(): void {
   assertEqual(
     Object.keys(CanonicalLocalDomains).sort().join(","),
-    "budget-categories,budget-transactions,cleaning,habits,meals,onboarding,payments,settings,tasks",
+    "budget-categories,budget-transactions,calorie-preferences,cleaning,habits,meals,onboarding,payments,settings,tasks,weight",
     "the registry should inventory every active canonical local domain",
   );
 }

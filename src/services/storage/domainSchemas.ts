@@ -7,6 +7,8 @@ import { mealSlots, type WeeklyMealPlan } from "@/features/meal-plans/types/meal
 import type { BudgetCategory } from "@/features/budget/types/budgetCategory";
 import type { BudgetTransaction } from "@/features/budget/types/budgetTransaction";
 import type { Payment } from "@/features/payments/types/payment";
+import type { CaloriePreferences } from "@/features/calories/types/caloriePreferences";
+import type { WeightEntry, WeightState } from "@/features/weight/types/weight";
 import type { Habit } from "@/features/habits/types/habit";
 import type {
   FocusArea,
@@ -27,7 +29,7 @@ import type { AppSettings } from "@/store/useSettingsStore";
 import { StorageNamespaces } from "./storageAdapter";
 import { LegacyStorageKeys, StorageKeys } from "./storageKeys";
 import type { VersionedStorageDefinition } from "./versionedStorage";
-import { toLocalDateKey } from "@/src/utils/dateTime";
+import { isLocalDateKey, toLocalDateKey } from "@/src/utils/dateTime";
 
 const isObject = (value: unknown): value is Record<string, unknown> =>
   Boolean(value && typeof value === "object" && !Array.isArray(value));
@@ -153,6 +155,19 @@ export function isPayment(value: unknown): value is Payment {
     isString(value.categoryNameSnapshot) && isOneOf(value.status, ["unpaid", "linking", "paid", "undoing"]) &&
     (value.linkedExpenseId === null || isString(value.linkedExpenseId)) && (value.paidAt === null || isString(value.paidAt)) &&
     isString(value.createdAt) && isString(value.updatedAt) && isNullableString(value.deletedAt) && Number.isInteger(value.version);
+}
+export function isCaloriePreferences(value: unknown): value is CaloriePreferences {
+  return isObject(value) && (value.dailyGoalKcal === null || (Number.isSafeInteger(value.dailyGoalKcal) && (value.dailyGoalKcal as number) > 0)) &&
+    (value.updatedAt === null || isString(value.updatedAt)) && Number.isInteger(value.version);
+}
+export function isWeightEntry(value: unknown): value is WeightEntry {
+  return isObject(value) && isString(value.id) && Number.isSafeInteger(value.grams) && (value.grams as number) > 0 &&
+    isLocalDateKey(value.date) && isOptionalString(value.note) && isString(value.createdAt) && isString(value.updatedAt) &&
+    isNullableString(value.deletedAt) && Number.isInteger(value.version);
+}
+export function isWeightState(value: unknown): value is WeightState {
+  return isObject(value) && isOneOf(value.preferredUnit, ["kg", "lb"]) && Array.isArray(value.entries) &&
+    value.entries.every(isWeightEntry) && (value.updatedAt === null || isString(value.updatedAt)) && Number.isInteger(value.version);
 }
 
 const struggleAreas: readonly StruggleArea[] = ["remembering_tasks", "building_routines", "meal_planning", "budgeting", "staying_consistent", "feeling_overwhelmed"];
@@ -288,6 +303,8 @@ export const mealPlanStorageDefinition = arrayDefinition("meal-plans", StorageKe
 export const budgetCategoryStorageDefinition = arrayDefinition("budget-categories", StorageKeys.BUDGET_CATEGORIES, isBudgetCategory);
 export const budgetTransactionStorageDefinition = arrayDefinition("budget-transactions", StorageKeys.BUDGET_TRANSACTIONS, isBudgetTransaction);
 export const paymentStorageDefinition = arrayDefinition("payments", StorageKeys.PAYMENTS, isPayment);
+export const caloriePreferencesStorageDefinition: VersionedStorageDefinition<CaloriePreferences> = { domain: "calorie-preferences", key: StorageKeys.CALORIE_PREFERENCES, schemaVersion: 1, empty: () => ({ dailyGoalKcal: null, updatedAt: null, version: 0 }), validate: isCaloriePreferences };
+export const weightStorageDefinition: VersionedStorageDefinition<WeightState> = { domain: "weight", key: StorageKeys.WEIGHT, schemaVersion: 1, empty: () => ({ preferredUnit: "kg", entries: [], updatedAt: null, version: 0 }), validate: isWeightState };
 export const brainDumpStorageDefinition = arrayDefinition("brain-dump", StorageKeys.BRAIN_DUMP_ENTRIES, isBrainDumpEntry);
 export const reminderStorageDefinition = arrayDefinition("reminders", StorageKeys.REMINDERS, isReminder);
 
@@ -344,6 +361,8 @@ export const activeStorageDefinitions = {
   "budget-categories": budgetCategoryStorageDefinition,
   "budget-transactions": budgetTransactionStorageDefinition,
   payments: paymentStorageDefinition,
+  "calorie-preferences": caloriePreferencesStorageDefinition,
+  weight: weightStorageDefinition,
   settings: settingsStorageDefinition,
   onboarding: onboardingStorageDefinition,
   "brain-dump": brainDumpStorageDefinition,

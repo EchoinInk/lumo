@@ -57,6 +57,20 @@ export const CanonicalLocalDomains = {
     key: StorageKeys.PAYMENTS,
     legacy: [],
   },
+  "calorie-preferences": {
+    store: "src/features/calories/store/useCaloriePreferencesStore.ts",
+    repository: "src/features/calories/services/caloriePreferencesRepository.ts",
+    namespace: StorageNamespaces.DEFAULT,
+    key: StorageKeys.CALORIE_PREFERENCES,
+    legacy: [],
+  },
+  weight: {
+    store: "src/features/weight/store/useWeightStore.ts",
+    repository: "src/features/weight/services/weightRepository.ts",
+    namespace: StorageNamespaces.DEFAULT,
+    key: StorageKeys.WEIGHT,
+    legacy: [],
+  },
   settings: {
     store: "src/store/useSettingsStore.ts",
     repository: null,

@@ -1,5 +1,8 @@
 import { LoadingState } from "@/src/components/feedback";
 import { Card } from "@/src/components/ui/Card";
+import { BottomSheet } from "@/src/components/ui/BottomSheet";
+import { Button } from "@/src/components/ui/Button";
+import { Input } from "@/src/components/ui/Input";
 import { ProgressBar } from "@/src/components/ui/ProgressBar";
 import { Screen } from "@/src/components/ui/Screen";
 import { SectionHeader } from "@/src/components/ui/SectionHeader";
@@ -8,6 +11,16 @@ import { HabitFormModal } from "@/src/features/habits/components/HabitFormModal"
 import { HabitListItem } from "@/src/features/habits/components/HabitListItem";
 import { useHabits } from "@/src/features/habits/hooks/useHabits";
 import { CreateHabitInput, Habit } from "@/src/features/habits/types/habit";
+import { dailyCalorieSummary } from "@/src/features/calories/services/calorieSelectors";
+import { useCaloriePreferencesStore } from "@/src/features/calories/store/useCaloriePreferencesStore";
+import { MealFormSheet } from "@/src/features/meals/components/MealFormSheet";
+import { useMealStore } from "@/src/features/meals/store/useMealStore";
+import type { MealEntry, MealEntryInput } from "@/src/features/meals/types/meal";
+import { latestWeight, weightChangeGrams } from "@/src/features/weight/services/weightSelectors";
+import { formatWeight, gramsToUnit } from "@/src/features/weight/services/weightUnits";
+import { useWeightStore } from "@/src/features/weight/store/useWeightStore";
+import { useLocalDay } from "@/src/hooks/useLocalDay";
+import { addLocalDays, formatLocalDate } from "@/src/utils/dateTime";
 import { Colors, Radius, Shadows, Spacing } from "@/src/theme/tokens";
 import { LinearGradient } from "expo-linear-gradient";
 import { router } from "expo-router";
@@ -15,26 +28,17 @@ import {
   ArrowRight,
   Dumbbell,
   Flame,
-  HeartPulse,
+  ChevronLeft,
+  ChevronRight,
   Plus,
   Scale,
-  TrendingDown,
   Utensils,
 } from "lucide-react-native";
-import { useState } from "react";
+import { useMemo, useState } from "react";
 import { StyleSheet, TouchableOpacity, View } from "react-native";
 
-// Mock health data (only for non-habits)
+// Workouts remain owned by WP4.11.
 const healthSummary = {
-  calories: {
-    consumed: 1320,
-    goal: 1800,
-  },
-  weight: {
-    current: 165.2,
-    change: -2.8,
-    unit: "lbs",
-  },
   workouts: {
     thisWeek: 3,
     caloriesBurned: 600,
@@ -71,8 +75,14 @@ const healthLinks = [
 ];
 
 export default function HealthScreen() {
-  const calorieProgress =
-    (healthSummary.calories.consumed / healthSummary.calories.goal) * 100;
+  const today = useLocalDay(); const meals = useMealStore(); const caloriePreferences = useCaloriePreferencesStore(); const weight = useWeightStore();
+  const [calorieDate, setCalorieDate] = useState(today); const calorieSummary = useMemo(() => dailyCalorieSummary(meals.meals, calorieDate), [meals.meals, calorieDate]);
+  const goal = caloriePreferences.preferences.dailyGoalKcal; const calorieProgress = goal ? Math.min(100, calorieSummary.knownCalories * 100 / goal) : 0;
+  const latestWeightEntry = latestWeight(weight.state.entries); const weightChange = weightChangeGrams(weight.state.entries); const weightUnit = weight.state.preferredUnit;
+  const [mealVisible, setMealVisible] = useState(false); const [editingMeal, setEditingMeal] = useState<MealEntry | null>(null); const [mealSaving, setMealSaving] = useState(false);
+  const [goalVisible, setGoalVisible] = useState(false); const [goalInput, setGoalInput] = useState(""); const [goalError, setGoalError] = useState<string | null>(null);
+  const saveMeal = async (input: MealEntryInput) => { setMealSaving(true); try { if (editingMeal) await meals.updateMeal(editingMeal.id, input); else await meals.createMeal(input); setMealVisible(false); setEditingMeal(null); } finally { setMealSaving(false); } };
+  const saveGoal = async () => { const value = goalInput.trim() ? Number(goalInput) : null; if (value !== null && (!Number.isSafeInteger(value) || value <= 0)) return setGoalError("Enter a positive whole-number goal, or leave it blank for no goal."); try { await caloriePreferences.setGoal(value); setGoalVisible(false); } catch { setGoalError("Could not save the calorie goal."); } };
 
   // Real habits data
   const {
@@ -142,6 +152,7 @@ export default function HealthScreen() {
           </Text>
         </Card>
       )}
+      {(meals.error || caloriePreferences.error || weight.error) && <Card variant="outlined" style={styles.errorCard}><Text variant="small" color={Colors.danger} accessibilityRole="alert">{meals.error ?? caloriePreferences.error ?? weight.error}</Text></Card>}
 
       {/* Habits Summary */}
       <Card variant="elevated" style={styles.summaryCard}>
@@ -252,7 +263,7 @@ export default function HealthScreen() {
         onClose={handleModalClose}
       />
 
-      {/* Calories Summary */}
+      {/* Calories derive only from consumed meals. */}
       <Card variant="elevated" style={styles.summaryCard}>
         <View style={styles.summaryHeader}>
           <View
@@ -267,22 +278,17 @@ export default function HealthScreen() {
             <Text variant="body" style={styles.summaryLabel}>
               Calories
             </Text>
-            <Text variant="caption" color={Colors.textSecondary}>
-              Today
-            </Text>
+            <Text variant="caption" color={Colors.textSecondary}>{formatLocalDate(calorieDate, { month: "short", day: "numeric", year: "numeric" })}</Text>
           </View>
           <Text variant="subheading" style={styles.summaryValue}>
-            {healthSummary.calories.consumed}
+            {calorieSummary.knownCalories} kcal
           </Text>
         </View>
-        <ProgressBar progress={calorieProgress} height={8} variant="default" />
-        <Text
-          variant="caption"
-          color={Colors.textSecondary}
-          style={styles.goalText}
-        >
-          Goal: {healthSummary.calories.goal} kcal
-        </Text>
+        {goal !== null && <ProgressBar progress={calorieProgress} height={8} variant="default" />}
+        <Text variant="caption" color={Colors.textSecondary} style={styles.goalText}>{goal === null ? "No calorie goal configured" : `Goal: ${goal} kcal`}{calorieSummary.unknownEntryCount ? ` · ${calorieSummary.unknownEntryCount} ${calorieSummary.unknownEntryCount === 1 ? "entry has" : "entries have"} unknown calories` : ""}</Text>
+        <View style={styles.inlineActions}><Button size="sm" variant="ghost" onPress={() => setCalorieDate(addLocalDays(calorieDate, -1))} leftIcon={<ChevronLeft size={16}/>}>Earlier</Button><Button size="sm" variant="ghost" disabled={calorieDate >= today} onPress={() => setCalorieDate(addLocalDays(calorieDate, 1))} rightIcon={<ChevronRight size={16}/>}>Later</Button><Button size="sm" variant="ghost" onPress={() => { setGoalInput(goal?.toString() ?? ""); setGoalError(null); setGoalVisible(true); }}>Goal</Button></View>
+        {calorieSummary.entries.length === 0 ? <Text variant="small" color={Colors.textTertiary}>No consumed meals recorded for this date.</Text> : <View style={styles.calorieEntries}>{calorieSummary.entries.map((meal) => <View key={meal.id} style={styles.calorieRow}><View style={styles.summaryTitle}><Text variant="small">{meal.name}</Text><Text variant="small" color={Colors.textTertiary}>{meal.nutrition?.calories === undefined ? "Calories unknown" : `${meal.nutrition.calories} kcal`}</Text></View><Button size="sm" variant="ghost" onPress={() => { setEditingMeal(meal); setMealVisible(true); }}>Edit</Button><Button size="sm" variant="ghost" onPress={() => void meals.deleteMeal(meal.id).catch(() => undefined)}>Delete</Button></View>)}</View>}
+        <Button size="sm" onPress={() => { setEditingMeal(null); setMealVisible(true); }}>Quick add consumed intake</Button>
       </Card>
 
       {/* Weight Summary */}
@@ -306,17 +312,15 @@ export default function HealthScreen() {
           </View>
           <View style={styles.weightValue}>
             <Text variant="subheading" style={styles.summaryValue}>
-              {healthSummary.weight.current} {healthSummary.weight.unit}
+              {latestWeightEntry ? formatWeight(latestWeightEntry.grams, weightUnit) : "No entries"}
             </Text>
-            <View style={styles.changeBadge}>
-              <TrendingDown size={14} color={Colors.success} />
-              <Text variant="small" color={Colors.success}>
-                {healthSummary.weight.change} lbs
-              </Text>
-            </View>
+            {weightChange !== null && <Text variant="small" color={Colors.textSecondary}>{weightChange > 0 ? "+" : ""}{gramsToUnit(weightChange, weightUnit).toFixed(1)} {weightUnit} from prior entry</Text>}
           </View>
         </View>
       </Card>
+
+      <MealFormSheet visible={mealVisible} meal={editingMeal} defaultDate={calorieDate} saving={mealSaving} onClose={() => setMealVisible(false)} onSave={saveMeal}/>
+      <BottomSheet visible={goalVisible} onClose={() => setGoalVisible(false)}><Text variant="heading">Daily calorie goal</Text><View style={styles.goalForm}><Input label="Goal in kcal (optional)" value={goalInput} onChangeText={setGoalInput} keyboardType="number-pad" helperText="Leave blank to use no goal."/>{goalError && <Text color={Colors.danger} accessibilityRole="alert">{goalError}</Text>}<View style={styles.inlineActions}><Button style={styles.formButton} variant="ghost" onPress={() => setGoalVisible(false)}>Cancel</Button><Button style={styles.formButton} loading={caloriePreferences.isSaving} onPress={() => void saveGoal()}>Save</Button></View></View></BottomSheet>
 
       {/* Workout Summary */}
       <Card variant="elevated" style={styles.summaryCard}>
@@ -441,6 +445,11 @@ const styles = StyleSheet.create({
   goalText: {
     marginTop: Spacing.sm,
   },
+  inlineActions: { flexDirection: "row", gap: Spacing.sm, flexWrap: "wrap", marginTop: Spacing.sm },
+  calorieEntries: { gap: Spacing.xs, marginTop: Spacing.md },
+  calorieRow: { flexDirection: "row", alignItems: "center", gap: Spacing.xs },
+  goalForm: { gap: Spacing.md, marginTop: Spacing.lg },
+  formButton: { flex: 1 },
   linksGrid: {
     flexDirection: "row",
     flexWrap: "wrap",

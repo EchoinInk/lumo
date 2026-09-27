@@ -8,14 +8,14 @@ import { useEffect, useState } from "react";
 import { ScrollView, StyleSheet, TouchableOpacity, View } from "react-native";
 import { mealTypes, type MealEntry, type MealEntryInput, type MealNutrition, type MealType } from "../types/meal";
 
-interface Props { visible: boolean; meal?: MealEntry | null; saving: boolean; onClose: () => void; onSave: (input: MealEntryInput) => Promise<void>; }
+interface Props { visible: boolean; meal?: MealEntry | null; defaultDate?: string; saving: boolean; onClose: () => void; onSave: (input: MealEntryInput) => Promise<void>; }
 const labels: Record<MealType, string> = { breakfast: "Breakfast", lunch: "Lunch", dinner: "Dinner", snack: "Snack" };
 
-export function MealFormSheet({ visible, meal, saving, onClose, onSave }: Props) {
+export function MealFormSheet({ visible, meal, defaultDate, saving, onClose, onSave }: Props) {
   const [name, setName] = useState(""); const [description, setDescription] = useState(""); const [date, setDate] = useState<string>(toLocalDateKey()); const [mealType, setMealType] = useState<MealType>("breakfast");
   const [nutrition, setNutrition] = useState<Record<keyof MealNutrition, string>>({ calories: "", proteinGrams: "", carbohydrateGrams: "", fatGrams: "" });
   const [error, setError] = useState<string | undefined>();
-  useEffect(() => { if (!visible) return; setName(meal?.name ?? ""); setDescription(meal?.description ?? ""); setDate(meal?.date ?? toLocalDateKey()); setMealType(meal?.mealType ?? "breakfast"); setNutrition({ calories: meal?.nutrition?.calories?.toString() ?? "", proteinGrams: meal?.nutrition?.proteinGrams?.toString() ?? "", carbohydrateGrams: meal?.nutrition?.carbohydrateGrams?.toString() ?? "", fatGrams: meal?.nutrition?.fatGrams?.toString() ?? "" }); setError(undefined); }, [visible, meal]);
+  useEffect(() => { if (!visible) return; setName(meal?.name ?? ""); setDescription(meal?.description ?? ""); setDate(meal?.date ?? defaultDate ?? toLocalDateKey()); setMealType(meal?.mealType ?? "breakfast"); setNutrition({ calories: meal?.nutrition?.calories?.toString() ?? "", proteinGrams: meal?.nutrition?.proteinGrams?.toString() ?? "", carbohydrateGrams: meal?.nutrition?.carbohydrateGrams?.toString() ?? "", fatGrams: meal?.nutrition?.fatGrams?.toString() ?? "" }); setError(undefined); }, [visible, meal, defaultDate]);
   const submit = async () => {
     if (!name.trim() || !isLocalDateKey(date)) { setError(!name.trim() ? "Enter a meal name." : "Use a valid YYYY-MM-DD date."); return; }
     const parsed: MealNutrition = {};

@@ -1,4 +1,4 @@
-export type DurableMutationDomain = "tasks" | "habits" | "cleaning" | "meals" | "recipes" | "groceries" | "meal-plans" | "budget-categories" | "budget-transactions" | "payments";
+export type DurableMutationDomain = "tasks" | "habits" | "cleaning" | "meals" | "recipes" | "groceries" | "meal-plans" | "budget-categories" | "budget-transactions" | "payments" | "calorie-preferences" | "weight";
 
 export type DurableMutationOperation =
   | "create"
