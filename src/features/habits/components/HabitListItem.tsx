@@ -1,9 +1,10 @@
 import { Card } from "@/src/components/ui/Card";
 import { Text } from "@/src/components/ui/Text";
 import { Colors, Radius, Spacing } from "@/src/theme/tokens";
-import { CheckCircle2, Circle, Flame, Pencil, Trash2 } from "lucide-react-native";
-import React from "react";
+import { CheckCircle2, Circle, Flame, History, Pencil, Trash2 } from "lucide-react-native";
+import React, { useState } from "react";
 import { StyleSheet, TouchableOpacity, View } from "react-native";
+import { formatLocalDate } from "@/src/utils/dateTime";
 import { Habit, HabitColor } from "../types/habit";
 
 interface HabitListItemProps {
@@ -12,6 +13,10 @@ interface HabitListItemProps {
     onToggle: () => void;
     onEdit: () => void;
     onDelete: () => void;
+    currentStreak?: number;
+    historicalBest?: number;
+    completionHistory?: string[];
+    canToggle?: boolean;
 }
 
 const colorMap: Record<HabitColor, string> = {
@@ -30,8 +35,13 @@ export function HabitListItem({
     onToggle,
     onEdit,
     onDelete,
+    currentStreak = 0,
+    historicalBest = 0,
+    completionHistory = [],
+    canToggle = true,
 }: HabitListItemProps) {
     const habitColor = colorMap[habit.color || "blue"];
+    const [historyVisible, setHistoryVisible] = useState(false);
 
     return (
         <Card
@@ -44,6 +54,7 @@ export function HabitListItem({
             <View style={styles.habitRow}>
                 <TouchableOpacity
                     onPress={onToggle}
+                    disabled={!canToggle}
                     style={styles.habitContent}
                     activeOpacity={0.7}
                     accessibilityLabel={`${isCompleted ? "Completed" : "Pending"} habit: ${habit.title}`}
@@ -96,11 +107,11 @@ export function HabitListItem({
                             </View>
 
                             {/* Streak */}
-                            {habit.streakCount > 0 && (
+                            {currentStreak > 0 && (
                                 <View style={[styles.streakBadge, { backgroundColor: Colors.warning + "15" }]}>
                                     <Flame size={12} color={Colors.warning} />
                                     <Text variant="small" color={Colors.warning}>
-                                        {habit.streakCount} {habit.streakCount === 1 ? "day" : "days"}
+                                        {currentStreak} current
                                     </Text>
                                 </View>
                             )}
@@ -110,6 +121,16 @@ export function HabitListItem({
 
                 {/* Action Buttons */}
                 <View style={styles.habitActions}>
+                    <TouchableOpacity
+                        onPress={() => setHistoryVisible((visible) => !visible)}
+                        style={styles.actionButton}
+                        activeOpacity={0.6}
+                        accessibilityLabel={`${historyVisible ? "Hide" : "Show"} history for habit: ${habit.title}`}
+                        accessibilityRole="button"
+                    >
+                        <History size={16} color={Colors.textTertiary} />
+                    </TouchableOpacity>
+
                     <TouchableOpacity
                         onPress={onEdit}
                         style={styles.actionButton}
@@ -131,6 +152,22 @@ export function HabitListItem({
                     </TouchableOpacity>
                 </View>
             </View>
+            {historyVisible && (
+                <View style={styles.historyPanel}>
+                    <Text variant="small" color={Colors.textSecondary}>
+                        Historical best: {historicalBest} {historicalBest === 1 ? "scheduled completion" : "scheduled completions"}
+                    </Text>
+                    {completionHistory.length === 0 ? (
+                        <Text variant="small" color={Colors.textTertiary}>No completions recorded yet.</Text>
+                    ) : (
+                        completionHistory.map((date) => (
+                            <Text key={date} variant="small" color={Colors.textTertiary}>
+                                {formatLocalDate(date, { weekday: "short", month: "short", day: "numeric", year: "numeric" })}
+                            </Text>
+                        ))
+                    )}
+                </View>
+            )}
         </Card>
     );
 }
@@ -202,5 +239,12 @@ const styles = StyleSheet.create({
     },
     actionButton: {
         padding: Spacing.sm,
+    },
+    historyPanel: {
+        gap: Spacing.xs,
+        marginTop: Spacing.md,
+        paddingTop: Spacing.md,
+        borderTopWidth: 1,
+        borderTopColor: Colors.border,
     },
 });

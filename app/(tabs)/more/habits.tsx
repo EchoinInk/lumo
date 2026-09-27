@@ -12,7 +12,7 @@ import { Colors, Radius, Shadows, Spacing } from "@/src/theme/tokens";
 import { LinearGradient } from "expo-linear-gradient";
 import { Flame, Plus } from "lucide-react-native";
 import { useState } from "react";
-import { ScrollView, StyleSheet, TouchableOpacity, View } from "react-native";
+import { Alert, ScrollView, StyleSheet, TouchableOpacity, View } from "react-native";
 
 export default function HabitsScreen() {
   const {
@@ -20,7 +20,6 @@ export default function HabitsScreen() {
     todayHabits,
     completedToday,
     completionRate,
-    totalStreak,
     bestStreak,
     isHydrated,
     isLoading,
@@ -28,8 +27,12 @@ export default function HabitsScreen() {
     addHabit,
     updateHabit,
     deleteHabit,
+    restoreHabit,
     toggleHabit,
     isCompletedToday,
+    currentStreak,
+    historicalBest,
+    completionHistory,
   } = useHabits();
 
   const [isModalVisible, setIsModalVisible] = useState(false);
@@ -37,6 +40,7 @@ export default function HabitsScreen() {
   const [selectedHabit, setSelectedHabit] = useState<Habit | undefined>(
     undefined,
   );
+  const [recentlyDeleted, setRecentlyDeleted] = useState<Habit | null>(null);
 
   const handleAddPress = () => {
     setModalMode("create");
@@ -63,6 +67,32 @@ export default function HabitsScreen() {
     setSelectedHabit(undefined);
   };
 
+  const deleteWithRecovery = (habit: Habit) => {
+    Alert.alert(
+      "Delete habit?",
+      `“${habit.title}” and its dated history will be hidden. You can undo immediately.`,
+      [
+        { text: "Cancel", style: "cancel" },
+        {
+          text: "Delete",
+          style: "destructive",
+          onPress: () => {
+            void deleteHabit(habit.id)
+              .then(() => setRecentlyDeleted(habit))
+              .catch(() => undefined);
+          },
+        },
+      ],
+    );
+  };
+
+  const undoDelete = () => {
+    if (!recentlyDeleted) return;
+    void restoreHabit(recentlyDeleted.id)
+      .then(() => setRecentlyDeleted(null))
+      .catch(() => undefined);
+  };
+
   // Loading state
   if (!isHydrated) {
     return (
@@ -81,6 +111,17 @@ export default function HabitsScreen() {
           <Text variant="small" color={Colors.danger} accessibilityRole="alert">
             {error}
           </Text>
+        </Card>
+      )}
+
+      {recentlyDeleted && (
+        <Card variant="outlined" style={styles.undoCard}>
+          <Text variant="small" color={Colors.textSecondary} style={styles.undoText}>
+            “{recentlyDeleted.title}” was deleted.
+          </Text>
+          <TouchableOpacity onPress={undoDelete} accessibilityRole="button" accessibilityLabel={`Undo deletion of ${recentlyDeleted.title}`}>
+            <Text variant="body" color={Colors.purple}>Undo</Text>
+          </TouchableOpacity>
         </Card>
       )}
 
@@ -164,11 +205,38 @@ export default function HabitsScreen() {
             }}
             onEdit={() => handleEditPress(habit)}
             onDelete={() => {
-              void deleteHabit(habit.id).catch(() => undefined);
+              deleteWithRecovery(habit);
             }}
+            currentStreak={currentStreak(habit)}
+            historicalBest={historicalBest(habit)}
+            completionHistory={completionHistory(habit)}
           />
         ))}
       </ScrollView>
+
+      <SectionHeader title={`Manage all habits (${habits.length})`} />
+      {habits.length === 0 ? (
+        <Card variant="outlined" style={styles.emptyCard}>
+          <Text variant="caption" color={Colors.textTertiary}>Every habit, including off-day habits, will appear here.</Text>
+        </Card>
+      ) : (
+        <View style={styles.habitsList}>
+          {habits.map((habit) => (
+            <HabitListItem
+              key={`manage-${habit.id}`}
+              habit={habit}
+              isCompleted={isCompletedToday(habit)}
+              canToggle={todayHabits.some((item) => item.id === habit.id)}
+              onToggle={() => { void toggleHabit(habit.id).catch(() => undefined); }}
+              onEdit={() => handleEditPress(habit)}
+              onDelete={() => deleteWithRecovery(habit)}
+              currentStreak={currentStreak(habit)}
+              historicalBest={historicalBest(habit)}
+              completionHistory={completionHistory(habit)}
+            />
+          ))}
+        </View>
+      )}
 
       {/* Add Habit Button */}
       <TouchableOpacity
@@ -213,6 +281,15 @@ const styles = StyleSheet.create({
     padding: Spacing.md,
     backgroundColor: Colors.dangerSoft,
     borderColor: Colors.danger + "30",
+  },
+  undoCard: {
+    marginBottom: Spacing.md,
+    padding: Spacing.md,
+    flexDirection: "row",
+    alignItems: "center",
+  },
+  undoText: {
+    flex: 1,
   },
   summaryCard: {
     marginBottom: Spacing.xl,

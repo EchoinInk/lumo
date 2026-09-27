@@ -10,7 +10,12 @@ import {
   saveVersionedData,
 } from "@/services/storage/versionedStorage";
 import { CreateHabitInput, Habit, UpdateHabitInput } from "../types/habit";
-import { addLocalDays, toLocalDateKey } from "@/src/utils/dateTime";
+import { isLocalDateKey, toLocalDateKey } from "@/src/utils/dateTime";
+import {
+  calculateCurrentHabitStreak,
+  isHabitScheduledOn,
+  isValidWeeklyTargetDays,
+} from "./habitHistory";
 
 const mutations = new SerializedMutationQueue();
 
@@ -21,6 +26,20 @@ function loadAllHabits(): Habit[] {
 
 function persistHabits(habits: Habit[]): void {
   saveVersionedData(habitStorageDefinition, habits);
+}
+
+function validateSchedule(
+  input: Pick<CreateHabitInput, "frequency" | "targetDays">,
+  operation: DurableMutationOperation,
+): void {
+  if (!isValidWeeklyTargetDays(input.frequency, input.targetDays)) {
+    throw new DurableMutationError(
+      "habits",
+      operation,
+      "invalid-input",
+      "Weekly habits need at least one valid target day.",
+    );
+  }
 }
 
 function mutate<T>(
@@ -75,6 +94,7 @@ export async function getHabitById(id: string): Promise<Habit | null> {
 
 export async function createHabit(input: CreateHabitInput): Promise<Habit> {
   return mutate("create", () => {
+    validateSchedule(input, "create");
     const habits = loadAllHabits();
     const now = new Date().toISOString();
     const newHabit: Habit = {
@@ -105,9 +125,17 @@ export async function updateHabit(
     if (habitIndex === -1) throw unavailableHabit("update", id, habits);
 
     const current = habits[habitIndex];
+    const nextSchedule = {
+      frequency: updates.frequency ?? current.frequency,
+      targetDays: updates.frequency === "daily"
+        ? undefined
+        : updates.targetDays ?? current.targetDays,
+    };
+    validateSchedule(nextSchedule, "update");
     const updatedHabit: Habit = {
       ...current,
       ...updates,
+      ...nextSchedule,
       updatedAt: new Date().toISOString(),
       syncStatus: "pending",
       pendingSync: true,
@@ -140,6 +168,28 @@ export async function deleteHabit(id: string): Promise<void> {
   });
 }
 
+export async function restoreHabit(id: string): Promise<Habit> {
+  return mutate("update", () => {
+    const habits = loadAllHabits();
+    const habitIndex = habits.findIndex((habit) => habit.id === id && habit.deletedAt);
+    if (habitIndex === -1) throw unavailableHabit("update", id, habits);
+
+    const current = habits[habitIndex];
+    const restored: Habit = {
+      ...current,
+      deletedAt: null,
+      updatedAt: new Date().toISOString(),
+      syncStatus: "pending",
+      pendingSync: true,
+      version: (current.version ?? 0) + 1,
+    };
+    const updated = [...habits];
+    updated[habitIndex] = restored;
+    persistHabits(updated);
+    return restored;
+  });
+}
+
 export async function hardDeleteHabit(id: string): Promise<void> {
   return mutate("delete", () => {
     persistHabits(loadAllHabits().filter((habit) => habit.id !== id));
@@ -153,13 +203,21 @@ export async function completeHabit(id: string, date: string): Promise<Habit> {
     if (habitIndex === -1) throw unavailableHabit("complete", id, habits);
 
     const habit = habits[habitIndex];
+    if (!isLocalDateKey(date) || !isHabitScheduledOn(habit, date)) {
+      throw new DurableMutationError(
+        "habits",
+        "complete",
+        "invalid-input",
+        "Habit completions need a valid scheduled local date.",
+      );
+    }
     if (habit.completedDates.includes(date)) return habit;
 
     const completedDates = [...habit.completedDates, date];
     const updatedHabit: Habit = {
       ...habit,
       completedDates,
-      streakCount: calculateStreak(completedDates),
+      streakCount: calculateCurrentHabitStreak({ ...habit, completedDates }),
       updatedAt: new Date().toISOString(),
       syncStatus: "pending",
       pendingSync: true,
@@ -182,13 +240,21 @@ export async function uncompleteHabit(
     if (habitIndex === -1) throw unavailableHabit("uncomplete", id, habits);
 
     const habit = habits[habitIndex];
+    if (!isLocalDateKey(date)) {
+      throw new DurableMutationError(
+        "habits",
+        "uncomplete",
+        "invalid-input",
+        "Habit completion dates must use a valid local date.",
+      );
+    }
     if (!habit.completedDates.includes(date)) return habit;
 
     const completedDates = habit.completedDates.filter((item) => item !== date);
     const updatedHabit: Habit = {
       ...habit,
       completedDates,
-      streakCount: calculateStreak(completedDates),
+      streakCount: calculateCurrentHabitStreak({ ...habit, completedDates }),
       updatedAt: new Date().toISOString(),
       syncStatus: "pending",
       pendingSync: true,
@@ -205,19 +271,13 @@ export function calculateStreak(
   completedDates: string[],
   today: string = toLocalDateKey(),
 ): number {
-  if (completedDates.length === 0) return 0;
-
-  const sorted = [...completedDates].sort().reverse();
-  const yesterday = addLocalDays(today, -1);
-  if (!sorted.includes(today) && !sorted.includes(yesterday)) return 0;
-
-  let streak = 0;
-  let currentDate = today;
-  if (!sorted.includes(currentDate)) currentDate = yesterday;
-  while (true) {
-    if (!sorted.includes(currentDate)) break;
-    streak += 1;
-    currentDate = addLocalDays(currentDate, -1);
-  }
-  return streak;
+  return calculateCurrentHabitStreak({
+    id: "compatibility-streak",
+    title: "Compatibility streak",
+    frequency: "daily",
+    streakCount: 0,
+    completedDates,
+    createdAt: `${today}T00:00:00.000Z`,
+    updatedAt: `${today}T00:00:00.000Z`,
+  }, today);
 }

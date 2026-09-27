@@ -276,3 +276,25 @@ WP3.2 is complete. Every recurrence option exposed by the task form now advances
 | **Architecture and scope** | Task ownership remains `useTaskStore` → `taskLocalRepository` → existing versioned storage. No background scheduler, backlog materializer, cloud recurrence service, habit work or WP3.3 functionality was introduced. The unrelated pre-existing edit in `lumo-launch-master-implementation-plan.md` was not modified by this work. |
 | **Status** | **Verified** |
 | **Gate effect** | WP3.2 Definition of Done is satisfied. Phase 3 remains active; **WP3.3 has not begun.** |
+
+---
+
+## WP3.3 - Implementation complete; automated acceptance verified
+
+WP3.3 is implemented. Every active habit is exposed through one all-habits management section regardless of today's schedule, completion history is shown as persisted local dates, and current and historical-best streaks are derived from the canonical dated records using each habit's schedule.
+
+## Completion record
+
+| Field | Record |
+|---|---|
+| **Package** | **WP3.3 — Complete habit management and history** |
+| **Dependency context** | **WP3.2 remains Verified** with 168 passing tests and its recorded browser recurrence check. G2 retains the previously recorded manual evidence gaps. The product owner explicitly authorized this bounded WP3.3 package on 2026-09-27. Expo SDK 55 versioned documentation was reviewed before code changes. No WP3.4 or later Phase 3 work was started. |
+| **Management and history** | The routed More → Habits screen retains today's actionable list and adds **Manage all habits**, sourced from the canonical habit store so off-day weekly habits remain editable, inspectable and deletable. Each row can reveal a simple newest-first list of unique valid persisted completion dates plus its historical best. Off-day rows cannot create an off-schedule completion. |
+| **Truthful streak semantics** | Added shared habit-history selectors. A current streak counts consecutive scheduled completions, ignores unscheduled calendar gaps, stops at a missed scheduled day, and remains active through an unfinished current scheduled day when the previous scheduled occurrence was completed. Historical best is the longest completed scheduled run anywhere in persisted history, independent of the current run. UI metrics derive on every canonical-store or local-day refresh rather than trusting stored `streakCount`, eliminating midnight/resume staleness. |
+| **Validation and mutation safety** | Weekly create/update now requires at least one unique valid weekday in both the form and canonical repository. Completion writes require a valid scheduled local date. The existing serialized repository queue remains the single read-modify-write path; identical in-flight completion actions are deduplicated while complete and undo operations retain distinct ordering keys. No second history or statistics store was introduced. |
+| **Deletion recovery** | Deletion is soft and requires a destructive confirmation. After a successful durable delete, the screen exposes an immediate Undo action; canonical `restoreHabit` clears the deletion marker while retaining the habit's dated history, sync metadata progression and restart durability. Failed delete/restore writes leave the existing error and retry path visible. |
+| **Automated checks (2026-09-27)** | Credential-free config validation passed; TypeScript passed; tests **176 passed, 0 failed**; lint **0 errors, 77 existing warnings**; production web export passed; `git diff --check` passed. WP3.3 coverage includes scheduled/off days, missed scheduled days, yesterday-only current streak, historical best, unique dated history, weekly-day rejection, completion undo, repeated completion idempotency, concurrent different-date completion retention, deletion recovery and fresh repository reads after persistence. |
+| **Manual verification gap** | The required interactive sequence—edit an off-day habit, inspect its history, miss a scheduled day, resume it, delete/undo and terminate/reopen—was not performed on a simulator or physical device in this turn. Web export proves bundling only; it is not interactive or native restart evidence. This remains the final WP3.3 acceptance gap. |
+| **Architecture and scope** | Habit ownership remains `useHabitStore` → `habitLocalRepository` → existing versioned habit storage with `completedDates` as the only history source. No schema fork, second statistics source, cloud sync expansion, broad Health redesign, or WP3.4 planning work was introduced. The unrelated pre-existing untracked `assets/branding/` and `docs/brand/` content was not modified. |
+| **Status** | **Implementation complete; automated acceptance verified; manual acceptance pending.** |
+| **Gate effect** | WP3.3 implementation and automated Definition of Done are satisfied. Phase 3 remains active. **WP3.4 has not begun.** |

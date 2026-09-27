@@ -21,6 +21,7 @@ interface HabitActions {
     updates: UpdateHabitInput,
   ) => Promise<DurableMutationResult<Habit>>;
   deleteHabit: (id: string) => Promise<DurableMutationResult<void>>;
+  restoreHabit: (id: string) => Promise<DurableMutationResult<Habit>>;
   completeHabit: (
     id: string,
     date: string,
@@ -99,8 +100,20 @@ export const useHabitStore = create<HabitStore>((set) => ({
     }
   },
 
+  restoreHabit: async (id) => {
+    set({ error: null });
+    try {
+      const habit = await habitLocalRepository.restoreHabit(id);
+      set((state) => ({ habits: [...state.habits, habit] }));
+      return savedMutation(habit);
+    } catch (error) {
+      set({ error: "Could not restore your habit. Please try again." });
+      throw error;
+    }
+  },
+
   completeHabit: (id, date) => {
-    const key = `${id}:${date}`;
+    const key = `complete:${id}:${date}`;
     const existing = completionMutations.get(key);
     if (existing) return existing;
 
@@ -123,7 +136,7 @@ export const useHabitStore = create<HabitStore>((set) => ({
   },
 
   uncompleteHabit: (id, date) => {
-    const key = `${id}:${date}`;
+    const key = `uncomplete:${id}:${date}`;
     const existing = completionMutations.get(key);
     if (existing) return existing;
 

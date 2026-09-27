@@ -1,8 +1,13 @@
 import { useEffect, useMemo } from "react";
 import { useLocalDay } from "@/src/hooks/useLocalDay";
-import { weekdayIndexForLocalDate } from "@/src/utils/dateTime";
 import { useHabitStore } from "../store/useHabitStore";
 import { CreateHabitInput, Habit, UpdateHabitInput } from "../types/habit";
+import {
+  calculateBestHabitStreak,
+  calculateCurrentHabitStreak,
+  getHabitCompletionHistory,
+  isHabitScheduledOn,
+} from "../services/habitHistory";
 
 export function useHabits() {
   const today = useLocalDay();
@@ -15,6 +20,7 @@ export function useHabits() {
     addHabit,
     updateHabit,
     deleteHabit,
+    restoreHabit,
     completeHabit,
     uncompleteHabit,
     clearError,
@@ -27,21 +33,12 @@ export function useHabits() {
     }
   }, [isHydrated, hydrate]);
 
-  const currentDay = useMemo(() => {
-    const days = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
-    return days[weekdayIndexForLocalDate(today)];
-  }, [today]);
-
   // Filter habits that should be done today
   const todayHabits = useMemo(() => {
     return habits.filter((habit) => {
-      if (habit.frequency === "daily") return true;
-      if (habit.frequency === "weekly" && habit.targetDays) {
-        return habit.targetDays.includes(currentDay);
-      }
-      return true;
+      return isHabitScheduledOn(habit, today);
     });
-  }, [habits, currentDay]);
+  }, [habits, today]);
 
   // Habits completed today
   const completedToday = useMemo(() => {
@@ -61,13 +58,13 @@ export function useHabits() {
 
   // Total streak across all habits
   const totalStreak = useMemo(() => {
-    return habits.reduce((sum, habit) => sum + habit.streakCount, 0);
-  }, [habits]);
+    return habits.reduce((sum, habit) => sum + calculateCurrentHabitStreak(habit, today), 0);
+  }, [habits, today]);
 
   // Best streak
   const bestStreak = useMemo(() => {
     if (habits.length === 0) return 0;
-    return Math.max(...habits.map((h) => h.streakCount));
+    return Math.max(...habits.map(calculateBestHabitStreak));
   }, [habits]);
 
   // Counts
@@ -86,6 +83,10 @@ export function useHabits() {
 
   const handleDeleteHabit = async (id: string) => {
     await deleteHabit(id);
+  };
+
+  const handleRestoreHabit = async (id: string) => {
+    await restoreHabit(id);
   };
 
   const handleCompleteHabit = async (id: string) => {
@@ -137,10 +138,14 @@ export function useHabits() {
     addHabit: handleAddHabit,
     updateHabit: handleUpdateHabit,
     deleteHabit: handleDeleteHabit,
+    restoreHabit: handleRestoreHabit,
     completeHabit: handleCompleteHabit,
     uncompleteHabit: handleUncompleteHabit,
     toggleHabit,
     isCompletedToday,
+    currentStreak: (habit: Habit) => calculateCurrentHabitStreak(habit, today),
+    historicalBest: calculateBestHabitStreak,
+    completionHistory: getHabitCompletionHistory,
     clearError,
   };
 }

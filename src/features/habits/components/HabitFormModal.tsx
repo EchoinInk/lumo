@@ -1,4 +1,3 @@
-import { Button } from "@/src/components/ui/Button";
 import { Input } from "@/src/components/ui/Input";
 import { Text } from "@/src/components/ui/Text";
 import { Colors, Radius, Shadows, Spacing } from "@/src/theme/tokens";
@@ -84,7 +83,11 @@ export function HabitFormModal({
     }, [visible, mode, initialHabit, submissionGuard]);
 
     const handleSubmit = async () => {
-        if (!title.trim() || !submissionGuard.begin()) return;
+        if (!title.trim() || (frequency === "weekly" && targetDays.length === 0)) {
+            setSubmitError("Choose at least one day for a weekly habit.");
+            return;
+        }
+        if (!submissionGuard.begin()) return;
 
         setIsSubmitting(true);
         setSubmitError(null);
@@ -98,7 +101,7 @@ export function HabitFormModal({
         };
 
         // Only include targetDays for weekly habits
-        if (frequency === "weekly" && targetDays.length > 0) {
+        if (frequency === "weekly") {
             data.targetDays = targetDays;
         }
 
@@ -125,7 +128,8 @@ export function HabitFormModal({
         );
     };
 
-    const isValid = title.trim().length > 0;
+    const isValid = title.trim().length > 0 &&
+        (frequency === "daily" || targetDays.length > 0);
     const titleText = mode === "edit" ? "Edit routine" : "Add a gentle routine";
     const subtitleText = mode === "edit" ? "Make it work for you" : "Small steps, steady progress";
     const submitText = mode === "edit" ? "Save changes" : "Add routine";
@@ -281,6 +285,11 @@ export function HabitFormModal({
                                                         </TouchableOpacity>
                                                     ))}
                                                 </View>
+                                                {targetDays.length === 0 && (
+                                                    <Text variant="small" color={Colors.danger}>
+                                                        Choose at least one day.
+                                                    </Text>
+                                                )}
                                             </View>
                                         )}
 
