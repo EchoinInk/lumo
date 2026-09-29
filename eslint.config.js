@@ -15,6 +15,12 @@ module.exports = [
   {
     rules: {
       "react/no-unescaped-entities": "off",
+      // SDK 58's ESLint preset enables React Compiler rules. Lumo does not yet
+      // use the compiler, so preserve the pre-upgrade lint contract here.
+      "react-hooks/purity": "off",
+      "react-hooks/refs": "off",
+      "react-hooks/set-state-in-effect": "off",
+      "react-hooks/use-memo": "off",
     },
   },
 ];

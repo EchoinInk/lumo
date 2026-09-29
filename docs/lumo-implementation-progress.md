@@ -126,6 +126,10 @@ Host/tooling evidence:
 | **Status** | **Implementation complete; simulator/emulator acceptance verified; physical-device acceptance outstanding** |
 | **Gate effect** | Android tooling, Release compilation, emulator install, process restart and offline-launch blockers are closed. G1 remains open only for the required physical-device acceptance checks, which must be completed before G8 release qualification. |
 
+## G1 Phase Acceptance Gate - PARTIAL
+
+**PARTIAL.** Automated exports, iOS Release simulator compile/install/cold launch/restart, and Android Release emulator compile/install/cold launch/restart/offline reopen pass. The exact remaining evidence gap is physical-device smoke verification on both iOS and Android. Simulator/emulator results are not physical-device evidence. The accepted G1 deferral requires this evidence before G8 release qualification.
+
 ---
 
 ## WP2.1 - Verified
@@ -211,10 +215,10 @@ WP2.4 is implemented. Tasks, calendar, habits, planning, dashboard suggestions a
 | **Affected domains** | Task filters/forms/display/parking, calendar week navigation, habit completion/weekday/streak logic, dashboard focus suggestions, daily planning rollover/carry-over, recurrence and reminder preset/due-day logic now use the shared policy. Reminder instants are converted to the current local day before classification rather than UTC-sliced. Ambiguous legacy date/time strings are neither guessed nor reinterpreted; valid existing task date/time values round-trip unchanged, and unchanged legacy form values are preserved until explicitly edited. |
 | **Automated checks (2026-09-25)** | Credential-free config validation passed; TypeScript passed; tests **144 passed, 0 failed**; lint **0 errors, 84 existing warnings**; Expo Doctor **20/20**; web export passed; iOS Hermes production export passed; Android Hermes production export passed; `git diff --check` passed. Repository scans found no remaining `toISOString().split/slice` local-day derivation, fixed 86,400,000 millisecond day movement, due-date parsing as timestamp instants, or reminder timestamp slicing in `app/` or `src/`. |
 | **Boundary coverage** | Tests cover Auckland summer and winter midnight boundaries, UTC+14 and UTC-8 dates, Auckland DST start/end, local midnight refresh, foreground refresh, timezone changes while backgrounded, month/year/leap rollover, month-end clamping, reminder instant classification and preservation of stored valid local date/wall-time values. |
-| **Manual verification gap** | **Blocking for final G2 acceptance:** the roadmap's interactive change-device-date/timezone and background/resume check around midnight was not performed. A booted iOS simulator is available, but deterministic lifecycle and timezone tests are not represented as a manual simulator or physical-device acceptance run. |
+| **Native verification (2026-09-28)** | On the iPhone 17 Pro / iOS 26.5 simulator, Lumo was relaunched with a native process timezone override from `Pacific/Auckland` to `Pacific/Honolulu`, moving the active local day from 2026-09-28 to 2026-09-27. Health refreshed from 420 kcal / 153.5 lb to the prior-day 0 kcal / 156 lb state without retaining stale current-day values. Lumo was backgrounded by opening Settings and resumed in the same process; the 2026-09-27 state remained correct. The app was then terminated and relaunched in `Pacific/Auckland`, restoring the 2026-09-28 values. iOS 26.5 Simulator did not expose a Date & Time settings screen, so no independent wall-clock edit is claimed; automated lifecycle tests retain deterministic clock/midnight coverage. The simulator timezone was restored to `Pacific/Auckland`. |
 | **Scope preserved** | No storage key or schema-version migration, database replacement, notification delivery/reconciliation implementation, arbitrary-date picker expansion, sync protocol change or WP2.5 shared-planning-store work was introduced. |
-| **Status** | **Implementation complete; automated acceptance verified; manual acceptance blocked.** |
-| **Gate effect** | WP2.4 implementation and automated Definition of Done are satisfied. Phase 2 remains active; the manual clock/timezone resume scenario blocks final G2 acceptance. WP2.5 completion is recorded below. |
+| **Status** | **Complete; automated and native acceptance verified.** |
+| **Gate effect** | WP2.4 is satisfied. WP2.5 completion is recorded below. |
 
 ---
 
@@ -236,10 +240,10 @@ WP2.5 is implemented. Daily planning now uses a shared planning store over the e
 | **Deleted source safety** | Parked records are resolved against canonical stores at render time. Missing/deleted sources render as removable stale parked refs rather than crashing, duplicating records or resurrecting source entities. Restore/remove operations can clear a durable parking ref without requiring the source record to still exist. |
 | **Parking and restore behavior** | Parking a task writes durable parking metadata and moves its due date out; bringing it back clears the parking record and restores the task to the current local day. Parking brain-dump entries archives them through the brain-dump store and restoration clears planning parking while restoring the source entry when present. |
 | **Automated checks (2026-09-25)** | TypeScript passed; tests **153 passed, 0 failed**; lint **0 errors, 83 existing warnings**; `git diff --check` passed. New tests cover multiple planning-store subscribers, simultaneous functional updates, rollover, restart hydration, legacy parking migration, deleted source refs, recommendation-rank changes and parking/restore persistence. |
-| **Manual verification gap** | Manual navigation among Dashboard, Morning Planning, Evening Planning and Parked was not performed in this turn. The shared-store and persistence behavior is covered by automated tests, but this is not represented as an interactive device or simulator acceptance pass. |
+| **Native verification (2026-09-28)** | Navigated Dashboard → Morning Planning, selected Medium energy and `WP2.1 upgrade task`, completed the plan, edited the canonical task to `WP2.1 upgrade task planned`, and confirmed Evening Planning immediately showed the edited title. Parked the task, verified it in Parked, restored it, and verified Parked became empty. After terminate/relaunch, the edited task and shared planning state persisted. Representative task, off-day habit and Settings preference state also persisted across native restart. |
 | **Scope preserved** | No database replacement, storage-key rewrite for existing daily summaries, task/habit source-record duplication, screen redesign, cloud/sync behavior, notification delivery, recurrence repair or WP3.4 planning-core expansion was introduced. |
-| **Status** | **Implementation complete; automated acceptance verified.** |
-| **Gate effect** | WP2.5 implementation and automated Definition of Done are satisfied. Phase 2 remains active. Final G2 acceptance still inherits the WP2.4 manual clock/timezone resume gap and now also needs the WP2.5 manual navigation pass if required by the roadmap gate. |
+| **Status** | **Complete; automated and native acceptance verified.** |
+| **Gate effect** | WP2.5 and its cross-screen/restart acceptance are satisfied. |
 
 ---
 
@@ -260,7 +264,11 @@ WP2.6 is complete. Shared UI primitives now compose caller styles with their req
 | **Manual verification** | Inspected exported Dashboard, Tasks and More at a 320×568 viewport: primitive spacing/radii remained intact, horizontal filters remained scrollable, controls remained labeled, selected tabs/filters exposed state and ProgressBar appeared as a progress indicator. Installed the existing Release simulator build on the booted iPhone 17 Pro, set Dynamic Type to XXXL, relaunched and inspected Dashboard: text wrapped, Cards retained spacing, primary/secondary controls retained their targets and the screen remained vertically scrollable. The simulator text size was restored to its original Large setting. This is simulator evidence, not physical-device acceptance. |
 | **Scope preserved** | No screen redesign, feature-specific layout consolidation, storage behavior, navigation structure, haptics preference wiring or Phase 3 work was introduced. |
 | **Status** | **Verified** |
-| **Gate effect** | WP2.6 and the Card/Button regression criterion are satisfied. **G2 remains blocked** by the previously recorded WP2.4 interactive clock/timezone background-resume check, WP2.5 manual cross-screen planning navigation evidence, and the gate's native restart verification of tasks, habits and preferences. Phase 3 has not begun. |
+| **Gate effect** | WP2.6 and the Card/Button regression criterion are satisfied. The remaining G2 native/manual evidence was completed on 2026-09-28. |
+
+## G2 Phase Acceptance Gate - PASS
+
+**PASS.** WP2.4's native local-day/timezone background-resume sequence refreshed mounted day-dependent state and the simulator timezone was restored. WP2.5's Dashboard → Morning Planning → Evening Planning → Parked → restore sequence used shared canonical state and survived terminate/relaunch. Representative Tasks, Habits and Preferences state also survived native restart. This is iOS simulator evidence, not physical-device evidence.
 
 ---
 
@@ -323,9 +331,9 @@ WP3.3 is implemented. Every active habit is exposed through one all-habits manag
 | **Validation and mutation safety** | Weekly create/update now requires at least one unique valid weekday in both the form and canonical repository. Completion writes require a valid scheduled local date. The existing serialized repository queue remains the single read-modify-write path; identical in-flight completion actions are deduplicated while complete and undo operations retain distinct ordering keys. No second history or statistics store was introduced. |
 | **Deletion recovery** | Deletion is soft and requires a destructive confirmation. After a successful durable delete, the screen exposes an immediate Undo action; canonical `restoreHabit` clears the deletion marker while retaining the habit's dated history, sync metadata progression and restart durability. Failed delete/restore writes leave the existing error and retry path visible. |
 | **Automated checks (2026-09-27)** | Credential-free config validation passed; TypeScript passed; tests **176 passed, 0 failed**; lint **0 errors, 77 existing warnings**; production web export passed; `git diff --check` passed. WP3.3 coverage includes scheduled/off days, missed scheduled days, yesterday-only current streak, historical best, unique dated history, weekly-day rejection, completion undo, repeated completion idempotency, concurrent different-date completion retention, deletion recovery and fresh repository reads after persistence. |
-| **Manual verification gap** | The required interactive sequence—edit an off-day habit, inspect its history, miss a scheduled day, resume it, delete/undo and terminate/reopen—was not performed on a simulator or physical device in this turn. Web export proves bundling only; it is not interactive or native restart evidence. This remains the final WP3.3 acceptance gap. |
+| **Native verification (2026-09-28)** | Edited `WP2.1 upgrade habit` into the Tuesday-only `WP3 off-day habit` while the simulator local day was Monday; it correctly disappeared from Today but remained editable in Manage all habits. Opened its history, deleted it, restored it through Undo, terminated/relaunched, and confirmed the off-day canonical record and history state persisted. The remaining missed-day/resume scenario was then closed with a separate daily fixture, `G3 missed-day acceptance`: completed Sunday 2026-09-27, advanced past an uncompleted required Monday 2026-09-28, resumed and completed Tuesday 2026-09-29, and confirmed a one-day current streak, historical best of one scheduled completion, and canonical history containing exactly Sep 27 and Sep 29. The absent Sep 28 record broke the streak correctly. After terminate/relaunch on the simulated Sep 29 day, the one-day current streak and both dated history records persisted. Restoring normal Auckland time displayed the canonical Sep 27/Sep 29 dates and the simulator clock was confirmed as Monday 2026-09-28 NZDT. The 232-test suite separately retains scheduled/off-day gap, missed-day, history and deletion-recovery coverage. |
 | **Architecture and scope** | Habit ownership remains `useHabitStore` → `habitLocalRepository` → existing versioned habit storage with `completedDates` as the only history source. No schema fork, second statistics source, cloud sync expansion, broad Health redesign, or WP3.4 planning work was introduced. The unrelated pre-existing untracked `assets/branding/` and `docs/brand/` content was not modified. |
-| **Status** | **Implementation complete; automated acceptance verified; manual acceptance pending.** |
+| **Status** | **Complete; automated and simulator-native habit acceptance verified.** |
 | **Gate effect** | WP3.3 implementation and automated Definition of Done are satisfied. Phase 3 remains active. **WP3.4 has not begun.** |
 
 ---
@@ -425,17 +433,21 @@ WP3.8 is implemented. Obsolete production URLs no longer expose starter, mock, b
 
 ---
 
-## G3 Phase Acceptance Gate - BLOCKED
+## G3 Phase Acceptance Gate - PARTIAL
 
-Phase 3 implementation is complete through WP3.8, but G3 is **BLOCKED** because required native/manual evidence remains outstanding. The gate has not been weakened to treat automated or browser evidence as native acceptance.
+Phase 3 implementation is complete through WP3.8 and all simulator-observable native/manual acceptance passed on 2026-09-28. G3 remains **PARTIAL** only because tactile haptic suppression cannot be physically observed on Simulator.
 
 | Field | Record |
 |---|---|
 | **Automated evidence (2026-09-27)** | Credential-free native config validation passed; TypeScript passed; tests **189 passed, 0 failed**; lint **0 errors, 76 warnings**; Expo Doctor **20/20** after a network-enabled rerun (the sandboxed attempt failed only with `ENOTFOUND registry.npmjs.org`); web export passed; iOS Hermes production export passed; Android Hermes production export passed; `git diff --check` passed. |
 | **Integrated browser evidence** | Fresh/interrupted/completed onboarding, completion reload, applied onboarding presentation, Simplified Mode on/off, Calendar selected-date create → Tasks edit → Calendar completion → fresh-root persistence, week/day navigation and Today action were verified in the production web export. Static hosting did not provide client-route fallback, so direct route refresh was not counted as cold-link acceptance. |
-| **Blocking evidence gaps** | WP3.3 still requires its native habit edit/history/miss/resume/delete-undo/restart sequence. WP3.4 still requires the native Morning → task edit → Evening → Parked → restore → restart sequence. WP3.5 still requires native conversion interruption/retry/restart verification. WP3.6 still requires native Calendar termination/restart. WP3.7 still requires native haptic-off and reduced-motion behavior checks. WP3.8 still requires native direct/cold navigation and no-history back checks. Earlier G2 native/manual gaps remain recorded separately and were not reclassified here. |
-| **Result** | **BLOCKED — implementation complete; native/manual acceptance evidence outstanding.** |
-| **Stop condition** | **Phase 4 has not begun.** The next bounded action is the outstanding native G3 acceptance matrix; stop before Phase 4 until G3 passes. |
+| **Native evidence closed (2026-09-28)** | WP3.4 passed Morning selection → task edit → Evening → Parked → restore → restart. WP3.5 converted `G3 conversion thought` into exactly one durable task and retained an actionable empty source after restart; no unsafe manual fault injection was fabricated, while the automated injected-interruption retry test passed. WP3.6 created and moved `G3 calendar task` from 2026-09-28 to 2026-09-29 and retained the canonical task after restart. WP3.7 verified app Haptics off and Reduced Motion on persisted after restart. WP3.8 exercised supported native direct routes, a no-history Back fallback, terminated-app direct entry to Payments, and terminated-app `/explore` redirect to Dashboard without obsolete content. |
+| **Habit missed-day/resume evidence (2026-09-28)** | Created daily `G3 missed-day acceptance`; completed the Sep 27 scheduled occurrence; advanced across an uncompleted required Sep 28 occurrence; resumed and completed Sep 29. On Sep 29, Health showed a **1 day current streak**, history retained Sep 27 and Sep 29 with no Sep 28 completion, and **Historical best: 1 scheduled completion**. This proves the miss reset the current run, the resumed completion used the correct local date, and the prior run remained the historical best rather than being joined across the missed scheduled day. The previously verified Tuesday-only fixture remained excluded on its unscheduled days, so unscheduled gaps were not treated as misses. Terminate/relaunch retained the one-day current streak and canonical history. Normal NZDT was restored afterward. |
+| **Remaining evidence gap** | Simulator UI confirms the canonical Haptics-off preference and its supported call-path contract, but tactile output cannot be physically perceived on Simulator. Physical-device haptic confirmation remains explicitly outstanding and is not represented as passed. |
+| **Defect repaired** | Native inspection exposed that Settings toggle rows swallowed presses because their containing `TouchableOpacity` used a no-op handler. The row now invokes the same canonical toggle action as its Switch. A rebuilt Release app verified Haptics off, Reduced Motion on and Simplified Mode off. |
+| **Result** | **PASS for simulator-observable requirements; physical-device haptic confirmation outstanding. Overall G3 remains PARTIAL.** |
+| **Roadmap effect** | The roadmap permits G3 PASS only when every criterion is verified and contains no G3 physical-device deferral. The accepted device exception is expressly scoped to final G1 evidence before G8, so it cannot be silently extended to G3. |
+| **Stop condition** | Phase 6 is not permitted by the governing gate sequence while overall G3 remains PARTIAL. |
 
 ---
 
@@ -550,7 +562,7 @@ Available browser verification confirmed the exported app reaches the routed Bud
 
 Native verification on 2026-09-28 used the booted **iPhone 17 Pro / iOS 26.5 simulator** (`0BF61143-2DFC-40E8-95EA-CFD153ACBE8C`). Created **Native food** at NZD 250.50, edited it to **Native essentials** at NZD 300.75, then deleted it through the implemented soft-delete path. After terminate/relaunch the canonical visible state remained empty and the summary truthfully showed **$0.00 spent**, **$0.00 planned**, and **$0.00 income**. No fabricated actual-spend data appeared. Physical-device verification was not performed.
 
-## WP4.7 - Implementation complete; native verification deferred
+## WP4.7 - Complete; automated and native acceptance verified
 
 Budget now includes a canonical local transaction ledger at `useBudgetTransactionStore` → `budgetTransactionRepository` → versioned storage. Expense and manual-income records use exact integer NZD minor units and support durable create/edit/delete for title, amount, local civil date and category where required. Expenses retain both a stable category ID and name snapshot, so category deletion never erases historical spending. Monthly budget summaries derive planned limits from categories and actual spending/income from persisted transactions; they do not store an editable balance.
 
@@ -558,13 +570,11 @@ The routed Budget screen now presents real current-month planned, spent, remaini
 
 Automated evidence on 2026-09-28: `npm run typecheck` passed; `npm test` passed (**210 passed, 0 failed**), including exact minor-unit validation, zero-data totals, month/year boundaries, category calculations, category-deletion snapshots, edit/delete reconciliation, moving an expense across periods and hydration restart coverage. `npm run lint` passed with **0 errors** (existing warnings only); `npm run doctor`, `npm run export:web` and `npm run export:native` passed; `git diff --check` passed.
 
-Native terminate/reopen verification could not be performed: `xcrun simctl list devices available` failed because CoreSimulatorService was unavailable and no usable Simulator runtime/device set could be obtained. Repository hydration tests verify persisted restart semantics, but are not a substitute for native restart acceptance.
+Earlier CoreSimulator availability problems were resolved. Native UI verification created a NZD 500 category, a NZD 42.25 expense and NZD 100 manual income, then edited the expense date from 2026-09-28 to 2026-10-01; September actual spending immediately reconciled from NZD 42.25 to NZD 0.00 while income remained NZD 100.00.
 
-The environment blocker was resolved later on 2026-09-28. Native UI verification created a NZD 500 category, a NZD 42.25 expense and NZD 100 manual income, then edited the expense date from 2026-09-28 to 2026-10-01; September actual spending immediately reconciled from NZD 42.25 to NZD 0.00 while income remained NZD 100.00. The final terminate/relaunch check was not completed before the host UI locked, so WP4.7 native restart acceptance remains open.
+Completion evidence on 2026-09-28: edited `Native income` from NZD 100 to `Native income edited` at NZD 110; retained `Native expense` at NZD 42.25 after moving it to 2026-10-01; confirmed September derived totals excluded that October expense; terminated/relaunched; and confirmed persisted records and derived totals. **WP4.7 is Complete.**
 
-**Gate effect:** WP4.7 implementation is complete and automated reconciliation evidence passes. Its native restart acceptance remains deferred and is not claimed as passed.
-
-## WP4.8 - Implementation complete; native verification deferred
+## WP4.8 - Complete; automated and native acceptance verified
 
 Payments now replaces the fixed May 2024 sample list with a canonical versioned local domain for payee/title, exact NZD minor-unit amount, local due date, category and unpaid/paid state. The routed screen supports create/edit/delete, loading/empty/recovery/save-failure states, explicit local-only disclosure, and no bank connectivity or external payment execution.
 
@@ -572,13 +582,11 @@ Mark Paid uses an idempotent payment-owned expense ID and durable intermediate `
 
 Automated evidence on 2026-09-28: the same **210 passed, 0 failed** suite includes repeated Mark Paid idempotency, interrupted-link restart recovery, retry-safe linking, linked-expense edits and deletion, paid-payment edits, undo, paid-payment deletion and hydration restart. Typecheck, lint (0 errors), Expo Doctor, web export, iOS export, Android export and diff checks passed.
 
-Native mark-paid/reopen inspection could not be performed because CoreSimulatorService was unavailable, as recorded above. Automated hydration and interrupted-operation recovery pass, but physical/simulator restart acceptance remains deferred.
+Earlier CoreSimulator availability problems were resolved. Native UI verification created **Native power bill** for NZD 65.40, marked it paid, observed **Paid · linked to one expense**, undid payment, and marked it paid again without a second visible payment record.
 
-The environment blocker was resolved later on 2026-09-28. Native UI verification created **Native power bill** for NZD 65.40, marked it paid, observed **Paid · linked to one expense**, undid payment, and marked it paid again without a second visible payment record. The final terminate/relaunch and linked-ledger recount were not completed before the host UI locked, so WP4.8 native restart acceptance remains open.
+Completion evidence on 2026-09-28: edited the payment to `Native power bill edited` at NZD 66.40, toggled paid → unpaid → paid, and confirmed Budget contained exactly one linked NZD 66.40 expense. After terminate/relaunch and a terminated-app direct route, Payments showed `Paid · linked to one expense`; Budget remained NZD 66.40 spent with no double count. **WP4.8 is Complete.**
 
-**Gate effect:** WP4.8 implementation is complete and payment/budget consistency is verified automatically without duplicate transactions. Native restart acceptance remains open. WP4.9 / Phase 4 Prompt 4 has not begun.
-
-## WP4.9 - Implementation complete; native verification deferred
+## WP4.9 - Complete; automated and native acceptance verified
 
 Health now presents a date-aware calorie intake view derived exclusively from canonical persisted consumed-meal entries. The view totals only manually recorded calorie values for the selected local civil date, labels entries without calorie data as unknown, shows an honest empty day, and shows “No calorie goal configured” until the optional versioned preference is explicitly saved. Planned meal assignments are never queried by the calorie selector, exercise values are not subtracted, and missing nutrition is never inferred.
 
@@ -586,13 +594,11 @@ Quick intake capture opens the canonical consumed-meal form with the viewed date
 
 Automated evidence on 2026-09-28: `npm run typecheck` passed; `npm test` passed (**216 passed, 0 failed**). WP4.9 coverage verifies planned-versus-consumed separation, known and unknown calorie handling, no-goal behavior, preference validation and hydration persistence, canonical meal edits/deletes, moving intake across local-date boundaries, and recalculated daily totals. `npm run lint` passed with **0 errors and 78 existing warnings**; `npm run doctor`, `npm run export:web` and `npm run export:native` passed; `git diff --check` passed.
 
-Native terminate/reopen verification could not be performed because `xcrun simctl list devices available` again failed to connect to CoreSimulatorService and could not locate a Simulator device set. Repository/store hydration verifies persisted restart semantics automatically, but native restart acceptance is not claimed.
+Earlier CoreSimulator availability problems were resolved. The persisted consumed-meal snapshot from WP4.3 was visible after native restart and the remaining truthful-calorie checks are recorded below.
 
-The environment blocker was resolved later on 2026-09-28. The persisted consumed-meal snapshot from WP4.3 was visible after native restart, but the full Calories create/edit/delete, goal and terminate/relaunch sequence was not performed before the host UI locked. WP4.9 native acceptance therefore remains open.
+Completion evidence on 2026-09-28: Health showed 420 kcal from consumed `Native avocado toast`, disclosed one unknown-calorie consumed entry, and excluded the separately assigned planned meal. Changing the native process timezone to the prior local day showed 0 kcal rather than stale current-day intake; restoring Auckland restored 420 kcal. The truthful summary persisted after terminate/relaunch. **WP4.9 is Complete.**
 
-**Gate effect:** WP4.9 implementation is complete and every displayed calorie value is traceable to persisted consumed meals. Native restart acceptance remains deferred.
-
-## WP4.10 - Implementation complete; native verification deferred
+## WP4.10 - Complete; automated and native acceptance verified
 
 Weight now replaces its fixed current value and sample history with a canonical versioned local domain. Dated entries support create/edit/delete, optional notes, history ordering, a latest-record summary, and neutral signed change from the immediately previous dated record. The More menu and screen use “Weight Tracker”; no change direction is coloured or described as good or bad, and no target is invented.
 
@@ -600,13 +606,11 @@ Canonical weight values are stored as positive integer grams. The persisted disp
 
 Automated evidence on 2026-09-28: the same **216 passed, 0 failed** suite includes kg/lb conversion, precision and excess-precision rejection, local-date validation, date ordering, neutral trend recalculation, editing/deleting the latest entry, empty current-weight behavior, and history/unit hydration restart. Typecheck, lint (0 errors), Expo Doctor, web export, iOS export, Android export and diff checks passed.
 
-Native log/edit/reopen verification remains unavailable because CoreSimulatorService could not provide a Simulator device set. Automated durable hydration passes, but it is not a substitute for native restart acceptance.
+Earlier CoreSimulator availability problems were resolved. Native UI verification recorded 70 kg and 155 lb dated entries, displayed the deterministic conversion/history, edited the older entry to 156 lb, and deleted the newer entry before the final acceptance sequence recorded below.
 
-The environment blocker was resolved later on 2026-09-28. Native UI verification recorded 70 kg and 155 lb dated entries, displayed the deterministic conversion/history, edited the older entry to 156 lb, and deleted the newer entry. The final terminate/relaunch inspection was interrupted by the host lock, so WP4.10 native restart acceptance remains open.
+Completion evidence on 2026-09-28: created `Native current` at 154.0 lb for 2026-09-28, edited it to 153.5 lb, and confirmed current weight and the -2.5 lb change from the prior 156.0 lb entry. History ordering and values persisted after terminate/relaunch. **WP4.10 is Complete.**
 
-**Gate effect:** WP4.10 implementation is complete and all current/history/change values derive exclusively from real persisted records. Native restart acceptance remains open. WP4.11 / Phase 4 Prompt 5 has not begun.
-
-## WP4.11 - Implementation complete; native verification deferred
+## WP4.11 - Complete; automated and native acceptance verified
 
 Workouts now replaces the fixed three-record sample and disabled Log Workout control with a canonical local vertical slice. Dated records support activity, positive whole-minute duration, an optional manually supplied whole-number calorie estimate, create/edit/delete and newest-date-first history. The versioned repository serializes durable mutations; the canonical store exposes loading, hydration, saving and actionable error states; the active local-data gate preserves malformed or unsupported stored data for explicit recovery.
 
@@ -614,35 +618,31 @@ The routed Workout Log and Health weekly summary derive counts, duration and kno
 
 Automated evidence on 2026-09-28: `npm run typecheck` passed; `npm test` passed (**222 passed, 0 failed**). WP4.11 tests cover duration and date validation, inclusive-start/exclusive-end date totals, optional/unknown calories, editing, deletion and store hydration from durable storage. `npm run lint` passed with **0 errors and 78 existing warnings**; `npm run doctor`, `npm run export:web` and `npm run export:native` passed; `git diff --check` passed.
 
-Native terminate/reopen verification could not be performed. `xcrun simctl list devices available` failed because CoreSimulatorService rejected the connection and could not initialize a Simulator device set. Automated durable hydration passed, but is not represented as native restart acceptance.
+Earlier CoreSimulator availability problems were resolved. Native UI verification created **Native walk** with 30 minutes and a manually supplied 120 kcal estimate, then edited it to **Native brisk walk** and 35 minutes; weekly totals updated to 1 workout / 35 min / 120 manually recorded kcal.
 
-The environment blocker was resolved later on 2026-09-28. Native UI verification created **Native walk** with 30 minutes and a manually supplied 120 kcal estimate, then edited it to **Native brisk walk** and 35 minutes; weekly totals updated to 1 workout / 35 min / 120 manually recorded kcal. Delete and final terminate/relaunch verification were not completed before the host UI locked, so WP4.11 native acceptance remains open.
+Completion evidence on 2026-09-28: verified `Native brisk walk` at 35 minutes / 120 manually recorded kcal and the weekly 1 workout / 35 min / 120 kcal summary, then deleted the authorized test workout. Health updated to 0 workouts / 0 min, and the deletion persisted after terminate/relaunch. **WP4.11 is Complete.**
 
-**Status:** WP4.11 implementation and automated Definition of Done evidence pass; native restart acceptance remains deferred.
-
-## WP4.12 - Implementation complete; native verification deferred
+## WP4.12 - Complete; automated and native acceptance verified
 
 Body Measurements is now accessible from both Health and More. Its canonical versioned local domain supports waist, hips, chest, neck, upper-arm and thigh records with an explicit centimetre or inch unit, exact integer thousandths, local date, create/edit/delete and simple per-type newest-first history. The screen contains honest empty, loading, hydration-recovery, validation, saving and error states, with no photos, medical interpretation, diagnosis, inferred body composition or fabricated summary.
 
 Automated evidence on 2026-09-28: the same **222 passed, 0 failed** suite includes exact three-decimal parsing/formatting, centimetre/inch records, excess-precision and non-positive rejection, invalid dates, per-type filtering, edit/delete behavior and canonical store hydration from durable storage. TypeScript, lint (0 errors), Expo Doctor, web export, iOS export, Android export and diff checks passed.
 
-Native terminate/reopen verification could not be performed because CoreSimulatorService exposed no usable Simulator device set. Repository/store hydration verifies persistence semantics automatically, but does not substitute for the required native check.
+Earlier CoreSimulator availability problems were resolved. Native UI verification created an 80 cm waist record before the remaining acceptance sequence recorded below.
 
-The environment blocker was resolved later on 2026-09-28. Native UI verification created an 80 cm waist record. The requested second-unit, edit/delete and terminate/relaunch sequence was interrupted when macOS locked and computer control became unavailable. WP4.12 therefore remains open; no native restart pass is claimed.
+Completion evidence on 2026-09-28: retained the 80 cm Waist record, created Hips at 36 in for 2026-09-27, edited it to 36.5 in, and verified per-type history and displayed units. Deleted the authorized temporary Hips record; after terminate/relaunch, Waist 80 cm survived and the Hips deletion remained durable. **WP4.12 is Complete.**
 
-**Status:** WP4.12 implementation and automated Definition of Done evidence pass; native terminate/reopen acceptance remains deferred.
+## G4 Phase Acceptance Gate - PASS
 
-## G4 Phase Acceptance Gate - BLOCKED
-
-Phase 4 implementation is complete through WP4.12, but G4 is **BLOCKED**. The gate has not been weakened to treat exports or repository hydration tests as native terminate/reopen evidence.
+Phase 4 implementation and the required native acceptance matrix are complete through WP4.12. Simulator evidence is not represented as physical-device evidence.
 
 | Field | Record |
 |---|---|
 | **Twelve-domain implementation** | Cleaning, consumed meals, recipes, groceries, weekly meal planning, budget/categories, expenses/manual income, payments, calories, weight, workouts and body measurements now use real canonical local data with their required CRUD or preference operations. The Phase 4 screens no longer contain sample records or disabled future creation controls; conditional controls that require a selected date or budget category remain explicit prerequisites rather than placeholders. |
-| **Integration and regression evidence (2026-09-28)** | This verification-only pass: TypeScript passed; tests **228 passed, 0 failed**; lint reported **0 errors and 76 warnings**; iOS Hermes export passed; the current Release build compiled with Xcode 26.6 and installed on the named simulator; `git diff --check` passed. Earlier package evidence remains recorded above. |
-| **Native restart evidence** | WP4.1-WP4.4 and WP4.6 have recorded simulator terminate/reopen evidence. WP4.5 failed its native integration check due to duplicate regeneration after a generated grocery was manually renamed. WP4.7-WP4.12 retain incomplete native restart or manual sequences as recorded above. No physical-device verification is claimed. |
-| **Result** | **BLOCKED — WP4.5 has a reproduced integration defect, and WP4.7-WP4.12 retain incomplete native acceptance evidence.** |
-| **Stop condition** | Phase 5 was subsequently authorized without waiving this gate. G4 remains blocked until the outstanding native Phase 4 restart matrix is executed and recorded on an available simulator or physical device. |
+| **Integration and regression evidence (2026-09-28)** | TypeScript passed; tests **232 passed, 0 failed**; lint reported **0 errors and 76 warnings**; Expo Doctor passed **20/20**; web, iOS Hermes and Android Hermes exports passed; the Release iOS build compiled with Xcode 26.6, installed and launched on the iPhone 17 Pro / iOS 26.5 simulator; `git diff --check` passed. |
+| **Native restart evidence** | WP4.1-WP4.4 and WP4.6 retain their recorded simulator evidence. WP4.5 regeneration preserved one edited checked grocery across two regenerations and restart. WP4.7-WP4.12 completed their remaining create/edit/state/delete and terminate/relaunch sequences as recorded above. No physical-device verification is claimed. |
+| **Result** | **PASS — every required Phase 4 simulator-native acceptance item is satisfied.** |
+| **Stop condition** | G4 is closed. This pass did not begin Phase 6. |
 
 ## WP5.1 - PASS
 
@@ -654,7 +654,7 @@ Automated fixture evidence on 2026-09-28: `npm run typecheck` passed and `npm te
 
 **Result:** **PASS — each live operational metric has a documented canonical calculation and passing boundary fixtures.**
 
-## WP5.2 - Implementation complete; manual verification blocked
+## WP5.2 - PASS
 
 The active Dashboard now consumes the canonical daily progress selector and no longer derives today's task count from the entire task store. Its static time-of-day greeting was replaced with a neutral “Today” heading. Health now consumes the shared habit, calorie, weight-as-of and workout-week selectors; the ambiguous sum of every habit streak was replaced by the longest current canonical streak, no-habit state is explicit, future weight entries cannot become today's current value, and unknown workout calorie estimates remain disclosed. Budget now consumes the canonical monthly selector whose actuals come only from the transaction ledger.
 
@@ -662,22 +662,20 @@ Retired fake implementations were removed: the default `WeeklyProgress` values, 
 
 Automated evidence on 2026-09-28: TypeScript passed; tests **228 passed, 0 failed**; lint passed with **0 errors and 76 existing warnings**; Expo Doctor passed; web, iOS Hermes and Android Hermes exports passed; and `git diff --check` passed.
 
-The required representative-day manual comparison and terminate/reopen run were not completed. `xcrun simctl list devices available` failed before launch because CoreSimulatorService rejected the connection and could not initialize a Simulator device set. Exports and fixture/store hydration tests are not represented as native restart or cross-screen manual evidence.
+Representative-day native evidence on 2026-09-28 compared Dashboard, Health, Budget and their source screens. Dashboard showed 0/0 exact-today progress after a temporary today task was created, completed, edited and deleted live; future and unscheduled tasks remained excluded. Health showed the Tuesday-only habit as off-day 0/0, 420 consumed kcal plus one unknown-calorie entry, excluded the planned meal, retained 153.5 lb as current over the prior 156 lb record, and showed 0 workouts after the authorized deletion. Budget showed NZD 66.40 spent / NZD 500 planned / NZD 110 income; the paid payment linked to exactly one ledger expense. Weight and payment edits also updated mounted summaries without reload. After terminate/relaunch, Dashboard, Health and Budget still matched their canonical source records. Temporary `WP5 live task`, Hips and workout acceptance fixtures were deleted; their deletions persisted. **Result: PASS.**
 
-**Result:** **BLOCKED — implementation and automated verification pass, but the required representative-day cross-screen comparison and native restart verification remain unavailable.**
-
-## G5 Phase Acceptance Gate - BLOCKED
+## G5 Phase Acceptance Gate - PASS
 
 | Field | Record |
 |---|---|
 | **No hard-coded operational metric** | Active Dashboard, Health and Budget summary values use canonical selectors. Retired fake weekly goals and mock habit wins were removed. Automated source scanning passes. |
 | **Date and attribution correctness** | Fixtures verify that future/overdue/unscheduled/deleted tasks cannot affect today's progress, habit completion is attributed to the exact local day, workout weeks and budget months use explicit inclusive/exclusive civil-date boundaries, and future weights are excluded from current state. |
 | **Food and finance truthfulness** | Calorie summaries accept consumed meals only and preserve unknown nutrition. Budget actuals use ledger transactions only; payment-owned expenses are not separately added or double-counted. |
-| **Live source mutation evidence** | Canonical store/repository and selector tests pass, but the required representative cross-screen create/edit/delete comparison was not run manually. |
-| **Restart evidence** | Native terminate/reopen verification is blocked by the unavailable Simulator device set. Web/iOS/Android exports and automated hydration tests are not substitutes. |
-| **Earlier dependency** | The governing plan declares G4 as a WP5.1 dependency. G4 remains blocked by its outstanding native restart matrix and is not silently promoted here. |
-| **Result** | **BLOCKED — WP5.1 passes; WP5.2 implementation passes but its manual/restart acceptance is incomplete, and G4 remains open.** |
-| **Stop condition** | **Phase 6 has not begun.** The next bounded action is to execute the outstanding native restart matrices and the Phase 5 representative-day cross-screen comparison on an available simulator or physical device, then reevaluate G4 and G5. |
+| **Live source mutation evidence** | The mounted app reflected temporary task create → complete/edit → delete, weight create/edit and payment edit/state transitions without reload. The temporary records authorized for cleanup were deleted and their final state was verified. |
+| **Restart evidence** | After native terminate/relaunch, Dashboard remained 0/0 exact-today, Health remained 420 kcal / one unknown / 153.5 lb / 0 workouts, and Budget remained NZD 66.40 spent / NZD 500 planned / NZD 110 income with one payment-linked expense. |
+| **Earlier dependency** | G4 is PASS. |
+| **Result** | **PASS — WP5.1 and WP5.2 pass, including representative-day live mutation and native restart evidence.** |
+| **Stop condition** | **Phase 6 has not begun.** The governing sequence still does not permit Phase 6 while G3 remains PARTIAL. |
 
 
 ### Android native verification — 2026-09-28
@@ -698,3 +696,15 @@ Host/tooling evidence:
 - Persisted local application state remained available after relaunch.
 - Wi-Fi and mobile data were disabled, the app was force-stopped, and Lumo relaunched successfully in its local guest experience without requiring network access or account sign-in.
 - Network access was restored after verification.
+
+## WP8.0 — PARTIAL: Expo native runtime upgrade for iOS 27 / Xcode 27
+
+ECH-57 upgrades the managed native runtime from Expo SDK 55 to Expo SDK 58 preview 8 and Expo Router 58.0.9 through the supported SDK 56, 57 and 58 upgrade sequence. Expo SDK 58 remained prerelease at execution time; it was selected because Expo's standard generated iOS template provides the required first-class UIScene lifecycle for iOS 27. The application repositories, MMKV storage, Zustand stores, routes, notification behavior and product feature contracts were not replaced.
+
+`npm run native:prebuild` cleanly regenerated the native projects from Expo configuration. The generated iOS project contains `SceneDelegate: ExpoAppSceneDelegate`, a `UIApplicationSceneManifest`, and the generated AppDelegate delegates window creation and React startup to the scene lifecycle. The configured iOS deployment target is 16.4 in Expo configuration, the generated Podfile and the generated application project. No manual AppDelegate, Info.plist, Podfile, Pods-project or generated-Xcode-project patch is part of the solution.
+
+Automated compatibility evidence on 2026-09-30: native configuration validation passed; TypeScript passed; tests passed (**232 passed, 0 failed**); lint passed with **0 errors and 76 existing warnings**; Expo Doctor passed **20/20**; web, iOS Hermes and Android Hermes exports passed; Expo dependency validation reported the installed package set up to date; and an unsigned Release device build completed successfully against the iOS 27.0 SDK with Xcode 27.0 (build 27A266a).
+
+Physical-device acceptance is **BLOCKED**, so WP8.0 is not complete. Xcode 27.0 (build 27A266a) reached the connected iPhone 15 Pro Max, but signing could not proceed because this host has no Apple developer account/profile for team `G9ZMQ5KQA6` and bundle identifier `com.echoinink.lumo`. The pre-existing working-tree identifier change from `com.meltmyheart.lumo` to `com.echoinink.lumo` also prevents treating this attempt as an in-place upgrade of the previously installed app until the intended production identity is confirmed. Consequently, no physical iOS 27 launch, persisted-MMKV upgrade, foreground/background routing, notification, or Haptics-off acceptance is claimed.
+
+**Result:** **PARTIAL — generated UIScene migration and automated compatibility checks pass; signed physical-device acceptance remains blocking. STOP before WP8.1.**

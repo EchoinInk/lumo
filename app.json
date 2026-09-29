@@ -8,12 +8,13 @@
     "scheme": "lumomobile",
     "userInterfaceStyle": "automatic",
     "ios": {
-      "bundleIdentifier": "com.meltmyheart.lumo",
+      "bundleIdentifier": "com.echoinink.lumo",
       "buildNumber": "1",
-      "supportsTablet": false
+      "supportsTablet": false,
+      "appleTeamId": "G9ZMQ5KQA6"
     },
     "android": {
-      "package": "com.meltmyheart.lumo",
+      "package": "com.echoinink.lumo",
       "versionCode": 1,
       "adaptiveIcon": {
         "foregroundImage": "./assets/images/android-icon-foreground.png",
@@ -23,7 +24,20 @@
     },
     "plugins": [
       "expo-router",
-      "expo-font"
+      "expo-font",
+      [
+        "expo-build-properties",
+        {
+          "ios": {
+            "deploymentTarget": "16.4"
+          }
+        }
+      ],
+      "expo-image",
+      "expo-secure-store",
+      "expo-splash-screen",
+      "expo-status-bar",
+      "expo-web-browser"
     ],
     "experiments": {
       "typedRoutes": true

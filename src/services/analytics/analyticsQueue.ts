@@ -15,7 +15,7 @@ class AnalyticsQueue {
     flushInterval: 30000, // 30 seconds
     maxQueueSize: 100,
   };
-  private flushTimer: NodeJS.Timeout | null = null;
+  private flushTimer: ReturnType<typeof setInterval> | null = null;
 
   /**
    * Initialize queue with configuration

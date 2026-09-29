@@ -449,12 +449,18 @@
       "from": "finding:g5-manual-restart",
       "to": "phase:5",
       "type": "blocks"
+    },
+    {
+      "created_at": "2026-09-29T12:02:05.654944Z",
+      "from": "finding:wp8.0-device-signing",
+      "to": "task:wp8.0",
+      "type": "blocks"
     }
   ],
   "meta": {
     "created_at": "2026-09-24T11:53:49.499720Z",
     "schema_version": "1.0",
-    "updated_at": "2026-09-27T16:14:53.011799Z"
+    "updated_at": "2026-09-29T12:02:05.655722Z"
   },
   "nodes": {
     "artifact:wp2.1-ownership": {
@@ -650,99 +656,117 @@
     "finding:g3-native-evidence": {
       "classification": "evidence-gap",
       "id": "finding:g3-native-evidence",
+      "note": "The simulator-native missed-day/resume habit scenario passed. Only tactile Haptics-off confirmation remains, and it requires a physical device.",
       "sources": [
-        "docs/lumo-implementation-progress.md#g3-phase-acceptance-gate---blocked"
+        "docs/lumo-implementation-progress.md#g3-phase-acceptance-gate---partial",
+        "docs/lumo-launch-master-implementation-plan.md#phase-acceptance-gate--g3"
       ],
-      "status": "blocked",
-      "title": "G3 native manual acceptance remains outstanding",
+      "status": "partial",
+      "title": "G3 physical-device haptic evidence gap",
       "truth": "observed",
       "type": "finding",
-      "updated_at": "2026-09-27T09:23:38.121833Z"
+      "updated_at": "2026-09-28T04:17:29.884304Z"
     },
     "finding:g4-native-restart": {
       "id": "finding:g4-native-restart",
-      "note": "WP4.3-WP4.12 lack required native terminate/reopen evidence because CoreSimulatorService cannot initialize a device set.",
-      "severity": "blocking",
+      "note": "WP4.5 and WP4.7-WP4.12 native simulator acceptance passed on 2026-09-28; physical-device evidence is not claimed.",
+      "severity": "non-blocking",
       "sources": [
-        "docs/lumo-implementation-progress.md#g4-phase-acceptance-gate---blocked"
+        "docs/lumo-implementation-progress.md#g4-phase-acceptance-gate---pass"
       ],
-      "status": "blocked",
-      "title": "G4 native terminate/reopen evidence gap",
+      "status": "resolved",
+      "title": "G4 native terminate/reopen evidence closed",
       "truth": "observed",
       "type": "finding",
-      "updated_at": "2026-09-27T16:00:18.673198Z"
+      "updated_at": "2026-09-28T03:58:20.282008Z"
     },
     "finding:g5-manual-restart": {
       "classification": "evidence-gap",
       "id": "finding:g5-manual-restart",
-      "note": "CoreSimulatorService could not initialize a device set; required representative-day cross-screen comparison and terminate/reopen verification were not performed.",
-      "severity": "blocking",
+      "note": "Representative-day cross-screen, mounted live mutation and terminate/reopen checks passed on iOS simulator on 2026-09-28.",
+      "severity": "non-blocking",
       "sources": [
-        "docs/lumo-implementation-progress.md#g5-phase-acceptance-gate---blocked"
+        "docs/lumo-implementation-progress.md#g5-phase-acceptance-gate---pass"
       ],
-      "status": "blocked",
-      "title": "G5 representative-day and native restart evidence gap",
+      "status": "resolved",
+      "title": "G5 representative-day and native restart evidence closed",
       "truth": "observed",
       "type": "finding",
-      "updated_at": "2026-09-27T16:14:36.681025Z"
+      "updated_at": "2026-09-28T03:58:20.350154Z"
+    },
+    "finding:wp8.0-device-signing": {
+      "id": "finding:wp8.0-device-signing",
+      "note": "The connected physical device cannot be signed because the host has no account/profile for team G9ZMQ5KQA6 and com.echoinink.lumo; the identifier differs from the previously verified com.meltmyheart.lumo app, so persisted-data upgrade continuity is unverified.",
+      "severity": "blocking",
+      "sources": [
+        "linear:ECH-57",
+        "docs/lumo-implementation-progress.md#wp80--partial-expo-native-runtime-upgrade-for-ios-27--xcode-27"
+      ],
+      "status": "active",
+      "title": "WP8.0 physical iOS 27 signing and identity evidence gap",
+      "truth": "observed",
+      "type": "finding",
+      "updated_at": "2026-09-29T12:02:05.460012Z"
     },
     "phase:2": {
       "gate": "G2",
       "id": "phase:2",
+      "note": "G2 PASS: local-day/timezone background-resume, shared planning navigation, and representative Tasks/Habits/Preferences restart evidence passed on iOS simulator.",
       "sources": [
         "docs/lumo-launch-master-implementation-plan.md",
-        "user:2026-09-24-phase2-authorization"
+        "docs/lumo-implementation-progress.md#g2-phase-acceptance-gate---pass",
+        "user:2026-09-28-acceptance-debt-closure"
       ],
-      "status": "active",
+      "status": "complete",
       "title": "Local data integrity and persistence contracts",
-      "truth": "declared",
+      "truth": "observed",
       "type": "phase",
-      "updated_at": "2026-09-24T11:53:49.542334Z"
+      "updated_at": "2026-09-28T03:58:19.963739Z"
     },
     "phase:3": {
       "gate": "G3",
       "id": "phase:3",
-      "note": "Implementation complete through WP3.8; native/manual acceptance evidence outstanding.",
+      "note": "All simulator-observable G3 requirements PASS, including the native missed-scheduled-day/resume habit sequence. Only physical-device tactile haptic confirmation remains outstanding; the roadmap has no G3 device deferral, so overall G3 remains PARTIAL.",
       "sources": [
-        "docs/lumo-launch-master-implementation-plan.md",
-        "docs/lumo-implementation-progress.md#g3-phase-acceptance-gate---blocked",
-        "user:2026-09-27-phase3-remainder-authorization"
+        "docs/lumo-launch-master-implementation-plan.md#phase-acceptance-gate--g3",
+        "docs/lumo-implementation-progress.md#g3-phase-acceptance-gate---partial",
+        "user:2026-09-28-g3-habit-gap-closure"
       ],
-      "status": "blocked",
+      "status": "partial",
       "title": "Complete the existing core planner",
       "truth": "observed",
       "type": "phase",
-      "updated_at": "2026-09-27T09:23:38.167633Z"
+      "updated_at": "2026-09-28T04:17:29.569969Z"
     },
     "phase:4": {
       "gate": "G4",
       "id": "phase:4",
-      "note": "Implementation complete through WP4.12; native terminate/reopen evidence is incomplete.",
+      "note": "G4 PASS: WP4.5 and WP4.7-WP4.12 native simulator acceptance and restart matrix passed; no physical-device evidence claimed.",
       "sources": [
         "docs/lumo-launch-master-implementation-plan.md",
-        "docs/lumo-implementation-progress.md#g4-phase-acceptance-gate---blocked",
-        "user:2026-09-28-phase4-prompt5-authorization"
+        "docs/lumo-implementation-progress.md#g4-phase-acceptance-gate---pass",
+        "user:2026-09-28-acceptance-debt-closure"
       ],
-      "status": "blocked",
+      "status": "complete",
       "title": "Replace lifestyle placeholders with real local workflows",
       "truth": "observed",
       "type": "phase",
-      "updated_at": "2026-09-27T16:00:18.763843Z"
+      "updated_at": "2026-09-28T03:58:20.097590Z"
     },
     "phase:5": {
       "gate": "G5",
       "id": "phase:5",
-      "note": "WP5.1 passes; WP5.2 implementation and automated evidence pass, but representative-day cross-screen and native restart evidence are incomplete; G4 also remains blocked.",
+      "note": "G5 PASS: representative-day cross-screen, live mutation, and native restart evidence passed; G4 is PASS.",
       "sources": [
         "docs/lumo-launch-master-implementation-plan.md",
-        "docs/lumo-implementation-progress.md#g5-phase-acceptance-gate---blocked",
-        "user:2026-09-28-phase5-authorization"
+        "docs/lumo-implementation-progress.md#g5-phase-acceptance-gate---pass",
+        "user:2026-09-28-acceptance-debt-closure"
       ],
-      "status": "blocked",
+      "status": "complete",
       "title": "Make Dashboard / Health / Summaries Truthful",
       "truth": "observed",
       "type": "phase",
-      "updated_at": "2026-09-27T16:14:36.494535Z"
+      "updated_at": "2026-09-28T03:58:20.156761Z"
     },
     "project:lumo": {
       "id": "project:lumo",
@@ -1043,6 +1067,22 @@
       "truth": "observed",
       "type": "task",
       "updated_at": "2026-09-27T16:14:36.588365Z"
+    },
+    "task:wp8.0": {
+      "branch": "alex/ech-57-wp80-upgrade-expo-native-runtime-for-ios-27-xcode-27",
+      "id": "task:wp8.0",
+      "issue": "ECH-57",
+      "note": "Expo SDK 58 preview migration and generated UIScene lifecycle verified; signed physical iOS 27 launch, persisted-data upgrade, lifecycle/routing/notification regressions, and Haptics-off acceptance remain blocked by missing Apple account/provisioning and unresolved application identifier continuity.",
+      "sources": [
+        "linear:ECH-57",
+        "docs/lumo-implementation-progress.md#wp80--partial-expo-native-runtime-upgrade-for-ios-27--xcode-27",
+        "user:2026-09-30-ech-57"
+      ],
+      "status": "partial",
+      "title": "Upgrade Expo native runtime for iOS 27 / Xcode 27",
+      "truth": "observed",
+      "type": "task",
+      "updated_at": "2026-09-29T12:02:05.314469Z"
     },
     "test:wp2.1-verification": {
       "id": "test:wp2.1-verification",

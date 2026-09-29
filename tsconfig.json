@@ -4,6 +4,9 @@
     "jsx": "react-jsx",
     "strict": true,
     "skipLibCheck": true,
+    "ignoreDeprecations": "6.0",
+    "customConditions": ["react-native", "react-native-legacy-deep-imports"],
+    "types": ["node"],
     "baseUrl": ".",
     "paths": {
       "@/src/*": ["./src/*"],

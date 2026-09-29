@@ -35,7 +35,8 @@ const styles = StyleSheet.create({
     ...Shadows.lg,
   },
   overlay: {
-    ...StyleSheet.absoluteFillObject,
+    position: 'absolute',
+    inset: 0,
     backgroundColor: Colors.cardGlass,
     opacity: 0.9,
   },

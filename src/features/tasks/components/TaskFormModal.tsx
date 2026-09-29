@@ -480,16 +480,19 @@ export function TaskFormModal({
 
 const styles = StyleSheet.create({
   modalRoot: {
-    ...StyleSheet.absoluteFillObject,
+    position: 'absolute',
+    inset: 0,
     justifyContent: "flex-end",
   },
   backdrop: {
-    ...StyleSheet.absoluteFillObject,
+    position: 'absolute',
+    inset: 0,
     backgroundColor: Colors.overlay,
     zIndex: 1,
   },
   keyboardView: {
-    ...StyleSheet.absoluteFillObject,
+    position: 'absolute',
+    inset: 0,
     justifyContent: "flex-end",
     zIndex: 2,
     elevation: 2,

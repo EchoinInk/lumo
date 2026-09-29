@@ -34,9 +34,9 @@ function assert(condition, message) {
 
 assert(config.name === 'Lumo', 'Expected the resolved app name to be Lumo.');
 assert(config.slug === 'lumo-mobile', 'Expected the resolved app slug to be lumo-mobile.');
-assert(config.ios?.bundleIdentifier === 'com.meltmyheart.lumo', 'Missing iOS bundle identifier.');
+assert(config.ios?.bundleIdentifier === 'com.echoinink.lumo', 'Missing iOS bundle identifier.');
 assert(config.ios?.buildNumber === '1', 'Missing initial iOS build number.');
-assert(config.android?.package === 'com.meltmyheart.lumo', 'Missing Android package name.');
+assert(config.android?.package === 'com.echoinink.lumo', 'Missing Android package name.');
 assert(config.android?.versionCode === 1, 'Missing initial Android version code.');
 assert(!config.updates?.url, 'EAS Update must not be configured during WP1.3.');
 
