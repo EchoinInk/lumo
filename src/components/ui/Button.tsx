@@ -1,17 +1,26 @@
-import { UX } from '@/constants/ux';
-import { Colors, Radius, Shadows, Spacing, Typography } from '@/theme/tokens';
-import { mediumImpact } from '@/animations/haptics';
-import { useReducedMotion } from '@/hooks/useReducedMotion';
-import React from 'react';
-import { ActivityIndicator, Text, TouchableOpacity, TouchableOpacityProps } from 'react-native';
-import { composeStyles, interactiveTargetStyle, mergeAccessibilityState } from './uiContracts';
+import { mediumImpact } from "@/animations/haptics";
+import { UX } from "@/constants/ux";
+import { useReducedMotion } from "@/hooks/useReducedMotion";
+import { Colors, Radius, Shadows, Spacing, Typography } from "@/theme/tokens";
+import React from "react";
+import {
+  ActivityIndicator,
+  Text,
+  TouchableOpacity,
+  TouchableOpacityProps,
+} from "react-native";
+import {
+  composeStyles,
+  interactiveTargetStyle,
+  mergeAccessibilityState,
+} from "./uiContracts";
 
-type ButtonVariant = 'primary' | 'secondary' | 'ghost' | 'danger';
+type ButtonVariant = "primary" | "secondary" | "ghost" | "danger";
 
 interface ButtonProps extends TouchableOpacityProps {
   children: React.ReactNode;
   variant?: ButtonVariant;
-  size?: 'sm' | 'md' | 'lg';
+  size?: "sm" | "md" | "lg";
   loading?: boolean;
   disabled?: boolean;
   leftIcon?: React.ReactNode;
@@ -22,10 +31,10 @@ interface ButtonProps extends TouchableOpacityProps {
   reducedMotion?: boolean;
 }
 
-export function Button({ 
-  children, 
-  variant = 'primary', 
-  size = 'md',
+export function Button({
+  children,
+  variant = "primary",
+  size = "md",
   loading = false,
   disabled = false,
   leftIcon,
@@ -34,12 +43,12 @@ export function Button({
   accessibilityLabel,
   accessibilityHint,
   reducedMotion = false,
-  className = '',
+  className = "",
   onPress,
   style,
   accessibilityRole,
   accessibilityState,
-  ...props 
+  ...props
 }: ButtonProps) {
   const prefersReducedMotion = useReducedMotion();
   const handlePress = (event: any) => {
@@ -51,13 +60,13 @@ export function Button({
 
   const getSizeStyles = () => {
     switch (size) {
-      case 'sm':
+      case "sm":
         return {
           paddingHorizontal: Spacing.md,
           paddingVertical: Spacing.sm,
           minHeight: UX.touchTarget, // Ensure minimum touch target
         };
-      case 'lg':
+      case "lg":
         return {
           paddingHorizontal: Spacing.xl,
           paddingVertical: Spacing.lg,
@@ -74,24 +83,24 @@ export function Button({
 
   const getVariantStyles = () => {
     switch (variant) {
-      case 'primary':
+      case "primary":
         return {
           backgroundColor: Colors.primary,
           borderRadius: Radius.lg,
           ...Shadows.md,
         };
-      case 'secondary':
+      case "secondary":
         return {
           backgroundColor: Colors.secondary,
           borderRadius: Radius.lg,
           ...Shadows.md,
         };
-      case 'ghost':
+      case "ghost":
         return {
-          backgroundColor: 'transparent',
+          backgroundColor: "transparent",
           borderRadius: Radius.lg,
         };
-      case 'danger':
+      case "danger":
         return {
           backgroundColor: Colors.danger,
           borderRadius: Radius.lg,
@@ -109,16 +118,16 @@ export function Button({
   const getTextStyle = () => {
     const baseStyle = {
       ...Typography.body,
-      fontWeight: '600' as const,
+      fontWeight: "600" as const,
     };
 
     switch (variant) {
-      case 'primary':
-      case 'danger':
+      case "primary":
+      case "danger":
         return { ...baseStyle, color: Colors.textInverse };
-      case 'secondary':
+      case "secondary":
         return { ...baseStyle, color: Colors.textPrimary };
-      case 'ghost':
+      case "ghost":
         return { ...baseStyle, color: Colors.primary };
       default:
         return { ...baseStyle, color: Colors.textInverse };
@@ -129,8 +138,8 @@ export function Button({
 
   const getButtonLabel = () => {
     if (accessibilityLabel) return accessibilityLabel;
-    if (typeof children === 'string') return children;
-    return '';
+    if (typeof children === "string") return children;
+    return "";
   };
 
   return (
@@ -152,36 +161,36 @@ export function Button({
           ...getSizeStyles(),
           ...getVariantStyles(),
           opacity: isDisabled ? 0.5 : 1,
-          flexDirection: 'row',
-          alignItems: 'center',
-          justifyContent: 'center',
+          flexDirection: "row",
+          alignItems: "center",
+          justifyContent: "center",
           gap: Spacing.sm,
         },
         style,
-        interactiveTargetStyle,
+        interactiveTargetStyle
       )}
     >
       {loading ? (
-        <ActivityIndicator 
+        <ActivityIndicator
           color={
-            variant === 'ghost'
+            variant === "ghost"
               ? Colors.primary
-              : variant === 'secondary'
-                ? Colors.textPrimary
-                : Colors.textInverse
+              : variant === "secondary"
+              ? Colors.textPrimary
+              : Colors.textInverse
           }
           accessibilityLabel="Loading"
         />
       ) : (
         <>
           {leftIcon}
-          {typeof children === 'string' ? (
-            <Text style={getTextStyle()}>
-              {children}
-            </Text>
-          ) : (
-            children
-          )}
+          {React.Children.map(children, (child) => {
+            if (typeof child === "string" || typeof child === "number") {
+              return <Text style={getTextStyle()}>{child}</Text>;
+            }
+
+            return child;
+          })}
           {rightIcon}
         </>
       )}
