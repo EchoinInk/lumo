@@ -5,6 +5,7 @@ import {
   settingsStorageDefinition,
 } from "../services/storage/domainSchemas";
 import { loadVersionedData, saveVersionedData } from "../services/storage/versionedStorage";
+import { synchronizeReminderNotifications } from "../features/reminders/services/reminderNotificationCoordinator";
 
 export interface AppSettings {
   theme: "light" | "dark" | "system";
@@ -61,6 +62,7 @@ export const useSettingsStore = create<SettingsStore>()((set, get) => ({
         const settings = { ...get().settings, ...updates };
         saveVersionedData(settingsStorageDefinition, settings);
         set({ settings });
+        if (updates.notificationsEnabled !== undefined) void synchronizeReminderNotifications(updates.notificationsEnabled).catch(() => undefined);
       },
 
       resetSettings: () => {

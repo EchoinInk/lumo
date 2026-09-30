@@ -199,6 +199,7 @@ export function recordReminderScheduled(id: string, osNotificationId: string): P
     if (!current.enabled || current.completedAt || !current.scheduledAt) {
       throw new DurableMutationError("reminders", "update", "conflict", "Only an active scheduled reminder can record an OS notification.");
     }
+    if (current.deliveryState === "scheduled" && current.osNotificationId === identifier && !current.deliveryError) return current;
     const now = new Date().toISOString();
     const updated = { ...current, deliveryState: "scheduled" as const, osNotificationId: identifier, deliveryError: undefined, deliveryUpdatedAt: now, updatedAt: now, version: current.version + 1 };
     reminders[index] = updated;
@@ -213,6 +214,7 @@ export function recordReminderScheduling(id: string): Promise<Reminder> {
     const index = activeIndex(reminders, id);
     if (index < 0) throw new DurableMutationError("reminders", "update", "not-found", "That reminder no longer exists.");
     const current = reminders[index];
+    if (current.deliveryState === "scheduling" && !current.osNotificationId) return current;
     if (!current.enabled || current.completedAt || !current.scheduledAt || current.osNotificationId) {
       throw new DurableMutationError("reminders", "update", "conflict", "Only an active unscheduled reminder can begin OS scheduling.");
     }
@@ -230,8 +232,10 @@ export function recordReminderDeliveryFailure(id: string, message: string): Prom
     const index = activeIndex(reminders, id);
     if (index < 0) throw new DurableMutationError("reminders", "update", "not-found", "That reminder no longer exists.");
     const current = reminders[index];
+    const failureMessage = message.trim() || "Notification scheduling failed.";
+    if (current.deliveryState === "failed" && current.deliveryError === failureMessage && !current.osNotificationId) return current;
     const now = new Date().toISOString();
-    const updated = { ...current, deliveryState: "failed" as const, deliveryError: message.trim() || "Notification scheduling failed.", deliveryUpdatedAt: now, updatedAt: now, version: current.version + 1 };
+    const updated = { ...current, deliveryState: "failed" as const, osNotificationId: undefined, deliveryError: failureMessage, deliveryUpdatedAt: now, updatedAt: now, version: current.version + 1 };
     reminders[index] = updated;
     saveAll(reminders);
     return updated;
@@ -244,6 +248,7 @@ export function recordReminderCancelled(id: string): Promise<Reminder> {
     const index = reminders.findIndex((reminder) => reminder.id === id);
     if (index < 0) throw new DurableMutationError("reminders", "update", "not-found", "That reminder no longer exists.");
     const current = reminders[index];
+    if (current.deliveryState === "not-scheduled" && !current.osNotificationId && !current.deliveryError) return current;
     const now = new Date().toISOString();
     const updated = { ...current, deliveryState: "not-scheduled" as const, osNotificationId: undefined, deliveryError: undefined, deliveryUpdatedAt: now, updatedAt: now, version: current.version + 1 };
     reminders[index] = updated;

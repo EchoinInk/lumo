@@ -3,6 +3,7 @@ import { create } from "zustand";
 import { defaultReminderSettings, loadReminderSettings, persistReminderSettings } from "../services/reminderStorage";
 import * as repository from "../services/reminderRepository";
 import type { CreateReminderInput, Reminder, ReminderSettings, UpdateReminderInput } from "../types/reminder";
+import { synchronizeReminderNotifications } from "../services/reminderNotificationCoordinator";
 
 type ReminderState = { reminders: Reminder[]; settings: ReminderSettings; hasHydrated: boolean; isLoading: boolean; isSaving: boolean; hydrationError: string | null; error: string | null };
 type ReminderActions = {
@@ -32,6 +33,7 @@ export const useReminderStore = create<ReminderState & ReminderActions>((set, ge
     try {
       const reminder = await repository.createReminder({ ...input, tone: input.tone ?? get().settings.tone });
       set((state) => ({ reminders: state.reminders.some((value) => value.id === reminder.id) ? state.reminders : [reminder, ...state.reminders], isSaving: false }));
+      await synchronizeReminderNotifications(Boolean(reminder.scheduledAt && reminder.enabled)).catch(() => undefined);
       return savedMutation(reminder);
     } catch (error) {
       set({ isSaving: false, error: error instanceof Error ? error.message : "Could not save that reminder." });
@@ -43,6 +45,7 @@ export const useReminderStore = create<ReminderState & ReminderActions>((set, ge
     try {
       const reminder = await repository.updateReminder(id, input);
       set((state) => ({ reminders: state.reminders.map((value) => value.id === id ? reminder : value), isSaving: false }));
+      await synchronizeReminderNotifications(Boolean(reminder.scheduledAt && reminder.enabled)).catch(() => undefined);
       return savedMutation(reminder);
     } catch (error) {
       set({ isSaving: false, error: error instanceof Error ? error.message : "Could not save your reminder changes." });
@@ -54,6 +57,7 @@ export const useReminderStore = create<ReminderState & ReminderActions>((set, ge
     try {
       const reminder = await repository.setReminderCompleted(id, completed);
       set((state) => ({ reminders: state.reminders.map((value) => value.id === id ? reminder : value), isSaving: false }));
+      await synchronizeReminderNotifications(!completed && Boolean(reminder.scheduledAt && reminder.enabled)).catch(() => undefined);
       return savedMutation(reminder);
     } catch (error) {
       set({ isSaving: false, error: error instanceof Error ? error.message : "Could not save reminder completion." });
@@ -65,6 +69,7 @@ export const useReminderStore = create<ReminderState & ReminderActions>((set, ge
     try {
       await repository.deleteReminder(id);
       set((state) => ({ reminders: state.reminders.filter((value) => value.id !== id), isSaving: false }));
+      await synchronizeReminderNotifications(false).catch(() => undefined);
       return savedMutation(undefined);
     } catch (error) {
       set({ isSaving: false, error: error instanceof Error ? error.message : "Could not delete that reminder." });
@@ -78,6 +83,7 @@ export const useReminderStore = create<ReminderState & ReminderActions>((set, ge
       const next = { ...get().settings, ...updates };
       persistReminderSettings(next);
       set({ settings: next, isSaving: false });
+      await synchronizeReminderNotifications(Boolean(updates.remindersEnabled)).catch(() => undefined);
       return savedMutation(next);
     } catch (error) {
       set({ isSaving: false, error: "Could not save reminder settings." });

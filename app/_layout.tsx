@@ -11,6 +11,7 @@ import { useOnboardingStore } from "@/src/features/onboarding/store/useOnboardin
 import { getOnboardingRedirect } from "@/src/features/onboarding/utils/onboardingRouting";
 import { SplashScreen, Stack, router, useSegments } from "expo-router";
 import { useEffect } from "react";
+import { ReminderNotificationLifecycle } from "@/src/features/reminders/components/ReminderNotificationLifecycle";
 
 SplashScreen.preventAutoHideAsync();
 
@@ -35,6 +36,7 @@ function RootLayoutContent() {
 
   return (
     <ActiveLocalDataGate>
+      <ReminderNotificationLifecycle />
       <Stack
         screenOptions={{
           headerShown: false,
