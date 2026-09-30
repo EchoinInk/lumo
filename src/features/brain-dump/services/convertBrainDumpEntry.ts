@@ -25,7 +25,7 @@ type ConversionActions = {
     title: string;
     scheduledAt?: string;
     sourceBrainDumpId: string;
-  }) => Reminder | null;
+  }) => Promise<DurableMutationResult<Reminder>>;
 };
 
 export async function convertBrainDumpEntry(
@@ -50,13 +50,12 @@ export async function convertBrainDumpEntry(
   }
 
   if (target === "reminder") {
-    const reminder = actions.createReminder({
+    const result = await actions.createReminder({
       title: entry.text,
       scheduledAt,
       sourceBrainDumpId: conversionId,
     });
-    if (!reminder) throw new Error("Reminder conversion produced no destination.");
-    actions.completeConversion(entry.id, target, reminder.id);
+    actions.completeConversion(entry.id, target, result.value.id);
     return true;
   }
 

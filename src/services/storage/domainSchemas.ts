@@ -248,7 +248,13 @@ export function isReminder(value: unknown): value is Reminder {
   return isString(value.id) && isString(value.title) &&
     isOneOf(value.tone, ["gentle", "practical", "encouraging"]) &&
     isOptionalString(value.scheduledAt) && isOptionalString(value.completedAt) &&
-    isOptionalString(value.archivedAt) && isOptionalString(value.sourceBrainDumpId) && isString(value.createdAt) && isString(value.updatedAt);
+    isOptionalString(value.archivedAt) && isOptionalString(value.sourceBrainDumpId) &&
+    (value.enabled === undefined || typeof value.enabled === "boolean") &&
+    (value.deliveryState === undefined || isOneOf(value.deliveryState, ["not-scheduled", "scheduling", "scheduled", "cancellation-pending", "failed"])) &&
+    isOptionalString(value.osNotificationId) && isOptionalString(value.deliveryError) && isOptionalString(value.deliveryUpdatedAt) &&
+    (value.sourceRef === undefined || (isObject(value.sourceRef) && value.sourceRef.type === "brain-dump" && isString(value.sourceRef.id))) &&
+    (value.version === undefined || (Number.isInteger(value.version) && (value.version as number) >= 1)) &&
+    isString(value.createdAt) && isString(value.updatedAt);
 }
 
 export function isReminderSettings(value: unknown): value is ReminderSettings {

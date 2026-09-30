@@ -14,6 +14,13 @@ const VALID_TONES = new Set<ReminderTone>([
   "practical",
   "encouraging",
 ]);
+const VALID_DELIVERY_STATES = new Set([
+  "not-scheduled",
+  "scheduling",
+  "scheduled",
+  "cancellation-pending",
+  "failed",
+] as const);
 
 export const defaultReminderSettings: ReminderSettings = {
   remindersEnabled: true,
@@ -73,6 +80,7 @@ export function sanitizeReminder(raw: unknown): Reminder | null {
     scheduledAt: isIsoString(reminder.scheduledAt)
       ? reminder.scheduledAt
       : undefined,
+    enabled: typeof reminder.enabled === "boolean" ? reminder.enabled : true,
     tone:
       reminder.tone && VALID_TONES.has(reminder.tone)
         ? reminder.tone
@@ -83,11 +91,27 @@ export function sanitizeReminder(raw: unknown): Reminder | null {
     archivedAt: isIsoString(reminder.archivedAt)
       ? reminder.archivedAt
       : undefined,
+    deliveryState: reminder.deliveryState && VALID_DELIVERY_STATES.has(reminder.deliveryState)
+      ? reminder.deliveryState
+      : "not-scheduled",
+    osNotificationId: isIsoString(reminder.osNotificationId)
+      ? reminder.osNotificationId
+      : undefined,
+    deliveryError: isIsoString(reminder.deliveryError)
+      ? reminder.deliveryError
+      : undefined,
+    deliveryUpdatedAt: isIsoString(reminder.deliveryUpdatedAt)
+      ? reminder.deliveryUpdatedAt
+      : undefined,
     createdAt: isIsoString(reminder.createdAt) ? reminder.createdAt : now,
     updatedAt: isIsoString(reminder.updatedAt) ? reminder.updatedAt : now,
     sourceBrainDumpId: isIsoString(reminder.sourceBrainDumpId)
       ? reminder.sourceBrainDumpId
       : undefined,
+    sourceRef: reminder.sourceRef?.type === "brain-dump" && isIsoString(reminder.sourceRef.id)
+      ? reminder.sourceRef
+      : undefined,
+    version: Number.isInteger(reminder.version) ? reminder.version! : 1,
   };
 }
 

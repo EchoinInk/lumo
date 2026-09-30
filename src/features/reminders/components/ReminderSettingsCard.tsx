@@ -1,8 +1,8 @@
 import { Button } from "@/src/components/ui/Button";
 import { Card } from "@/src/components/ui/Card";
 import { Text } from "@/src/components/ui/Text";
-import { useReminders } from "@/src/features/reminders";
-import type { ReminderTone } from "@/src/features/reminders";
+import { resolveEffectiveReminderPolicy, useReminders, type ReminderTone } from "@/src/features/reminders";
+import { useSettingsStore } from "@/src/store/useSettingsStore";
 import { Colors, Radius, Spacing } from "@/src/theme/tokens";
 import { StyleSheet, TouchableOpacity, View } from "react-native";
 
@@ -10,6 +10,8 @@ const tones: ReminderTone[] = ["gentle", "practical", "encouraging"];
 
 export function ReminderSettingsCard() {
   const { settings, updateSettings } = useReminders();
+  const appNotificationsEnabled = useSettingsStore((state) => state.settings.notificationsEnabled);
+  const policy = resolveEffectiveReminderPolicy({ notificationsEnabled: appNotificationsEnabled }, settings);
 
   return (
     <Card variant="outlined" style={styles.card}>
@@ -24,7 +26,7 @@ export function ReminderSettingsCard() {
           size="sm"
           variant={settings.remindersEnabled ? "secondary" : "ghost"}
           onPress={() =>
-            updateSettings({ remindersEnabled: !settings.remindersEnabled })
+            void updateSettings({ remindersEnabled: !settings.remindersEnabled })
           }
           accessibilityRole="switch"
           accessibilityState={{ checked: settings.remindersEnabled }}
@@ -40,7 +42,7 @@ export function ReminderSettingsCard() {
             <TouchableOpacity
               key={tone}
               style={[styles.tone, isSelected && styles.toneSelected]}
-              onPress={() => updateSettings({ tone })}
+              onPress={() => void updateSettings({ tone })}
               accessibilityRole="button"
               accessibilityLabel={`${tone} reminder tone`}
               accessibilityState={{ selected: isSelected }}
@@ -55,6 +57,14 @@ export function ReminderSettingsCard() {
           );
         })}
       </View>
+
+      {!policy.enabled && (
+        <Text variant="caption" color={Colors.warning} accessibilityLiveRegion="polite">
+          {policy.reason === "app-notifications-disabled"
+            ? "Reminder delivery is off because Notifications are disabled in app preferences."
+            : "Reminder delivery is off in reminder preferences."}
+        </Text>
+      )}
 
       <View style={styles.quietHours}>
         <Text variant="label" color={Colors.textSecondary}>
@@ -81,7 +91,7 @@ export function ReminderSettingsCard() {
           size="sm"
           variant={settings.hapticsEnabled ? "secondary" : "ghost"}
           onPress={() =>
-            updateSettings({ hapticsEnabled: !settings.hapticsEnabled })
+            void updateSettings({ hapticsEnabled: !settings.hapticsEnabled })
           }
           accessibilityRole="switch"
           accessibilityState={{ checked: settings.hapticsEnabled }}

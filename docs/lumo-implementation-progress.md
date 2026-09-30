@@ -697,14 +697,48 @@ Host/tooling evidence:
 - Wi-Fi and mobile data were disabled, the app was force-stopped, and Lumo relaunched successfully in its local guest experience without requiring network access or account sign-in.
 - Network access was restored after verification.
 
-## WP8.0 — PARTIAL: Expo native runtime upgrade for iOS 27 / Xcode 27
+### WP8.0 — COMPLETE: Expo native runtime upgrade for iOS 27 / Xcode 27
 
-ECH-57 upgrades the managed native runtime from Expo SDK 55 to Expo SDK 58 preview 8 and Expo Router 58.0.9 through the supported SDK 56, 57 and 58 upgrade sequence. Expo SDK 58 remained prerelease at execution time; it was selected because Expo's standard generated iOS template provides the required first-class UIScene lifecycle for iOS 27. The application repositories, MMKV storage, Zustand stores, routes, notification behavior and product feature contracts were not replaced.
+ECH-57 upgrades the managed native runtime from Expo SDK 55 to Expo SDK 58 preview 8 and Expo Router 58.0.9 through the supported SDK 56, 57 and 58 upgrade sequence. Expo SDK 58 remained prerelease at execution time; it was selected because Expo's standard generated iOS template provides the required first-class UIScene lifecycle for iOS 27. The application repositories, MMKV storage, Zustand stores, routes, reminder behavior and product feature contracts were preserved.
 
-`npm run native:prebuild` cleanly regenerated the native projects from Expo configuration. The generated iOS project contains `SceneDelegate: ExpoAppSceneDelegate`, a `UIApplicationSceneManifest`, and the generated AppDelegate delegates window creation and React startup to the scene lifecycle. The configured iOS deployment target is 16.4 in Expo configuration, the generated Podfile and the generated application project. No manual AppDelegate, Info.plist, Podfile, Pods-project or generated-Xcode-project patch is part of the solution.
+`npm run native:prebuild` cleanly regenerated the native projects from Expo configuration. The generated iOS project contains `SceneDelegate: ExpoAppSceneDelegate`, a `UIApplicationSceneManifest`, and the generated AppDelegate delegates window creation and React startup to the scene lifecycle. The configured iOS deployment target is 16.4 in Expo configuration, the generated Podfile and the generated application project. No manual AppDelegate, Info.plist, Podfile, Pods-project or generated-Xcode-project compatibility patch is part of the solution.
 
 Automated compatibility evidence on 2026-09-30: native configuration validation passed; TypeScript passed; tests passed (**232 passed, 0 failed**); lint passed with **0 errors and 76 existing warnings**; Expo Doctor passed **20/20**; web, iOS Hermes and Android Hermes exports passed; Expo dependency validation reported the installed package set up to date; and an unsigned Release device build completed successfully against the iOS 27.0 SDK with Xcode 27.0 (build 27A266a).
 
-Physical-device acceptance is **BLOCKED**, so WP8.0 is not complete. Xcode 27.0 (build 27A266a) reached the connected iPhone 15 Pro Max, but signing could not proceed because this host has no Apple developer account/profile for team `G9ZMQ5KQA6` and bundle identifier `com.echoinink.lumo`. The pre-existing working-tree identifier change from `com.meltmyheart.lumo` to `com.echoinink.lumo` also prevents treating this attempt as an in-place upgrade of the previously installed app until the intended production identity is confirmed. Consequently, no physical iOS 27 launch, persisted-MMKV upgrade, foreground/background routing, notification, or Haptics-off acceptance is claimed.
+During physical-device validation, Apple signing and provisioning were completed for team `G9ZMQ5KQA6` and the permanent production bundle identifier `com.echoinink.lumo`. The previous `com.meltmyheart.lumo` identifier is retired and is not treated as the same application sandbox for persisted-data continuity purposes.
 
-**Result:** **PARTIAL — generated UIScene migration and automated compatibility checks pass; signed physical-device acceptance remains blocking. STOP before WP8.1.**
+The application was successfully built, installed and launched on a physical iPhone running iOS 27. Physical acceptance confirmed:
+
+- cold launch succeeds without the former UIScene lifecycle termination;
+- terminate/relaunch succeeds;
+- background-to-foreground lifecycle resumes correctly;
+- core navigation, including Calendar and Settings, works after resolving an RN 0.88/Fabric raw-text rendering issue in the shared `Button` component;
+- local persistence under the permanent `com.echoinink.lumo` identity survives relaunch;
+- MMKV/Nitro native startup works after updating to `react-native-mmkv@4.3.2` and `react-native-nitro-modules@0.37.1`;
+- Haptics ON produces app-initiated tactile feedback when iPhone System Haptics is enabled;
+- Haptics OFF suppresses app-initiated tactile feedback;
+- the Haptics OFF preference persists across relaunch.
+
+The RN 0.88/Fabric regression surfaced because mixed icon + raw-string children in the shared `Button` component were rendered as a raw text node outside a React Native `<Text>` component. The shared `Button` renderer was hardened so string and numeric children are wrapped correctly, resolving the issue across affected screens rather than patching Calendar or Settings individually.
+
+Native notification delivery is not claimed as part of WP8.0 acceptance because the pre-Phase-6 application does not yet implement `expo-notifications` or a native notification scheduling path. Notification delivery remains Phase 6 scope rather than an Expo-upgrade regression.
+
+The npm prerelease peer-resolution issue introduced by React Native `0.88.0-rc.2` was handled with the repository-level `.npmrc` setting `legacy-peer-deps=true`, allowing reproducible `npm ci` installs locally and in Vercel while Expo SDK 58 remains prerelease.
+
+**Result:** **PASS — supported Expo-generated UIScene migration is complete, automated compatibility checks pass, physical iOS 27 acceptance passes, no native compatibility hand-patches remain, and ECH-57 is complete.**
+
+## WP6.1 — IMPLEMENTED; automated acceptance verified, manual/native acceptance open
+
+ECH-46 directly authorized WP6.1 despite the earlier G5 stop record. The package remains bounded before WP6.2: no native notification dependency, OS permission prompt, scheduling adapter, reconciliation loop, quiet-hours enforcement or notification-tap routing was added.
+
+| Field | Record |
+|---|---|
+| **Package** | **WP6.1 — Complete reminder management and delivery-state contracts** |
+| **Canonical lifecycle** | The existing `useReminderStore` remains the single reminder source. A serialized reminder repository now owns validated durable create, edit, complete/reopen and soft-delete transitions. The management screen supports add, edit, enable/disable, complete/reopen and deliberate deletion. Quick Capture and Brain Dump conversion continue through the same store/repository path. |
+| **Validation and stable references** | Titles are trimmed/non-empty. Optional schedules must be valid offset-bearing timestamp instants strictly in the future. Brain Dump conversions normalize their durable conversion reference into `sourceRef` while retaining the legacy field, and concurrent duplicate conversions resolve idempotently to one destination. |
+| **Delivery contract** | Reminder records persist `not-scheduled`, `scheduling`, `scheduled`, `cancellation-pending` or `failed`, plus an optional OS notification identifier/error/timestamp. Local CRUD starts as `not-scheduled`; only an explicit OS-acceptance transition can set `scheduled`. Completion, disabling, schedule edits and deletion preserve an existing OS ID in `cancellation-pending` until cancellation is confirmed. Legacy records are normalized without inventing delivery. |
+| **Effective preference policy** | General `notificationsEnabled`, reminder-wide `remindersEnabled` and per-reminder `enabled` resolve through one effective policy with an explicit reason. The settings UI discloses when the general preference prevents reminder delivery. |
+| **Automated evidence (2026-09-30)** | TypeScript passed. Tests passed **237 passed, 0 failed**, including lifecycle, invalid/past schedules, duplicate source saves, preference resolution, OS-ID/cancellation transitions and persistence/restart. Full lint passed with **0 errors and 75 existing warnings**; the changed reminder scope is lint-clean. Native configuration validation passed. Web, iOS Hermes and Android Hermes exports passed; the existing React Native private-feature-flag fallback warning remained during native exports. Expo Doctor passed 19/20 and reported 16 pre-existing one-patch SDK 58 preview dependency mismatches. `git diff --check` passed. |
+| **Manual/native evidence** | No manual simulator or physical-device reminder-management sequence was performed in this package. Actual OS scheduling, delivery, denial, cancellation and rescheduling are WP6.2 and are not claimed. |
+| **Status** | **IMPLEMENTED / PARTIAL ACCEPTANCE — automated WP6.1 contracts pass; its manual management sequence remains open.** |
+| **Gate effect** | G6 remains open. WP6.2 was not begun. |
