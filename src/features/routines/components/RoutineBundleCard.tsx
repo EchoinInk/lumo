@@ -3,7 +3,8 @@ import { Card } from "@/src/components/ui/Card";
 import { Input } from "@/src/components/ui/Input";
 import { Text } from "@/src/components/ui/Text";
 import type { RoutineBundle } from "@/src/features/routines";
-import { Colors, Spacing } from "@/src/theme/tokens";
+import { usePalette } from "@/theme/usePalette";
+import { Spacing } from "@/src/theme/tokens";
 import { useState } from "react";
 import { StyleSheet, View } from "react-native";
 
@@ -20,6 +21,8 @@ export function RoutineBundleCard({
   isApplying = false,
   isApplied = false,
 }: RoutineBundleCardProps) {
+  const palette = usePalette();
+
   const [items, setItems] = useState(bundle.items);
   const hasActionableItem = items.some((item) => item.title.trim().length > 0);
 
@@ -34,7 +37,7 @@ export function RoutineBundleCard({
   return (
     <Card variant="outlined" style={styles.card}>
       <Text variant="subheading">{bundle.title}</Text>
-      <Text variant="body" color={Colors.textSecondary}>
+      <Text variant="body" color={palette.textSecondary}>
         {bundle.description}
       </Text>
       <View style={styles.items}>

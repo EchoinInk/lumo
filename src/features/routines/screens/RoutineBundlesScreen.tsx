@@ -11,12 +11,16 @@ import {
   starterRoutineBundles,
 } from "@/src/features/routines";
 import { useTasks } from "@/src/features/tasks";
-import { Colors, Spacing } from "@/src/theme/tokens";
+import { usePalette, createThemedValue } from "@/theme/usePalette";
+import { Spacing } from "@/src/theme/tokens";
 import { useEffect, useRef, useState } from "react";
 import { StyleSheet, View } from "react-native";
 import { RoutineBundleCard } from "../components/RoutineBundleCard";
 
 export default function RoutineBundlesScreen() {
+  const palette = usePalette();
+  const styles = useStyles();
+
   const { createTask, mutationError, tasks } = useTasks();
   const applyGuard = useRef(createRoutineBundleApplyGuard()).current;
   const releaseTimers = useRef<ReturnType<typeof setTimeout>[]>([]);
@@ -73,7 +77,7 @@ export default function RoutineBundlesScreen() {
 
       {mutationError && (
         <Card variant="outlined" style={styles.errorCard}>
-          <Text variant="small" color={Colors.danger} accessibilityRole="alert">
+          <Text variant="small" color={palette.danger} accessibilityRole="alert">
             {mutationError}
           </Text>
         </Card>
@@ -110,14 +114,14 @@ export default function RoutineBundlesScreen() {
   );
 }
 
-const styles = StyleSheet.create({
+const useStyles = createThemedValue((palette) => StyleSheet.create({
   errorCard: {
     marginBottom: Spacing.md,
     padding: Spacing.md,
-    backgroundColor: Colors.dangerSoft,
-    borderColor: Colors.danger + "30",
+    backgroundColor: palette.dangerSoft,
+    borderColor: palette.danger + "30",
   },
   list: {
     gap: Spacing.md,
   },
-});
+}));

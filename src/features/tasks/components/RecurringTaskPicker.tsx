@@ -1,7 +1,8 @@
 import { Text } from "@/src/components/ui/Text";
 import type { RecurrencePattern } from "@/src/features/tasks/types/recurrence";
 import { summarizeRecurrence } from "@/src/features/tasks/utils/recurrence";
-import { Colors, Radius, Spacing } from "@/src/theme/tokens";
+import { usePalette, createThemedValue } from "@/theme/usePalette";
+import { Radius, Spacing } from "@/src/theme/tokens";
 import { StyleSheet, TouchableOpacity, View } from "react-native";
 
 interface RecurringTaskPickerProps {
@@ -26,11 +27,14 @@ export function RecurringTaskPicker({
   value,
   onChange,
 }: RecurringTaskPickerProps) {
+  const palette = usePalette();
+  const styles = useStyles();
+
   const selectedKey = keyFor(value);
 
   return (
     <View style={styles.container}>
-      <Text variant="label" color={Colors.textSecondary}>
+      <Text variant="label" color={palette.textSecondary}>
         Repeat
       </Text>
       <View style={styles.options}>
@@ -49,7 +53,7 @@ export function RecurringTaskPicker({
             >
               <Text
                 variant="caption"
-                color={isSelected ? Colors.textInverse : Colors.textSecondary}
+                color={isSelected ? palette.textInverse : palette.textSecondary}
               >
                 {option.label}
               </Text>
@@ -61,7 +65,7 @@ export function RecurringTaskPicker({
   );
 }
 
-const styles = StyleSheet.create({
+const useStyles = createThemedValue((palette) => StyleSheet.create({
   container: {
     gap: Spacing.sm,
   },
@@ -74,13 +78,13 @@ const styles = StyleSheet.create({
     minHeight: 44,
     justifyContent: "center",
     borderWidth: 1,
-    borderColor: Colors.border,
+    borderColor: palette.border,
     borderRadius: Radius.full,
     paddingHorizontal: Spacing.md,
-    backgroundColor: Colors.card,
+    backgroundColor: palette.card,
   },
   optionSelected: {
-    backgroundColor: Colors.primary,
-    borderColor: Colors.primary,
+    backgroundColor: palette.primary,
+    borderColor: palette.primary,
   },
-});
+}));

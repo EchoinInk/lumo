@@ -11,7 +11,8 @@ import {
   reminderScheduleOptions,
   type ReminderScheduleOptionId,
 } from "@/src/features/reminders";
-import { Colors, Spacing } from "@/src/theme/tokens";
+import { usePalette } from "@/theme/usePalette";
+import { Spacing } from "@/src/theme/tokens";
 import { useState } from "react";
 import { StyleSheet, View } from "react-native";
 
@@ -34,6 +35,8 @@ export function BrainDumpEntryCard({
   onEdit,
   readOnlyNote = false,
 }: BrainDumpEntryCardProps) {
+  const palette = usePalette();
+
   const [isReviewing, setIsReviewing] = useState(false);
   const [isSchedulingReminder, setIsSchedulingReminder] = useState(false);
   const [isEditing, setIsEditing] = useState(false);
@@ -57,7 +60,7 @@ export function BrainDumpEntryCard({
           {entry.text}
         </Text>
       )}
-      <Text variant="caption" color={Colors.textTertiary}>
+      <Text variant="caption" color={palette.textTertiary}>
         Review gently when ready.
       </Text>
       <View style={styles.actions}>
@@ -91,7 +94,7 @@ export function BrainDumpEntryCard({
         <View style={styles.actions}>
           <Text
             variant="caption"
-            color={Colors.textSecondary}
+            color={palette.textSecondary}
             style={styles.actionLabel}
           >
             When should this reminder appear?
@@ -121,7 +124,7 @@ export function BrainDumpEntryCard({
         <View style={styles.actions}>
           <Text
             variant="caption"
-            color={Colors.textSecondary}
+            color={palette.textSecondary}
             style={styles.actionLabel}
           >
             Sort this thought

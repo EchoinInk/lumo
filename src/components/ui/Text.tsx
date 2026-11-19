@@ -1,4 +1,6 @@
-import { Colors, Typography } from '@/theme/tokens';
+import { brandFont } from "@/theme/brandFonts";
+import { usePalette } from "@/theme/usePalette";
+import { Typography } from '@/theme/tokens';
 import React from 'react';
 import { Text as RNText, StyleSheet, TextProps } from 'react-native';
 
@@ -12,15 +14,20 @@ interface TextPropsExtended extends TextProps {
 
 export function Text({ 
   variant = 'body', 
-  color = Colors.textPrimary,
+  color,
   textAlign = 'left',
   className = '',
   children, 
   style,
   ...props 
 }: TextPropsExtended) {
+  const palette = usePalette();
+
   const typographyStyle = Typography[variant] || Typography.body;
 
+  const caller = StyleSheet.flatten(style);
+  const display = ["display", "title", "heading", "subheading"].includes(variant);
+  const weight = caller?.fontWeight ?? typographyStyle.fontWeight;
   return (
     <RNText
       className={className}
@@ -28,10 +35,11 @@ export function Text({
         styles.text,
         {
           ...typographyStyle,
-          color,
+          color: color ?? palette.textPrimary,
           textAlign,
         },
         style,
+        !caller?.fontFamily && brandFont(display, weight === "bold" || Number(weight) >= 600),
       ]}
       {...props}
     >

@@ -3,7 +3,8 @@ import { View, StyleSheet } from 'react-native';
 import { Card } from '@/components/ui/Card';
 import { Text } from '@/components/ui/Text';
 import { ProgressBar } from '@/components/ui/ProgressBar';
-import { Colors, Spacing } from '@/theme/tokens';
+import { usePalette } from "@/theme/usePalette";
+import { Spacing } from '@/theme/tokens';
 
 interface ProgressCardProps {
   title: string;
@@ -13,13 +14,15 @@ interface ProgressCardProps {
 }
 
 export function ProgressCard({ title, progress, subtitle, variant = 'default' }: ProgressCardProps) {
+  const palette = usePalette();
+
   return (
     <Card variant="elevated" padding="lg" style={styles.container}>
       <Text variant="subheading" style={styles.title}>
         {title}
       </Text>
       {subtitle && (
-        <Text variant="caption" color={Colors.textSecondary} style={styles.subtitle}>
+        <Text variant="caption" color={palette.textSecondary} style={styles.subtitle}>
           {subtitle}
         </Text>
       )}

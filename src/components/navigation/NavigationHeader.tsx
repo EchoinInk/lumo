@@ -2,7 +2,8 @@ import React from 'react';
 import { View, StyleSheet, TouchableOpacity } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Text } from '@/components/ui/Text';
-import { Colors, Spacing } from '@/theme/tokens';
+import { usePalette, createThemedValue } from "@/theme/usePalette";
+import { Spacing } from '@/theme/tokens';
 
 interface NavigationHeaderProps {
   title?: string;
@@ -12,6 +13,9 @@ interface NavigationHeaderProps {
 }
 
 export function NavigationHeader({ title, subtitle, leftAction, rightAction }: NavigationHeaderProps) {
+  const palette = usePalette();
+  const styles = useStyles();
+
   const insets = useSafeAreaInsets();
 
   return (
@@ -25,7 +29,7 @@ export function NavigationHeader({ title, subtitle, leftAction, rightAction }: N
             </Text>
           )}
           {subtitle && (
-            <Text variant="caption" color={Colors.textSecondary} textAlign="center">
+            <Text variant="caption" color={palette.textSecondary} textAlign="center">
               {subtitle}
             </Text>
           )}
@@ -36,11 +40,11 @@ export function NavigationHeader({ title, subtitle, leftAction, rightAction }: N
   );
 }
 
-const styles = StyleSheet.create({
+const useStyles = createThemedValue((palette) => StyleSheet.create({
   container: {
-    backgroundColor: Colors.card,
+    backgroundColor: palette.card,
     borderBottomWidth: 1,
-    borderBottomColor: Colors.borderLight,
+    borderBottomColor: palette.borderLight,
     paddingHorizontal: Spacing.lg,
     paddingBottom: Spacing.md,
   },
@@ -61,4 +65,4 @@ const styles = StyleSheet.create({
   title: {
     marginBottom: Spacing.xs,
   },
-});
+}));

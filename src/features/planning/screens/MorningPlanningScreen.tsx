@@ -86,8 +86,8 @@ export function MorningPlanningScreen() {
 
   return (
     <Screen scrollable padded>
-      <ScreenBackButton fallbackPath="/(tabs)" />
-      <SectionHeader
+      <ScreenBackButton showWordmark fallbackPath="/(tabs)" />
+      <SectionHeader screenTitle
         title="Morning planning"
         subtitle={
           flow.morningComplete

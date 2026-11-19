@@ -5,7 +5,7 @@
  * For smooth navigation between screens with card continuity.
  */
 
-import { Colors } from "@/theme/colors";
+import { usePalette } from "@/theme/usePalette";
 import React from "react";
 import { StyleSheet, ViewStyle } from "react-native";
 import Animated from "react-native-reanimated";
@@ -23,10 +23,12 @@ export const SharedTransitionCard: React.FC<SharedTransitionCardProps> = ({
   sharedTransitionTag,
   testID,
 }) => {
+  const palette = usePalette();
+
   const cardStyle = [
     styles.card,
     {
-      backgroundColor: Colors.card,
+      backgroundColor: palette.card,
       shadowColor: "#000",
     },
     style,

@@ -1,3 +1,4 @@
+import { createThemedValue } from "@/theme/usePalette";
 /**
  * Offline Banner
  *
@@ -15,6 +16,8 @@ import { View, StyleSheet } from "react-native";
 import { Text } from "../ui/Text";
 
 export function OfflineBanner(): React.JSX.Element {
+  const styles = useStyles();
+
   return (
     <View style={styles.container}>
       <Text variant="body" style={styles.message}>
@@ -24,9 +27,9 @@ export function OfflineBanner(): React.JSX.Element {
   );
 }
 
-const styles = StyleSheet.create({
+const useStyles = createThemedValue((palette) => StyleSheet.create({
   container: {
-    backgroundColor: "#1a1a1f",
+    backgroundColor: palette.taskPanel,
     borderRadius: 12,
     padding: 16,
     marginHorizontal: 16,
@@ -35,4 +38,4 @@ const styles = StyleSheet.create({
   message: {
     textAlign: "center",
   },
-});
+}));

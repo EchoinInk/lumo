@@ -1,3 +1,4 @@
+import { createThemedValue } from "@/theme/usePalette";
 import React from 'react';
 import { View, StyleSheet } from 'react-native';
 
@@ -6,12 +7,14 @@ interface ListSeparatorProps {
 }
 
 export function ListSeparator({ height = 1 }: ListSeparatorProps) {
+  const styles = useStyles();
+
   return <View style={[styles.separator, { height }]} />;
 }
 
-const styles = StyleSheet.create({
+const useStyles = createThemedValue((palette) => StyleSheet.create({
   separator: {
-    backgroundColor: '#E0E1E6',
+    backgroundColor: palette.border,
     marginHorizontal: 16,
   },
-});
+}));

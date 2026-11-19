@@ -7,7 +7,7 @@
 
 import { selectionHaptic } from "@/animations/haptics";
 import { ScalePress } from "@/components/animated/ScalePress";
-import { Colors } from "@/theme/colors";
+import { usePalette, createThemedValue } from "@/theme/usePalette";
 import React from "react";
 import { StyleSheet, Text, View } from "react-native";
 
@@ -28,6 +28,9 @@ export const PreferenceSelector: React.FC<PreferenceSelectorProps> = ({
   selectedId,
   onSelect,
 }) => {
+  const palette = usePalette();
+  const styles = useStyles();
+
   return (
     <View style={styles.container}>
       {options.map((option) => {
@@ -47,9 +50,9 @@ export const PreferenceSelector: React.FC<PreferenceSelectorProps> = ({
                 styles.option,
                 {
                   backgroundColor: isSelected
-                    ? Colors.primarySoft
-                    : Colors.card,
-                  borderColor: isSelected ? Colors.primary : Colors.border,
+                    ? palette.primarySoft
+                    : palette.card,
+                  borderColor: isSelected ? palette.primary : palette.border,
                 },
               ]}
             >
@@ -58,9 +61,9 @@ export const PreferenceSelector: React.FC<PreferenceSelectorProps> = ({
                   style={[
                     styles.radioButton,
                     {
-                      borderColor: isSelected ? Colors.primary : Colors.border,
+                      borderColor: isSelected ? palette.primary : palette.border,
                       backgroundColor: isSelected
-                        ? Colors.primary
+                        ? palette.primary
                         : "transparent",
                     },
                   ]}
@@ -72,7 +75,7 @@ export const PreferenceSelector: React.FC<PreferenceSelectorProps> = ({
                     style={[
                       styles.label,
                       {
-                        color: Colors.textPrimary,
+                        color: palette.textPrimary,
                         fontWeight: isSelected ? "600" : "400",
                       },
                     ]}
@@ -84,7 +87,7 @@ export const PreferenceSelector: React.FC<PreferenceSelectorProps> = ({
                       style={[
                         styles.description,
                         {
-                          color: Colors.textSecondary,
+                          color: palette.textSecondary,
                         },
                       ]}
                     >
@@ -101,7 +104,7 @@ export const PreferenceSelector: React.FC<PreferenceSelectorProps> = ({
   );
 };
 
-const styles = StyleSheet.create({
+const useStyles = createThemedValue((palette) => StyleSheet.create({
   container: {
     gap: 12,
   },
@@ -128,7 +131,7 @@ const styles = StyleSheet.create({
     width: 12,
     height: 12,
     borderRadius: 6,
-    backgroundColor: "#FFFFFF",
+    backgroundColor: palette.textInverse,
   },
   textContainer: {
     flex: 1,
@@ -142,4 +145,4 @@ const styles = StyleSheet.create({
     lineHeight: 20,
     marginTop: 4,
   },
-});
+}));

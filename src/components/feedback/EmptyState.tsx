@@ -6,7 +6,7 @@
  */
 
 import { getEmptyState } from "@/constants/emptyStates";
-import { Colors } from "@/theme/colors";
+import { usePalette, createThemedValue } from "@/theme/usePalette";
 import React from "react";
 import { StyleSheet, Text, TouchableOpacity, View } from "react-native";
 
@@ -27,20 +27,23 @@ export const EmptyState: React.FC<EmptyStateProps> = ({
   onAction,
   testID,
 }) => {
+  const palette = usePalette();
+  const styles = useStyles();
+
   const state = getEmptyState(emptyKey);
 
   return (
     <View style={styles.container} testID={testID}>
       <View style={styles.content}>
-        <Text style={[styles.title, { color: Colors.textPrimary }]}>
+        <Text style={[styles.title, { color: palette.textPrimary }]}>
           {title || state.title}
         </Text>
-        <Text style={[styles.description, { color: Colors.textSecondary }]}>
+        <Text style={[styles.description, { color: palette.textSecondary }]}>
           {description || state.description}
         </Text>
         {onAction && (
           <TouchableOpacity
-            style={[styles.button, { backgroundColor: Colors.primary }]}
+            style={[styles.button, { backgroundColor: palette.primary }]}
             onPress={onAction}
             accessibilityRole="button"
             accessibilityLabel={actionLabel || state.actionLabel}
@@ -55,7 +58,7 @@ export const EmptyState: React.FC<EmptyStateProps> = ({
   );
 };
 
-const styles = StyleSheet.create({
+const useStyles = createThemedValue((palette) => StyleSheet.create({
   container: {
     flex: 1,
     justifyContent: "center",
@@ -88,6 +91,6 @@ const styles = StyleSheet.create({
   buttonText: {
     fontSize: 16,
     fontWeight: "600",
-    color: Colors.textPrimary,
+    color: palette.textPrimary,
   },
-});
+}));

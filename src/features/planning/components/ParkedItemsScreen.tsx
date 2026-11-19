@@ -10,7 +10,8 @@ import { useHabits } from "@/src/features/habits";
 import { useDailyPlanningFlow } from "@/src/features/planning/hooks/useDailyPlanningFlow";
 import { useReminders } from "@/src/features/reminders";
 import { useTasks } from "@/src/features/tasks";
-import { Colors, Spacing } from "@/src/theme/tokens";
+import { usePalette } from "@/theme/usePalette";
+import { Spacing } from "@/src/theme/tokens";
 import { Alert, StyleSheet, View } from "react-native";
 
 type ParkedItem = {
@@ -34,6 +35,8 @@ function formatDate(value?: string): string | undefined {
 }
 
 export default function ParkedItemsScreen() {
+  const palette = usePalette();
+
   const planning = useDailyPlanningFlow("morning");
   const brainDump = useBrainDump();
   const { tasks, deleteTask } = useTasks();
@@ -43,7 +46,7 @@ export default function ParkedItemsScreen() {
   const confirmDelete = (title: string, onDelete: () => void) => {
     Alert.alert(
       "Delete this?",
-      "This removes it from Lumo. You can park it instead if you may want it later.",
+      "This removes it from Mello. You can park it instead if you may want it later.",
       [
         { text: "Cancel", style: "cancel" },
         {
@@ -170,14 +173,14 @@ export default function ParkedItemsScreen() {
           {parkedItems.map((item) => (
             <Card key={item.id} variant="outlined" style={styles.card}>
               <View style={styles.details}>
-                <Text variant="caption" color={Colors.primary}>
+                <Text variant="caption" color={palette.primary}>
                   {item.sourceLabel}
                 </Text>
                 <Text variant="body" style={styles.title}>
                   {item.title}
                 </Text>
                 {item.parkedAt && (
-                  <Text variant="caption" color={Colors.textTertiary}>
+                  <Text variant="caption" color={palette.textTertiary}>
                     Parked {formatDate(item.parkedAt)}
                   </Text>
                 )}

@@ -1,4 +1,5 @@
-import { Colors, Radius, Shadows, Spacing } from '@/theme/tokens';
+import { createThemedValue } from "@/theme/usePalette";
+import { Radius, Shadows, Spacing } from '@/theme/tokens';
 import { mediumImpact } from '@/animations/haptics';
 import { useReducedMotion } from '@/hooks/useReducedMotion';
 import React from 'react';
@@ -22,6 +23,8 @@ export function FloatingActionButton({
   onPress,
   ...props 
 }: FloatingActionButtonProps) {
+  const styles = useStyles();
+
   const insets = useSafeAreaInsets();
   const reducedMotion = useReducedMotion();
 
@@ -96,12 +99,12 @@ export function FloatingActionButton({
   );
 }
 
-const styles = StyleSheet.create({
+const useStyles = createThemedValue((palette) => StyleSheet.create({
   container: {
     borderRadius: Radius.full,
-    backgroundColor: Colors.primary,
+    backgroundColor: palette.primary,
     alignItems: 'center',
     justifyContent: 'center',
     ...Shadows.lg,
   },
-});
+}));

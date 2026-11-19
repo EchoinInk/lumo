@@ -1,4 +1,5 @@
-import { Colors, Radius, Shadows } from '@/theme/tokens';
+import { usePalette } from "@/theme/usePalette";
+import { Radius, Shadows } from '@/theme/tokens';
 import React from 'react';
 import { Image, ImageProps, StyleSheet, View, ViewProps } from 'react-native';
 import { Text } from './Text';
@@ -21,6 +22,8 @@ export function Avatar({
   style,
   ...props 
 }: AvatarProps) {
+  const palette = usePalette();
+
   const getSizeStyles = () => {
     switch (size) {
       case 'xs':
@@ -66,7 +69,7 @@ export function Avatar({
           width: sizeStyles.width,
           height: sizeStyles.height,
           borderRadius: Radius.full,
-          backgroundColor: Colors.secondary,
+          backgroundColor: palette.secondary,
         },
         style,
       ]}
@@ -75,7 +78,7 @@ export function Avatar({
       {initials && (
         <Text
           variant="body"
-          color={Colors.textInverse}
+          color={palette.textInverse}
           style={[
             styles.initials,
             { fontSize: sizeStyles.fontSize },

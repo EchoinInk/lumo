@@ -1,5 +1,6 @@
 import { Text } from "@/src/components/ui/Text";
-import { Colors, Spacing, Typography } from "@/src/theme/tokens";
+import { usePalette, createThemedValue } from "@/theme/usePalette";
+import { Spacing, Typography } from "@/src/theme/tokens";
 import { Sparkles, Sun } from "lucide-react-native";
 import React from "react";
 import { StyleSheet, View } from "react-native";
@@ -16,6 +17,9 @@ function getGreeting(): string {
 }
 
 export function StartHeader({ name = "there" }: StartHeaderProps) {
+  const palette = usePalette();
+  const styles = useStyles();
+
   const greeting = getGreeting();
 
   return (
@@ -25,12 +29,12 @@ export function StartHeader({ name = "there" }: StartHeaderProps) {
           {greeting}, {name}
         </Text>
         <View style={styles.iconContainer}>
-          <Sun size={20} color={Colors.warning} />
+          <Sun size={20} color={palette.warning} />
         </View>
       </View>
       <View style={styles.subtitleRow}>
-        <Sparkles size={14} color={Colors.pink} />
-        <Text variant="body" color={Colors.textSecondary} style={styles.subtitle}>
+        <Sparkles size={14} color={palette.pink} />
+        <Text variant="body" color={palette.textSecondary} style={styles.subtitle}>
           You&apos;ve got this. One step at a time.
         </Text>
       </View>
@@ -38,7 +42,7 @@ export function StartHeader({ name = "there" }: StartHeaderProps) {
   );
 }
 
-const styles = StyleSheet.create({
+const useStyles = createThemedValue((palette) => StyleSheet.create({
   container: {
     marginBottom: Spacing.xl,
   },
@@ -50,7 +54,7 @@ const styles = StyleSheet.create({
   },
   greeting: {
     ...Typography.heading,
-    color: Colors.textPrimary,
+    color: palette.textPrimary,
   },
   iconContainer: {
     marginLeft: Spacing.xs,
@@ -63,4 +67,4 @@ const styles = StyleSheet.create({
   subtitle: {
     fontStyle: "italic",
   },
-});
+}));

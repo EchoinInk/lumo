@@ -1,6 +1,7 @@
 import React from 'react';
 import { StyleSheet, View } from 'react-native';
-import { Colors, Spacing } from '@/theme/tokens';
+import { createThemedValue } from "@/theme/usePalette";
+import { Spacing } from '@/theme/tokens';
 
 interface TabBarIconProps {
   focused: boolean;
@@ -8,6 +9,8 @@ interface TabBarIconProps {
 }
 
 export function TabBarIcon({ focused, children }: TabBarIconProps) {
+  const styles = useStyles();
+
   return (
     <View style={[styles.container, focused && styles.containerFocused]}>
       <View style={[styles.iconWrapper, focused && styles.iconWrapperFocused]}>
@@ -17,7 +20,7 @@ export function TabBarIcon({ focused, children }: TabBarIconProps) {
   );
 }
 
-const styles = StyleSheet.create({
+const useStyles = createThemedValue((palette) => StyleSheet.create({
   container: {
     alignItems: 'center',
     justifyContent: 'center',
@@ -31,6 +34,6 @@ const styles = StyleSheet.create({
     borderRadius: 12,
   },
   iconWrapperFocused: {
-    backgroundColor: Colors.cardGlass,
+    backgroundColor: palette.cardGlass,
   },
-});
+}));

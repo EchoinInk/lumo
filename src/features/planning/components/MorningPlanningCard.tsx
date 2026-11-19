@@ -1,3 +1,4 @@
+import { Check } from "lucide-react-native";
 import { Button } from "@/src/components/ui/Button";
 import { Card } from "@/src/components/ui/Card";
 import { Text } from "@/src/components/ui/Text";
@@ -16,7 +17,8 @@ import type {
   PlanningEnergyLevel,
   PlanningNextStep,
 } from "@/src/features/planning/types/planning";
-import { Colors, Radius, Spacing } from "@/src/theme/tokens";
+import { usePalette, createThemedValue } from "@/theme/usePalette";
+import { Radius, Spacing } from "@/src/theme/tokens";
 import { StyleSheet, TouchableOpacity, View } from "react-native";
 import { BrainDumpReviewQueue } from "./BrainDumpReviewQueue";
 
@@ -85,12 +87,15 @@ function PlanningEnergyPicker({
   value?: PlanningEnergyLevel;
   onChange: (level: PlanningEnergyLevel) => void;
 }) {
+  const palette = usePalette();
+  const styles = useStyles();
+
   return (
     <View style={styles.energySection}>
-      <Text variant="label" color={Colors.textSecondary}>
+      <Text variant="label" color={palette.textSecondary}>
         How is your energy today?
       </Text>
-      <View style={styles.energyOptions}>
+      <View style={styles.energyOptions} accessibilityRole="radiogroup" accessibilityLabel="Energy level">
         {energyOptions.map((option) => {
           const isSelected = value === option.value;
           return (
@@ -98,28 +103,25 @@ function PlanningEnergyPicker({
               key={option.value}
               style={[styles.energyOption, isSelected && styles.energySelected]}
               onPress={() => onChange(option.value)}
-              accessibilityRole="button"
+              accessibilityRole="radio"
               accessibilityLabel={`${option.label} energy`}
               accessibilityHint={option.hint}
-              accessibilityState={{ selected: isSelected }}
+              accessibilityState={{ checked: isSelected }}
+              aria-checked={isSelected}
             >
+              {isSelected && <Check size={16} color={palette.selectedText} accessibilityElementsHidden />}
               <Text
                 variant="caption"
-                color={isSelected ? Colors.textInverse : Colors.textSecondary}
+                color={isSelected ? palette.selectedText : palette.textSecondary}
               >
                 {option.label}
               </Text>
-              {isSelected && (
-                <Text variant="small" color={Colors.textInverse}>
-                  Selected
-                </Text>
-              )}
             </TouchableOpacity>
           );
         })}
       </View>
       {value && (
-        <Text variant="caption" color={Colors.textTertiary}>
+        <Text variant="caption" color={palette.textTertiary}>
           {energyOptions.find((option) => option.value === value)?.hint}
         </Text>
       )}
@@ -156,6 +158,9 @@ export function MorningPlanningCard({
   onOpenTodayFocus,
   onAdjustPlan,
 }: MorningPlanningCardProps) {
+  const palette = usePalette();
+  const styles = useStyles();
+
   if (compact) {
     if (morningComplete) {
       return null;
@@ -164,7 +169,7 @@ export function MorningPlanningCard({
     return (
       <ReducedMotionWrapper>
         <Card variant="outlined" style={styles.compactCard}>
-          <Text variant="body" color={Colors.textSecondary}>
+          <Text variant="body" color={palette.textSecondary}>
             Shape your day with one gentle next step.
           </Text>
           <Button
@@ -198,11 +203,8 @@ export function MorningPlanningCard({
 
   return (
     <ReducedMotionWrapper>
-      <Card variant="gradient" style={styles.card}>
-        <Text variant="subheading" style={styles.title}>
-          Morning planning
-        </Text>
-        <Text variant="body" color={Colors.textSecondary}>
+      <Card variant="plain" style={styles.card}>
+        <Text variant="body" color={palette.textSecondary}>
           {energyLevel === "low"
             ? "Let's keep today light."
             : energyLevel === "steady"
@@ -217,7 +219,7 @@ export function MorningPlanningCard({
             <LowEnergyPlanCard
               embedded
               options={lowEnergyOptions}
-              selectedId={selectedNextStep?.id}
+              selectedSource={selectedNextStep}
               onChoose={onChooseLowEnergy}
               onPark={onParkLowEnergy}
             />
@@ -234,7 +236,7 @@ export function MorningPlanningCard({
           </>
         ) : (
           <>
-            <Text variant="label" color={Colors.textSecondary}>
+            <Text variant="label" color={palette.textSecondary}>
               Gentle carry-over
             </Text>
             <CarryOverReviewCard
@@ -245,7 +247,7 @@ export function MorningPlanningCard({
 
             {brainDumpQueue.length > 0 && (
               <>
-                <Text variant="label" color={Colors.textSecondary}>
+                <Text variant="label" color={palette.textSecondary}>
                   Brain Dump review
                 </Text>
                 <BrainDumpReviewQueue
@@ -258,7 +260,7 @@ export function MorningPlanningCard({
               </>
             )}
 
-            <Text variant="label" color={Colors.textSecondary}>
+            <Text variant="label" color={palette.textSecondary}>
               Choose one next step
             </Text>
             <NextStepChooser
@@ -290,7 +292,7 @@ export function MorningPlanningCard({
   );
 }
 
-const styles = StyleSheet.create({
+const useStyles = createThemedValue((palette) => StyleSheet.create({
   card: {
     padding: Spacing.lg,
     gap: Spacing.lg,
@@ -300,9 +302,6 @@ const styles = StyleSheet.create({
     padding: Spacing.lg,
     gap: Spacing.md,
     marginBottom: Spacing.lg,
-  },
-  title: {
-    fontWeight: "600",
   },
   energySection: {
     gap: Spacing.sm,
@@ -317,15 +316,16 @@ const styles = StyleSheet.create({
     minHeight: 44,
     justifyContent: "center",
     alignItems: "center",
-    gap: 2,
+    gap: Spacing.xs,
+    flexDirection: "row",
     borderWidth: 1,
-    borderColor: Colors.border,
-    borderRadius: Radius.full,
+    borderColor: palette.controlOutline,
+    borderRadius: Radius.md,
     paddingHorizontal: Spacing.md,
-    backgroundColor: Colors.card,
+    backgroundColor: palette.card,
   },
   energySelected: {
-    backgroundColor: Colors.primary,
-    borderColor: Colors.primary,
+    backgroundColor: palette.selectedFill,
+    borderColor: palette.selectedEdge,
   },
-});
+}));

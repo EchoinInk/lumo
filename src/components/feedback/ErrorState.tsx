@@ -7,7 +7,8 @@
 
 import { getErrorMessage } from "@/constants/feedbackMessages";
 import { Button } from "@/components/ui/Button";
-import { Colors, Spacing, Typography } from "@/theme/tokens";
+import { usePalette } from "@/theme/usePalette";
+import { Spacing, Typography } from "@/theme/tokens";
 import React from "react";
 import { StyleSheet, Text, View } from "react-native";
 
@@ -28,15 +29,17 @@ export const ErrorState: React.FC<ErrorStateProps> = ({
   actionLabel,
   testID,
 }) => {
+  const palette = usePalette();
+
   const message = getErrorMessage(errorKey);
 
   return (
     <View style={styles.container} testID={testID}>
       <View style={styles.content}>
-        <Text style={[styles.title, { color: Colors.textPrimary }]}>
+        <Text style={[styles.title, { color: palette.textPrimary }]}>
           {title || message.title}
         </Text>
-        <Text style={[styles.description, { color: Colors.textSecondary }]}>
+        <Text style={[styles.description, { color: palette.textSecondary }]}>
           {description || message.description}
         </Text>
         {onRetry && (

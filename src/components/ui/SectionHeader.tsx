@@ -1,4 +1,5 @@
-import { Colors, Spacing } from "@/theme/tokens";
+import { usePalette } from "@/theme/usePalette";
+import { Spacing } from "@/theme/tokens";
 import React from "react";
 import { StyleSheet, View, ViewProps } from "react-native";
 import { Button } from "./Button";
@@ -6,6 +7,7 @@ import { Text } from "./Text";
 
 interface SectionHeaderProps extends ViewProps {
   title: string;
+  screenTitle?: boolean;
   subtitle?: string;
   actionLabel?: string;
   onAction?: () => void;
@@ -15,6 +17,7 @@ interface SectionHeaderProps extends ViewProps {
 export function SectionHeader({
   title,
   subtitle,
+  screenTitle = false,
   actionLabel,
   onAction,
   rightElement,
@@ -22,16 +25,18 @@ export function SectionHeader({
   style,
   ...props
 }: SectionHeaderProps) {
+  const palette = usePalette();
+
   return (
     <View className={className} style={[styles.container, style]} {...props}>
       <View style={styles.leftContent}>
-        <Text variant="subheading" style={styles.title}>
+        <Text accessibilityRole="header" variant={screenTitle ? "title" : "subheading"} style={styles.title}>
           {title}
         </Text>
         {subtitle && (
           <Text
             variant="caption"
-            color={Colors.textSecondary}
+            color={palette.textSecondary}
             style={styles.subtitle}
           >
             {subtitle}
@@ -62,7 +67,6 @@ const styles = StyleSheet.create({
   },
   title: {
     marginBottom: Spacing.xs,
-    fontWeight: "600",
   },
   subtitle: {
     marginTop: 0,

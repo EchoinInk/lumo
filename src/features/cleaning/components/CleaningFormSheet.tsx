@@ -3,7 +3,8 @@ import { Button } from "@/components/ui/Button";
 import { Input } from "@/components/ui/Input";
 import { Text } from "@/components/ui/Text";
 import type { RecurrencePattern } from "@/features/tasks/types/recurrence";
-import { Colors, Radius, Spacing } from "@/theme/tokens";
+import { usePalette, createThemedValue } from "@/theme/usePalette";
+import { Radius, Spacing } from "@/theme/tokens";
 import { isLocalDateKey, toLocalDateKey } from "@/utils/dateTime";
 import { useEffect, useState } from "react";
 import { ScrollView, StyleSheet, TouchableOpacity, View } from "react-native";
@@ -27,6 +28,9 @@ const repeatOptions: { value: RepeatType; label: string }[] = [
 ];
 
 export function CleaningFormSheet({ visible, item, saving, onClose, onSave }: Props) {
+  const palette = usePalette();
+  const styles = useStyles();
+
   const [name, setName] = useState("");
   const [notes, setNotes] = useState("");
   const [startDate, setStartDate] = useState<string>(toLocalDateKey());
@@ -71,13 +75,13 @@ export function CleaningFormSheet({ visible, item, saving, onClose, onSave }: Pr
         <Input label="Notes (optional)" value={notes} onChangeText={setNotes} placeholder="Room, supplies, or a gentle reminder" multiline />
         <Input label="First date" value={startDate} onChangeText={setStartDate} error={errors.startDate} helperText="YYYY-MM-DD" autoCapitalize="none" />
         <View>
-          <Text variant="label" color={Colors.textSecondary} style={styles.label}>Repeat</Text>
+          <Text variant="label" color={palette.textSecondary} style={styles.label}>Repeat</Text>
           <View style={styles.options}>
             {repeatOptions.map((option) => {
               const selected = repeat === option.value;
               return (
                 <TouchableOpacity key={option.value} onPress={() => setRepeat(option.value)} style={[styles.option, selected && styles.optionSelected]} accessibilityRole="radio" accessibilityState={{ selected }} accessibilityLabel={`Repeat ${option.label.toLowerCase()}`}>
-                  <Text variant="small" color={selected ? Colors.textInverse : Colors.textPrimary}>{option.label}</Text>
+                  <Text variant="small" color={selected ? palette.textInverse : palette.textPrimary}>{option.label}</Text>
                 </TouchableOpacity>
               );
             })}
@@ -92,14 +96,14 @@ export function CleaningFormSheet({ visible, item, saving, onClose, onSave }: Pr
   );
 }
 
-const styles = StyleSheet.create({
+const useStyles = createThemedValue((palette) => StyleSheet.create({
   sheet: { maxHeight: "86%" },
   title: { marginBottom: Spacing.md },
   form: { gap: Spacing.lg, paddingBottom: Spacing.sm },
   label: { marginBottom: Spacing.sm },
   options: { flexDirection: "row", flexWrap: "wrap", gap: Spacing.sm },
-  option: { minHeight: 44, paddingHorizontal: Spacing.md, alignItems: "center", justifyContent: "center", borderWidth: 1, borderColor: Colors.border, borderRadius: Radius.full },
-  optionSelected: { backgroundColor: Colors.primary, borderColor: Colors.primary },
+  option: { minHeight: 44, paddingHorizontal: Spacing.md, alignItems: "center", justifyContent: "center", borderWidth: 1, borderColor: palette.border, borderRadius: Radius.full },
+  optionSelected: { backgroundColor: palette.primary, borderColor: palette.primary },
   actions: { flexDirection: "row", gap: Spacing.sm },
   action: { flex: 1 },
-});
+}));

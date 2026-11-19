@@ -1,6 +1,7 @@
 import { Card } from "@/src/components/ui/Card";
 import { Text } from "@/src/components/ui/Text";
-import { Colors, Spacing } from "@/src/theme/tokens";
+import { usePalette } from "@/theme/usePalette";
+import { Spacing } from "@/src/theme/tokens";
 import { StyleSheet } from "react-native";
 
 interface CalmPlaceholderNoteProps {
@@ -12,12 +13,14 @@ export function CalmPlaceholderNote({
   title = "This space is coming together.",
   description = "You can come back to this later.",
 }: CalmPlaceholderNoteProps) {
+  const palette = usePalette();
+
   return (
     <Card variant="outlined" style={styles.card} accessibilityRole="text">
-      <Text variant="body" color={Colors.textSecondary}>
+      <Text variant="body" color={palette.textSecondary}>
         {title}
       </Text>
-      <Text variant="caption" color={Colors.textTertiary}>
+      <Text variant="caption" color={palette.textTertiary}>
         {description}
       </Text>
     </Card>

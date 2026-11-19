@@ -6,7 +6,7 @@
  */
 
 import { getRetryMessage } from "@/constants/feedbackMessages";
-import { Colors } from "@/theme/colors";
+import { usePalette, createThemedValue } from "@/theme/usePalette";
 import React, { useState } from "react";
 import {
     ActivityIndicator,
@@ -35,6 +35,9 @@ export const RetryView: React.FC<RetryViewProps> = ({
   isLoading = false,
   testID,
 }) => {
+  const palette = usePalette();
+  const styles = useStyles();
+
   const [attempt, setAttempt] = useState(0);
   const message = getRetryMessage(retryKey);
 
@@ -46,14 +49,14 @@ export const RetryView: React.FC<RetryViewProps> = ({
   return (
     <View style={styles.container} testID={testID}>
       <View style={styles.content}>
-        <Text style={[styles.title, { color: Colors.textPrimary }]}>
+        <Text style={[styles.title, { color: palette.textPrimary }]}>
           {title || message.title}
         </Text>
-        <Text style={[styles.description, { color: Colors.textSecondary }]}>
+        <Text style={[styles.description, { color: palette.textSecondary }]}>
           {description || message.description}
         </Text>
         <TouchableOpacity
-          style={[styles.button, { backgroundColor: Colors.primary }]}
+          style={[styles.button, { backgroundColor: palette.primary }]}
           onPress={handleRetry}
           disabled={isLoading}
           accessibilityRole="button"
@@ -61,7 +64,7 @@ export const RetryView: React.FC<RetryViewProps> = ({
           accessibilityState={{ disabled: isLoading }}
         >
           {isLoading ? (
-            <ActivityIndicator color={Colors.textPrimary} />
+            <ActivityIndicator color={palette.textPrimary} />
           ) : (
             <Text style={styles.buttonText}>
               {actionLabel || message.actionLabel}
@@ -73,7 +76,7 @@ export const RetryView: React.FC<RetryViewProps> = ({
   );
 };
 
-const styles = StyleSheet.create({
+const useStyles = createThemedValue((palette) => StyleSheet.create({
   container: {
     flex: 1,
     justifyContent: "center",
@@ -108,6 +111,6 @@ const styles = StyleSheet.create({
   buttonText: {
     fontSize: 16,
     fontWeight: "600",
-    color: Colors.textPrimary,
+    color: palette.textPrimary,
   },
-});
+}));

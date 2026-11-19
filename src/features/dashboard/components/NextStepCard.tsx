@@ -2,7 +2,8 @@ import { Button } from "@/src/components/ui/Button";
 import { Card } from "@/src/components/ui/Card";
 import { Text } from "@/src/components/ui/Text";
 import type { FocusSuggestion } from "@/src/features/dashboard/utils/focusSuggestions";
-import { Colors, Spacing } from "@/src/theme/tokens";
+import { usePalette } from "@/theme/usePalette";
+import { Spacing } from "@/src/theme/tokens";
 import { Play, CheckCircle2 } from "lucide-react-native";
 import { StyleSheet, View } from "react-native";
 import { GentleSnoozeActions } from "./GentleSnoozeActions";
@@ -22,12 +23,14 @@ export function NextStepCard({
   onSnooze,
   onLater,
 }: NextStepCardProps) {
+  const palette = usePalette();
+
   const { task, reason } = suggestion;
 
   return (
     <Card variant="outlined" style={styles.card}>
       <View style={styles.header}>
-        <Text variant="caption" color={Colors.primary} style={styles.reason}>
+        <Text variant="caption" color={palette.primary} style={styles.reason}>
           {reason}
         </Text>
         <Text variant="body" style={styles.title} numberOfLines={2}>
@@ -39,7 +42,7 @@ export function NextStepCard({
         <Button
           size="sm"
           onPress={() => onStart(task.id)}
-          leftIcon={<Play size={16} color={Colors.textInverse} />}
+          leftIcon={<Play size={16} color={palette.textInverse} />}
           accessibilityLabel={`Start ${task.title}`}
           accessibilityHint="Starts Focus Mode for this task"
         >
@@ -49,7 +52,7 @@ export function NextStepCard({
           size="sm"
           variant="secondary"
           onPress={() => onDone(task.id)}
-          leftIcon={<CheckCircle2 size={16} color={Colors.textInverse} />}
+          leftIcon={<CheckCircle2 size={16} color={palette.textInverse} />}
           accessibilityLabel={`Mark ${task.title} done`}
           accessibilityHint="Marks this task as done"
         >

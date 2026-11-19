@@ -42,7 +42,7 @@ export default function SignupScreen() {
           Create an account
         </Text>
         <Text variant="body" color="textSecondary" className="mb-8">
-          Get started with Lumo
+          Get started with Mello
         </Text>
 
         <Input

@@ -1,6 +1,7 @@
 import { Card } from "@/src/components/ui/Card";
 import { Text } from "@/src/components/ui/Text";
-import { Colors, Radius, Spacing } from "@/src/theme/tokens";
+import { usePalette, createThemedValue } from "@/theme/usePalette";
+import { Radius, Spacing } from "@/src/theme/tokens";
 import { Bell, Droplets } from "lucide-react-native";
 import React from "react";
 import { StyleSheet, View } from "react-native";
@@ -16,20 +17,23 @@ export function ReminderCard({
   message = "Drink water",
   time = "Every 2 hours",
 }: ReminderCardProps) {
+  const palette = usePalette();
+  const styles = useStyles();
+
   return (
     <Card variant="outlined" style={styles.container}>
       <View style={styles.content}>
         <View style={styles.iconContainer}>
-          <Droplets size={20} color={Colors.blue} />
+          <Droplets size={20} color={palette.blue} />
         </View>
         <View style={styles.textContainer}>
           <View style={styles.headerRow}>
             <Text variant="body" style={styles.title}>
               {message}
             </Text>
-            <Bell size={14} color={Colors.textTertiary} />
+            <Bell size={14} color={palette.textTertiary} />
           </View>
-          <Text variant="caption" color={Colors.textSecondary}>
+          <Text variant="caption" color={palette.textSecondary}>
             {time}
           </Text>
         </View>
@@ -38,10 +42,10 @@ export function ReminderCard({
   );
 }
 
-const styles = StyleSheet.create({
+const useStyles = createThemedValue((palette) => StyleSheet.create({
   container: {
     marginBottom: Spacing.lg,
-    backgroundColor: Colors.backgroundAlt,
+    backgroundColor: palette.backgroundAlt,
   },
   content: {
     flexDirection: "row",
@@ -52,7 +56,7 @@ const styles = StyleSheet.create({
     width: 40,
     height: 40,
     borderRadius: Radius.lg,
-    backgroundColor: Colors.blue + "15",
+    backgroundColor: palette.blue + "15",
     alignItems: "center",
     justifyContent: "center",
   },
@@ -68,4 +72,4 @@ const styles = StyleSheet.create({
   title: {
     fontWeight: "500",
   },
-});
+}));

@@ -1,109 +1,54 @@
-// Neurodivergent-friendly soft light theme colors
-// Designed for reduced visual stress and sensory comfort
-// Soft lavender/white theme with gentle pastel accents
+import tokens from "./mello-tokens.json";
 
-export const colors = {
-  // Base backgrounds - soft white/lavender tones
-  background: "#F7F8FF",
-  surface: "#FFFFFF",
-  surfaceElevated: "#FAFBFF",
-  surfacePressed: "#F0F2FF",
+export type AppearanceMode = keyof typeof tokens.themes;
 
-  // Text colors - deep navy for readability on light backgrounds
-  text: {
-    primary: "#1E2240",
-    secondary: "#6B7280",
-    muted: "#6F7688",
-    inverse: "#FFFFFF",
-  },
+function makePalette(mode: AppearanceMode, quiet = false) {
+  const t = tokens.themes[mode];
+  const dark = mode === "dark";
+  const panel = quiet ? t.surface : t["task-panel"];
+  return {
+    mode, quiet,
+    background: t.surface, backgroundAlt: panel, card: t.surface, cardGlass: panel,
+    primary: t.action, primarySoft: t["selected-fill"], secondary: t["selected-fill"],
+    secondarySoft: panel, accent: t.action,
+    textPrimary: t.text, textSecondary: t["text-secondary"], textTertiary: t["text-secondary"],
+    textInverse: t["on-action"], border: t.separator, borderLight: panel,
+    borderDark: t["control-outline"], controlOutline: t["control-outline"], focus: t.focus,
+    taskPanel: panel, resetPanel: quiet ? t.surface : t["reset-panel"],
+    selectedFill: quiet ? t.surface : t["selected-fill"], selectedText: t["selected-text"], selectedEdge: t["selected-edge"],
+    success: dark ? "#A9D9BC" : "#38634A", successSoft: dark ? "#304139" : "#E7F0EA",
+    warning: dark ? "#E9C598" : "#775621", warningSoft: dark ? "#443B31" : "#F7EEDC",
+    danger: dark ? "#F2ADB9" : "#953B50", dangerSoft: dark ? "#4C303F" : "#F8E7EB",
+    info: t.action, infoSoft: panel, overlay: "rgba(38,35,52,0.58)", overlayLight: "rgba(38,35,52,0.20)",
+    gradientStart: t.action, gradientEnd: t.action,
+    pink: dark ? tokens.gradient.onPlum[0] : tokens.gradient.onPorcelain[0],
+    pinkSoft: quiet ? t.surface : t["reset-panel"], blue: t.action, blueSoft: panel,
+    purple: dark ? tokens.gradient.onPlum[1] : tokens.gradient.onPorcelain[1],
+    purpleSoft: panel, lavender: quiet ? t.surface : t["selected-fill"],
+  };
+}
 
-  // Accent colors - calm blue/pink/purple for gentle emphasis
-  accent: {
-    primary: "#7352F4",
-    soft: "#A78BFA",
-    muted: "#C4B5FD",
-    pink: "#F472B6",
-    pinkSoft: "#F9A8D4",
-    blue: "#60A5FA",
-    blueSoft: "#93C5FD",
-    purple: "#A78BFA",
-    purpleSoft: "#C4B5FD",
-    lavender: "#E0E7FF",
-  },
+export const Colors = makePalette("light");
+export const DarkColors = makePalette("dark");
+export const palettes = {
+  light: { standard: Colors, quiet: makePalette("light", true) },
+  dark: { standard: DarkColors, quiet: makePalette("dark", true) },
+};
 
-  // Semantic colors - softened pastels for reduced visual stress
-  semantic: {
-    success: "#10B981",
-    successSoft: "rgba(16, 185, 129, 0.12)",
-    warning: "#F59E0B",
-    warningSoft: "rgba(245, 158, 11, 0.12)",
-    danger: "#D03434",
-    dangerSoft: "rgba(239, 68, 68, 0.12)",
-    info: "#3B82F6",
-    infoSoft: "rgba(59, 130, 246, 0.12)",
-  },
-
-  // Border colors - subtle soft borders
-  border: "#E5E7EB",
-  borderLight: "#F3F4F6",
-  borderFocus: "#7352F4",
-
-  // Overlay for modals and sheets - softer on light theme
-  overlay: "rgba(30, 34, 64, 0.4)",
-
-  // Gradients - calm, gentle gradients matching mockup
-  gradients: {
-    accent: ["#7C5CFF", "#A78BFA"] as const,
-    pinkPurple: ["#F472B6", "#A78BFA"] as const,
-    bluePurple: ["#60A5FA", "#A78BFA"] as const,
-    soft: ["#E0E7FF", "#F0F2FF"] as const,
-    surface: ["#FFFFFF", "#F7F8FF"] as const,
-  },
-} as const;
-
-// Legacy export for compatibility
-export const Colors = {
-  background: colors.background,
-  backgroundAlt: colors.surface,
-  card: colors.surface,
-  cardGlass: "rgba(255, 255, 255, 0.9)",
-  primary: colors.accent.primary,
-  primarySoft: colors.accent.soft,
-  secondary: colors.accent.blue,
-  secondarySoft: colors.accent.blueSoft,
-  accent: colors.accent.primary,
-  textPrimary: colors.text.primary,
-  textSecondary: colors.text.secondary,
-  textTertiary: colors.text.muted,
-  textInverse: colors.text.inverse,
-  success: colors.semantic.success,
-  successSoft: colors.semantic.successSoft,
-  warning: colors.semantic.warning,
-  warningSoft: colors.semantic.warningSoft,
-  danger: colors.semantic.danger,
-  dangerSoft: colors.semantic.dangerSoft,
-  info: colors.semantic.info,
-  infoSoft: colors.semantic.infoSoft,
-  border: colors.border,
-  borderLight: colors.borderLight,
-  borderDark: colors.border,
-  overlay: colors.overlay,
-  overlayLight: "rgba(30, 34, 64, 0.2)",
-  gradientStart: "#B83280",
-  gradientEnd: colors.accent.primary,
-  // New gradient variants for UI
-  pink: colors.accent.pink,
-  pinkSoft: colors.accent.pinkSoft,
-  blue: colors.accent.blue,
-  blueSoft: colors.accent.blueSoft,
-  purple: colors.accent.purple,
-  purpleSoft: colors.accent.purpleSoft,
-  lavender: colors.accent.lavender,
-} as const;
-
-// Dark theme alias (app uses dark theme by default)
-export const DarkColors = Colors;
-
-export type ColorKey = keyof typeof Colors;
+export type Palette = typeof Colors;
+export type ColorKey = Exclude<keyof Palette, "mode" | "quiet">;
 export type DarkColorKey = ColorKey;
+
+// Original non-reactive light-mode export for non-UI callers.
+export const colors = {
+  background: Colors.background, surface: Colors.card, surfaceElevated: Colors.taskPanel, surfacePressed: Colors.selectedFill,
+  text: { primary: Colors.textPrimary, secondary: Colors.textSecondary, muted: Colors.textTertiary, inverse: Colors.textInverse },
+  accent: { primary: Colors.primary, soft: Colors.primarySoft, muted: Colors.lavender, pink: Colors.pink, pinkSoft: Colors.pinkSoft,
+    blue: Colors.blue, blueSoft: Colors.blueSoft, purple: Colors.purple, purpleSoft: Colors.purpleSoft, lavender: Colors.lavender },
+  semantic: { success: Colors.success, successSoft: Colors.successSoft, warning: Colors.warning, warningSoft: Colors.warningSoft,
+    danger: Colors.danger, dangerSoft: Colors.dangerSoft, info: Colors.info, infoSoft: Colors.infoSoft },
+  border: Colors.border, borderLight: Colors.borderLight, borderFocus: Colors.focus, overlay: Colors.overlay,
+  gradients: { accent: [Colors.gradientStart, Colors.gradientEnd], pinkPurple: [Colors.pink, Colors.purple],
+    bluePurple: [Colors.blue, Colors.purple], soft: [Colors.taskPanel, Colors.background], surface: [Colors.card, Colors.background] },
+} as const;
 export type ColorsType = typeof colors;

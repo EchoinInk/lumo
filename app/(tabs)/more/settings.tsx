@@ -1,10 +1,12 @@
+import { Button } from "@/src/components/ui/Button";
 import { Card } from "@/src/components/ui/Card";
 import { Screen } from "@/src/components/ui/Screen";
 import { Text } from "@/src/components/ui/Text";
 import { MoreScreenHeader } from "@/src/features/more/components";
 import { ReminderSettingsCard } from "@/src/features/reminders/components/ReminderSettingsCard";
 import { useSettingsStore } from "@/src/store/useSettingsStore";
-import { Colors, Spacing } from "@/src/theme/tokens";
+import { usePalette, createThemedValue } from "@/theme/usePalette";
+import { Spacing } from "@/src/theme/tokens";
 import { router } from "expo-router";
 import {
   Bell,
@@ -33,12 +35,12 @@ type SettingsSection = {
   items: SettingsItem[];
 };
 
-const settingsSections: SettingsSection[] = [
+const useSettingsSections = createThemedValue((palette): SettingsSection[] => [
   {
     title: "Preferences",
     items: [
       {
-        icon: <Bell size={20} color={Colors.warning} />,
+        icon: <Bell size={20} color={palette.warning} />,
         label: "Notifications",
         hasToggle: true,
       },
@@ -48,25 +50,29 @@ const settingsSections: SettingsSection[] = [
     title: "Accessibility",
     items: [
       {
-        icon: <Moon size={20} color={Colors.primary} />,
+        icon: <Moon size={20} color={palette.primary} />,
         label: "Reduced Motion",
         hasToggle: true,
       },
       {
-        icon: <Bell size={20} color={Colors.warning} />,
+        icon: <Bell size={20} color={palette.warning} />,
         label: "Haptics",
         hasToggle: true,
       },
       {
-        icon: <User size={20} color={Colors.purple} />,
+        icon: <User size={20} color={palette.purple} />,
         label: "Simplified Mode",
         hasToggle: true,
       },
     ],
   },
-];
+]);
 
 export default function SettingsScreen() {
+  const palette = usePalette();
+  const styles = useStyles();
+  const settingsSections = useSettingsSections();
+
   const { settings, updateSettings } = useSettingsStore();
 
   const handleToggle = (label: string) => {
@@ -112,7 +118,7 @@ export default function SettingsScreen() {
       <View style={styles.section}>
         <Text
           variant="caption"
-          color={Colors.textSecondary}
+          color={palette.textSecondary}
           style={styles.sectionTitle}
         >
           Reminders
@@ -127,20 +133,34 @@ export default function SettingsScreen() {
           accessibilityLabel="Open reminder settings"
           accessibilityHint="Opens the full reminder settings screen"
         >
-          <Text variant="caption" color={Colors.primary}>
+          <Text variant="caption" color={palette.primary}>
             Open reminder settings
           </Text>
-          <ChevronRight size={16} color={Colors.primary} />
+          <ChevronRight size={16} color={palette.primary} />
         </TouchableOpacity>
       </View>
 
+      <View style={styles.section}>
+        <Text variant="subheading">Appearance</Text>
+        <View style={styles.themeChoices} accessibilityRole="radiogroup" accessibilityLabel="Appearance">
+          {(["system", "light", "dark"] as const).map((mode) => (
+            <Button key={mode} size="sm" variant={settings.theme === mode ? "primary" : "secondary"}
+              accessibilityRole="radio" aria-checked={settings.theme === mode}
+              accessibilityState={{ checked: settings.theme === mode }}
+              accessibilityLabel={mode === "system" ? "Use device appearance" : `${mode} appearance`}
+              onPress={() => updateSettings({ theme: mode })}>
+              {{ system: "Device", light: "Light", dark: "Dark" }[mode]}
+            </Button>
+          ))}
+        </View>
+      </View>
       {/* Settings Sections */}
       <ScrollView showsVerticalScrollIndicator={false}>
         {settingsSections.map((section, sectionIndex) => (
           <View key={sectionIndex} style={styles.section}>
             <Text
               variant="caption"
-              color={Colors.textSecondary}
+              color={palette.textSecondary}
               style={styles.sectionTitle}
             >
               {section.title}
@@ -166,16 +186,18 @@ export default function SettingsScreen() {
                   {item.hasToggle ? (
                     <Switch
                       value={getToggleValue(item.label)}
+                      trackColor={{ false: palette.controlOutline, true: palette.primary }}
+                      thumbColor={palette.textInverse}
                       onValueChange={() => handleToggle(item.label)}
                       accessibilityLabel={`Toggle ${item.label}`}
                       accessibilityRole="switch"
                     />
                   ) : (
                     <View style={styles.settingValue}>
-                      <Text variant="caption" color={Colors.textSecondary}>
+                      <Text variant="caption" color={palette.textSecondary}>
                         {item.value}
                       </Text>
-                      <ChevronRight size={18} color={Colors.textTertiary} />
+                      <ChevronRight size={18} color={palette.textTertiary} />
                     </View>
                   )}
                 </TouchableOpacity>
@@ -188,7 +210,8 @@ export default function SettingsScreen() {
   );
 }
 
-const styles = StyleSheet.create({
+const useStyles = createThemedValue((palette) => StyleSheet.create({
+  themeChoices: { flexDirection: "row", flexWrap: "wrap", gap: Spacing.sm, marginTop: Spacing.sm },
   section: {
     marginBottom: Spacing.xl,
   },
@@ -209,7 +232,7 @@ const styles = StyleSheet.create({
   },
   settingItemBorder: {
     borderBottomWidth: 1,
-    borderBottomColor: Colors.border,
+    borderBottomColor: palette.border,
   },
   settingIcon: {
     marginRight: Spacing.md,
@@ -231,4 +254,4 @@ const styles = StyleSheet.create({
     minHeight: 44,
     paddingHorizontal: Spacing.sm,
   },
-});
+}));

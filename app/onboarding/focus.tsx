@@ -1,6 +1,6 @@
 /**
  * Onboarding Step 3: Focus Areas
- * "What should Lumo help with first?"
+ * "What should Mello help with first?"
  */
 
 import { Text } from "@/src/components/ui/Text";
@@ -11,7 +11,8 @@ import {
     FOCUS_AREA_LABELS,
     FocusArea,
 } from "@/src/features/onboarding/types/onboarding";
-import { Colors, Spacing } from "@/src/theme/tokens";
+import { usePalette } from "@/theme/usePalette";
+import { Spacing } from "@/src/theme/tokens";
 import { router } from "expo-router";
 import { ScrollView, StyleSheet, View } from "react-native";
 
@@ -25,6 +26,8 @@ const FOCUS_OPTIONS: FocusArea[] = [
 ];
 
 export default function OnboardingStep3Screen() {
+  const palette = usePalette();
+
   const { preferences, setFocusAreas } = useOnboarding();
 
   const toggleFocus = (value: FocusArea) => {
@@ -46,7 +49,7 @@ export default function OnboardingStep3Screen() {
 
   return (
     <OnboardingShell
-      title="What should Lumo help with first?"
+      title="What should Mello help with first?"
       subtitle="Pick 1-2 areas to start. You can explore everything later."
       currentStep={3}
       totalSteps={4}
@@ -72,7 +75,7 @@ export default function OnboardingStep3Screen() {
         {preferences.focusAreas.length > 0 && (
           <Text
             variant="caption"
-            color={Colors.textSecondary}
+            color={palette.textSecondary}
             style={styles.selectionHint}
           >
             Selected {preferences.focusAreas.length} area

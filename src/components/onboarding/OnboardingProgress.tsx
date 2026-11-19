@@ -5,7 +5,7 @@
  * Subtle, calm visual feedback without pressure.
  */
 
-import { Colors } from "@/theme/colors";
+import { usePalette } from "@/theme/usePalette";
 import React from "react";
 import { StyleSheet, Text, View } from "react-native";
 
@@ -18,6 +18,8 @@ export const OnboardingProgress: React.FC<OnboardingProgressProps> = ({
   currentStep,
   totalSteps,
 }) => {
+  const palette = usePalette();
+
   return (
     <View style={styles.container}>
       <View style={styles.dotsContainer}>
@@ -34,14 +36,14 @@ export const OnboardingProgress: React.FC<OnboardingProgressProps> = ({
                 isCompleted && styles.dotCompleted,
                 {
                   backgroundColor:
-                    isActive || isCompleted ? Colors.primary : Colors.border,
+                    isActive || isCompleted ? palette.primary : palette.border,
                 },
               ]}
             />
           );
         })}
       </View>
-      <Text style={[styles.stepText, { color: Colors.textSecondary }]}>
+      <Text style={[styles.stepText, { color: palette.textSecondary }]}>
         Step {currentStep} of {totalSteps}
       </Text>
     </View>

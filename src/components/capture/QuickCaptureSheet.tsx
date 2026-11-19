@@ -5,7 +5,8 @@ import { Text } from "@/src/components/ui/Text";
 import { useBrainDump } from "@/src/features/brain-dump";
 import { useReminders } from "@/src/features/reminders";
 import { useTasks } from "@/src/features/tasks";
-import { Colors, Radius, Spacing } from "@/src/theme/tokens";
+import { usePalette, createThemedValue } from "@/theme/usePalette";
+import { Radius, Spacing } from "@/src/theme/tokens";
 import { Bell, CheckSquare, Cloud } from "lucide-react-native";
 import { useEffect, useState } from "react";
 import { StyleSheet, TouchableOpacity, View } from "react-native";
@@ -33,6 +34,9 @@ export function QuickCaptureSheet({
   onClose,
   defaultTarget = "task",
 }: QuickCaptureSheetProps) {
+  const palette = usePalette();
+  const styles = useStyles();
+
   const [target, setTarget] = useState<QuickCaptureTarget>(defaultTarget);
   const [text, setText] = useState("");
   const [isSaving, setIsSaving] = useState(false);
@@ -80,7 +84,7 @@ export function QuickCaptureSheet({
     <BottomSheet visible={visible} onClose={onClose}>
       <View style={styles.container}>
         <Text variant="subheading">Quick capture</Text>
-        <Text variant="body" color={Colors.textSecondary}>
+        <Text variant="body" color={palette.textSecondary}>
           Capture first. Organize later.
         </Text>
 
@@ -100,11 +104,11 @@ export function QuickCaptureSheet({
               >
                 <Icon
                   size={16}
-                  color={isSelected ? Colors.textInverse : Colors.textSecondary}
+                  color={isSelected ? palette.textInverse : palette.textSecondary}
                 />
                 <Text
                   variant="caption"
-                  color={isSelected ? Colors.textInverse : Colors.textSecondary}
+                  color={isSelected ? palette.textInverse : palette.textSecondary}
                 >
                   {option.label}
                 </Text>
@@ -125,7 +129,7 @@ export function QuickCaptureSheet({
         {saveError && (
           <Text
             variant="small"
-            color={Colors.danger}
+            color={palette.danger}
             accessibilityRole="alert"
           >
             {saveError}
@@ -154,7 +158,7 @@ export function QuickCaptureSheet({
   );
 }
 
-const styles = StyleSheet.create({
+const useStyles = createThemedValue((palette) => StyleSheet.create({
   container: {
     gap: Spacing.md,
     paddingBottom: Spacing.lg,
@@ -170,18 +174,18 @@ const styles = StyleSheet.create({
     alignItems: "center",
     gap: Spacing.xs,
     borderWidth: 1,
-    borderColor: Colors.border,
+    borderColor: palette.border,
     borderRadius: Radius.full,
     paddingHorizontal: Spacing.md,
-    backgroundColor: Colors.card,
+    backgroundColor: palette.card,
   },
   targetPillSelected: {
-    backgroundColor: Colors.primary,
-    borderColor: Colors.primary,
+    backgroundColor: palette.primary,
+    borderColor: palette.primary,
   },
   actions: {
     flexDirection: "row",
     justifyContent: "flex-end",
     gap: Spacing.sm,
   },
-});
+}));

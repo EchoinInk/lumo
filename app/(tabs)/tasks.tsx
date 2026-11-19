@@ -27,7 +27,8 @@ import {
   type TaskDateFilter,
 } from "@/src/features/tasks/utils/taskHelpers";
 import { useLocalDay } from "@/src/hooks/useLocalDay";
-import { Colors, Radius, Shadows, Spacing } from "@/src/theme/tokens";
+import { usePalette, createThemedValue } from "@/theme/usePalette";
+import { Radius, Shadows, Spacing } from "@/src/theme/tokens";
 import { addLocalDays, formatLocalDate, isLocalDateKey } from "@/src/utils/dateTime";
 import { LinearGradient } from "expo-linear-gradient";
 import { router } from "expo-router";
@@ -57,6 +58,9 @@ const filters: { key: TaskDateFilter; label: string }[] = [
 ];
 
 export default function TasksScreen() {
+  const palette = usePalette();
+  const styles = useStyles();
+
   const [activeFilter, setActiveFilter] = useState<TaskDateFilter>("today");
   const [isModalVisible, setIsModalVisible] = useState(false);
   const [isQuickCaptureVisible, setIsQuickCaptureVisible] = useState(false);
@@ -112,7 +116,7 @@ export default function TasksScreen() {
   const confirmDeleteTask = (task: Task) => {
     Alert.alert(
       "Delete this?",
-      "This removes it from Lumo. You can park it instead if you may want it later.",
+      "This removes it from Mello. You can park it instead if you may want it later.",
       [
         { text: "Cancel", style: "cancel" },
         {
@@ -180,13 +184,13 @@ export default function TasksScreen() {
   const getPriorityColor = (priority: TaskPriority) => {
     switch (priority) {
       case "high":
-        return Colors.pink;
+        return palette.pink;
       case "medium":
-        return Colors.warning;
+        return palette.warning;
       case "low":
-        return Colors.blue;
+        return palette.blue;
       default:
-        return Colors.textSecondary;
+        return palette.textSecondary;
     }
   };
 
@@ -217,7 +221,7 @@ export default function TasksScreen() {
       {/* Header */}
       {mutationError && (
         <Card variant="outlined" style={styles.errorCard}>
-          <Text variant="small" color={Colors.danger} accessibilityRole="alert">
+          <Text variant="small" color={palette.danger} accessibilityRole="alert">
             {mutationError}
           </Text>
         </Card>
@@ -269,8 +273,8 @@ export default function TasksScreen() {
               variant="body"
               color={
                 activeFilter === filter.key
-                  ? Colors.textInverse
-                  : Colors.textPrimary
+                  ? palette.textInverse
+                  : palette.textPrimary
               }
             >
               {filter.label}
@@ -284,7 +288,7 @@ export default function TasksScreen() {
         <Card variant="outlined" style={styles.emptyCard}>
           <Text
             variant="body"
-            color={Colors.textSecondary}
+            color={palette.textSecondary}
             style={styles.emptyTitle}
           >
             {activeFilter === "done"
@@ -295,7 +299,7 @@ export default function TasksScreen() {
                   ? "No tasks yet"
                   : "No tasks for today"}
           </Text>
-          <Text variant="caption" color={Colors.textTertiary}>
+          <Text variant="caption" color={palette.textTertiary}>
             {activeFilter === "done"
               ? "Complete a task and it will appear here"
               : "Add a task to get started — small steps count"}
@@ -336,9 +340,9 @@ export default function TasksScreen() {
                   ]}
                 >
                   {task.completed ? (
-                    <CheckCircle2 size={20} color={Colors.textInverse} />
+                    <CheckCircle2 size={20} color={palette.textInverse} />
                   ) : (
-                    <Circle size={20} color={Colors.border} />
+                    <Circle size={20} color={palette.border} />
                   )}
                 </View>
 
@@ -356,7 +360,7 @@ export default function TasksScreen() {
                   {task.description && (
                     <Text
                       variant="caption"
-                      color={Colors.textTertiary}
+                      color={palette.textTertiary}
                       style={styles.taskNotes}
                       numberOfLines={1}
                     >
@@ -367,8 +371,8 @@ export default function TasksScreen() {
                   <View style={styles.taskMeta}>
                     {(task.dueDate || task.dueTime) && (
                       <View style={styles.timeBadge}>
-                        <Clock size={12} color={Colors.textTertiary} />
-                        <Text variant="small" color={Colors.textTertiary}>
+                        <Clock size={12} color={palette.textTertiary} />
+                        <Text variant="small" color={palette.textTertiary}>
                           {task.dueDate === today
                             ? "Today"
                             : task.dueDate === tomorrow
@@ -418,14 +422,14 @@ export default function TasksScreen() {
                     </View>
                     {task.energyRequired && (
                       <View style={styles.energyBadge}>
-                        <Text variant="small" color={Colors.textSecondary}>
+                        <Text variant="small" color={palette.textSecondary}>
                           {task.energyRequired} energy
                         </Text>
                       </View>
                     )}
                     {task.recurrence && (
                       <View style={styles.recurringBadge}>
-                        <Text variant="small" color={Colors.purple}>
+                        <Text variant="small" color={palette.purple}>
                           {summarizeRecurrence(task.recurrence)}
                         </Text>
                       </View>
@@ -444,7 +448,7 @@ export default function TasksScreen() {
                   accessibilityLabel={`Edit task: ${task.title}`}
                   accessibilityRole="button"
                 >
-                  <Pencil size={16} color={Colors.textTertiary} />
+                  <Pencil size={16} color={palette.textTertiary} />
                 </TouchableOpacity>
 
                 {/* Delete Button */}
@@ -456,7 +460,7 @@ export default function TasksScreen() {
                   accessibilityHint="Asks before deleting this task"
                   accessibilityRole="button"
                 >
-                  <Trash2 size={16} color={Colors.textTertiary} />
+                  <Trash2 size={16} color={palette.textTertiary} />
                 </TouchableOpacity>
               </View>
             </View>
@@ -470,16 +474,16 @@ export default function TasksScreen() {
           <View
             style={[
               styles.supportIcon,
-              { backgroundColor: Colors.purple + "15" },
+              { backgroundColor: palette.purple + "15" },
             ]}
           >
-            <Lightbulb size={20} color={Colors.purple} />
+            <Lightbulb size={20} color={palette.purple} />
           </View>
           <View style={styles.supportText}>
             <Text variant="body" style={styles.supportTitle}>
               Break tasks down
             </Text>
-            <Text variant="caption" color={Colors.textSecondary}>
+            <Text variant="caption" color={palette.textSecondary}>
               Big tasks feel smaller when split into steps
             </Text>
           </View>
@@ -524,15 +528,15 @@ export default function TasksScreen() {
         accessibilityRole="button"
       >
         <LinearGradient
-          colors={[Colors.pink, Colors.purple]}
+          colors={[palette.pink, palette.purple]}
           start={{ x: 0, y: 0 }}
           end={{ x: 1, y: 1 }}
           style={styles.gradientButton}
         >
-          <Plus size={24} color={Colors.textInverse} />
+          <Plus size={24} color={palette.textInverse} />
           <Text
             variant="subheading"
-            color={Colors.textInverse}
+            color={palette.textInverse}
             style={styles.addButtonText}
           >
             Add Task
@@ -557,7 +561,7 @@ export default function TasksScreen() {
   );
 }
 
-const styles = StyleSheet.create({
+const useStyles = createThemedValue((palette) => StyleSheet.create({
   filterContainer: {
     flexDirection: "row",
     gap: Spacing.sm,
@@ -574,13 +578,13 @@ const styles = StyleSheet.create({
     paddingHorizontal: Spacing.lg,
     paddingVertical: Spacing.sm,
     borderRadius: Radius.full,
-    backgroundColor: Colors.card,
+    backgroundColor: palette.card,
     borderWidth: 1,
-    borderColor: Colors.border,
+    borderColor: palette.border,
   },
   filterPillActive: {
-    backgroundColor: Colors.primary,
-    borderColor: Colors.primary,
+    backgroundColor: palette.primary,
+    borderColor: palette.primary,
   },
   taskList: {
     gap: Spacing.md,
@@ -591,7 +595,7 @@ const styles = StyleSheet.create({
   },
   taskCardHigh: {
     borderLeftWidth: 3,
-    borderLeftColor: Colors.pink,
+    borderLeftColor: palette.pink,
   },
   taskContent: {
     flex: 1,
@@ -605,17 +609,17 @@ const styles = StyleSheet.create({
     height: 32,
     borderRadius: Radius.md,
     borderWidth: 2,
-    borderColor: Colors.border,
+    borderColor: palette.border,
     alignItems: "center",
     justifyContent: "center",
   },
   checkboxChecked: {
-    backgroundColor: Colors.success,
-    borderColor: Colors.success,
+    backgroundColor: palette.success,
+    borderColor: palette.success,
   },
   checkboxHigh: {
-    borderColor: Colors.pink,
-    backgroundColor: Colors.pink + "10",
+    borderColor: palette.pink,
+    backgroundColor: palette.pink + "10",
   },
   taskInfo: {
     flex: 1,
@@ -626,7 +630,7 @@ const styles = StyleSheet.create({
   },
   taskTitleCompleted: {
     textDecorationLine: "line-through",
-    color: Colors.textTertiary,
+    color: palette.textTertiary,
   },
   taskMeta: {
     flexDirection: "row",
@@ -640,13 +644,13 @@ const styles = StyleSheet.create({
     gap: Spacing.xs,
   },
   recurringBadge: {
-    backgroundColor: Colors.purple + "15",
+    backgroundColor: palette.purple + "15",
     paddingHorizontal: Spacing.sm,
     paddingVertical: 2,
     borderRadius: Radius.sm,
   },
   energyBadge: {
-    backgroundColor: Colors.blue + "12",
+    backgroundColor: palette.blue + "12",
     paddingHorizontal: Spacing.sm,
     paddingVertical: 2,
     borderRadius: Radius.sm,
@@ -710,8 +714,8 @@ const styles = StyleSheet.create({
   errorCard: {
     marginBottom: Spacing.md,
     padding: Spacing.md,
-    backgroundColor: Colors.warning + "10",
-    borderColor: Colors.warning + "30",
+    backgroundColor: palette.warning + "10",
+    borderColor: palette.warning + "30",
   },
   taskRow: {
     flexDirection: "row",
@@ -738,4 +742,4 @@ const styles = StyleSheet.create({
   emptyTitle: {
     marginBottom: Spacing.xs,
   },
-});
+}));

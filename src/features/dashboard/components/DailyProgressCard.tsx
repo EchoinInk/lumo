@@ -1,7 +1,8 @@
 import { Card } from "@/src/components/ui/Card";
 import { ProgressBar } from "@/src/components/ui/ProgressBar";
 import { Text } from "@/src/components/ui/Text";
-import { Colors, Spacing } from "@/src/theme/tokens";
+import { usePalette } from "@/theme/usePalette";
+import { Spacing } from "@/src/theme/tokens";
 import React from "react";
 import { StyleSheet, View } from "react-native";
 
@@ -22,19 +23,21 @@ export function DailyProgressCard({
   totalCount,
   variant = "gradient",
 }: DailyProgressCardProps) {
+  const palette = usePalette();
+
   return (
     <Card variant={variant === "gradient" ? "gradient" : "elevated"} style={styles.container}>
       <View style={styles.header}>
         <Text
           variant="subheading"
           style={styles.title}
-          color={variant === "gradient" ? Colors.textInverse : Colors.textPrimary}
+          color={variant === "gradient" ? palette.textInverse : palette.textPrimary}
         >
           {title}
         </Text>
         <Text
           variant="heading"
-          color={variant === "gradient" ? Colors.textInverse : Colors.primary}
+          color={variant === "gradient" ? palette.textInverse : palette.primary}
         >
           {completedCount}/{totalCount}
         </Text>
@@ -49,7 +52,7 @@ export function DailyProgressCard({
       <Text
         variant="caption"
         style={styles.subtitle}
-        color={variant === "gradient" ? Colors.textInverse : Colors.textSecondary}
+        color={variant === "gradient" ? palette.textInverse : palette.textSecondary}
       >
         {subtitle}
       </Text>

@@ -1,3 +1,4 @@
+import tokens from "./mello-tokens.json";
 export const Typography = {
   display: {
     fontSize: 32,
@@ -6,9 +7,9 @@ export const Typography = {
     letterSpacing: -0.5,
   },
   title: {
-    fontSize: 28,
-    fontWeight: '700' as const,
-    lineHeight: 36,
+    fontSize: tokens.typography["screen-title"].size,
+    fontWeight: "400" as const,
+    lineHeight: tokens.typography["screen-title"].lineHeight,
     letterSpacing: -0.3,
   },
   heading: {
@@ -18,9 +19,9 @@ export const Typography = {
     letterSpacing: -0.2,
   },
   subheading: {
-    fontSize: 20,
-    fontWeight: '600' as const,
-    lineHeight: 28,
+    fontSize: tokens.typography["section-title"].size,
+    fontWeight: "700" as const,
+    lineHeight: tokens.typography["section-title"].lineHeight,
     letterSpacing: -0.1,
   },
   body: {

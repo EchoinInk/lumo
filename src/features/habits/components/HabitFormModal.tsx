@@ -1,6 +1,7 @@
 import { Input } from "@/src/components/ui/Input";
 import { Text } from "@/src/components/ui/Text";
-import { Colors, Radius, Shadows, Spacing } from "@/src/theme/tokens";
+import { usePalette, createThemedValue } from "@/theme/usePalette";
+import { Radius, Shadows, Spacing } from "@/src/theme/tokens";
 import { MutationSubmissionGuard } from "@/src/services/storage/durableMutation";
 import { LinearGradient } from "expo-linear-gradient";
 import { Check, Plus, X } from "lucide-react-native";
@@ -33,15 +34,15 @@ const frequencies: { key: HabitFrequency; label: string }[] = [
 
 const daysOfWeek = ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"];
 
-const habitColors: { key: HabitColor; color: string }[] = [
-    { key: "blue", color: Colors.blue },
-    { key: "green", color: Colors.success },
-    { key: "yellow", color: Colors.warning },
+const useHabitColors = createThemedValue((palette): { key: HabitColor; color: string }[] => [
+    { key: "blue", color: palette.blue },
+    { key: "green", color: palette.success },
+    { key: "yellow", color: palette.warning },
     { key: "orange", color: "#F97316" },
-    { key: "pink", color: Colors.pink },
-    { key: "purple", color: Colors.purple },
+    { key: "pink", color: palette.pink },
+    { key: "purple", color: palette.purple },
     { key: "teal", color: "#14B8A6" },
-];
+]);
 
 export function HabitFormModal({
     visible,
@@ -50,6 +51,10 @@ export function HabitFormModal({
     onSubmit,
     onClose,
 }: HabitFormModalProps) {
+  const palette = usePalette();
+  const styles = useStyles();
+  const habitColors = useHabitColors();
+
     const [title, setTitle] = useState("");
     const [description, setDescription] = useState("");
     const [frequency, setFrequency] = useState<HabitFrequency>("daily");
@@ -163,7 +168,7 @@ export function HabitFormModal({
                                             </Text>
                                             <Text
                                                 variant="body"
-                                                color={Colors.textSecondary}
+                                                color={palette.textSecondary}
                                                 style={styles.subtitle}
                                             >
                                                 {subtitleText}
@@ -174,7 +179,7 @@ export function HabitFormModal({
                                             style={styles.closeButton}
                                             activeOpacity={0.7}
                                         >
-                                            <X size={24} color={Colors.textSecondary} />
+                                            <X size={24} color={palette.textSecondary} />
                                         </TouchableOpacity>
                                     </View>
 
@@ -199,7 +204,7 @@ export function HabitFormModal({
                                         <View style={styles.inputGroup}>
                                             <Text
                                                 variant="label"
-                                                color={Colors.textSecondary}
+                                                color={palette.textSecondary}
                                                 style={styles.label}
                                             >
                                                 How often?
@@ -220,8 +225,8 @@ export function HabitFormModal({
                                                             style={[
                                                                 styles.frequencyChip,
                                                                 frequency === f.key && {
-                                                                    backgroundColor: Colors.purple + "20",
-                                                                    borderColor: Colors.purple,
+                                                                    backgroundColor: palette.purple + "20",
+                                                                    borderColor: palette.purple,
                                                                     borderWidth: 1,
                                                                 },
                                                             ]}
@@ -230,8 +235,8 @@ export function HabitFormModal({
                                                                 variant="body"
                                                                 color={
                                                                     frequency === f.key
-                                                                        ? Colors.purple
-                                                                        : Colors.textSecondary
+                                                                        ? palette.purple
+                                                                        : palette.textSecondary
                                                                 }
                                                             >
                                                                 {f.label}
@@ -247,7 +252,7 @@ export function HabitFormModal({
                                             <View style={styles.inputGroup}>
                                                 <Text
                                                     variant="label"
-                                                    color={Colors.textSecondary}
+                                                    color={palette.textSecondary}
                                                     style={styles.label}
                                                 >
                                                     Which days?
@@ -265,8 +270,8 @@ export function HabitFormModal({
                                                                 style={[
                                                                     styles.dayChip,
                                                                     targetDays.includes(day) && {
-                                                                        backgroundColor: Colors.purple + "20",
-                                                                        borderColor: Colors.purple,
+                                                                        backgroundColor: palette.purple + "20",
+                                                                        borderColor: palette.purple,
                                                                         borderWidth: 1,
                                                                     },
                                                                 ]}
@@ -275,8 +280,8 @@ export function HabitFormModal({
                                                                     variant="small"
                                                                     color={
                                                                         targetDays.includes(day)
-                                                                            ? Colors.purple
-                                                                            : Colors.textSecondary
+                                                                            ? palette.purple
+                                                                            : palette.textSecondary
                                                                     }
                                                                 >
                                                                     {day}
@@ -286,7 +291,7 @@ export function HabitFormModal({
                                                     ))}
                                                 </View>
                                                 {targetDays.length === 0 && (
-                                                    <Text variant="small" color={Colors.danger}>
+                                                    <Text variant="small" color={palette.danger}>
                                                         Choose at least one day.
                                                     </Text>
                                                 )}
@@ -297,7 +302,7 @@ export function HabitFormModal({
                                         <View style={styles.inputGroup}>
                                             <Text
                                                 variant="label"
-                                                color={Colors.textSecondary}
+                                                color={palette.textSecondary}
                                                 style={styles.label}
                                             >
                                                 Choose a color
@@ -322,7 +327,7 @@ export function HabitFormModal({
                                                             ]}
                                                         >
                                                             {color === c.key && (
-                                                                <Check size={14} color={Colors.textInverse} />
+                                                                <Check size={14} color={palette.textInverse} />
                                                             )}
                                                         </View>
                                                     </TouchableOpacity>
@@ -351,7 +356,7 @@ export function HabitFormModal({
                                     {submitError && (
                                         <Text
                                             variant="small"
-                                            color={Colors.danger}
+                                            color={palette.danger}
                                             style={styles.submitError}
                                             accessibilityRole="alert"
                                         >
@@ -370,7 +375,7 @@ export function HabitFormModal({
                                         >
                                             <Text
                                                 variant="body"
-                                                color={Colors.textSecondary}
+                                                color={palette.textSecondary}
                                                 style={styles.cancelText}
                                             >
                                                 Not now
@@ -388,7 +393,7 @@ export function HabitFormModal({
                                             }}
                                         >
                                             <LinearGradient
-                                                colors={[Colors.pink, Colors.purple]}
+                                                colors={[palette.pink, palette.purple]}
                                                 start={{ x: 0, y: 0 }}
                                                 end={{ x: 1, y: 0 }}
                                                 style={[
@@ -398,13 +403,13 @@ export function HabitFormModal({
                                                 ]}
                                             >
                                                 {mode === "edit" ? (
-                                                    <Check size={20} color={Colors.textInverse} />
+                                                    <Check size={20} color={palette.textInverse} />
                                                 ) : (
-                                                    <Plus size={20} color={Colors.textInverse} />
+                                                    <Plus size={20} color={palette.textInverse} />
                                                 )}
                                                 <Text
                                                     variant="body"
-                                                    color={Colors.textInverse}
+                                                    color={palette.textInverse}
                                                     style={styles.submitText}
                                                 >
                                                     {submitText}
@@ -420,7 +425,7 @@ export function HabitFormModal({
     );
 }
 
-const styles = StyleSheet.create({
+const useStyles = createThemedValue((palette) => StyleSheet.create({
     modalRoot: {
         position: 'absolute',
         inset: 0,
@@ -429,7 +434,7 @@ const styles = StyleSheet.create({
     backdrop: {
         position: 'absolute',
         inset: 0,
-        backgroundColor: Colors.overlay,
+        backgroundColor: palette.overlay,
         zIndex: 1,
     },
     keyboardView: {
@@ -446,7 +451,7 @@ const styles = StyleSheet.create({
         elevation: 3,
     },
     sheet: {
-        backgroundColor: Colors.card,
+        backgroundColor: palette.card,
         borderRadius: Radius["3xl"],
         maxHeight: "85%",
         padding: Spacing.xl,
@@ -488,7 +493,7 @@ const styles = StyleSheet.create({
         paddingHorizontal: Spacing.lg,
         paddingVertical: Spacing.md,
         borderRadius: Radius.full,
-        backgroundColor: Colors.lavender,
+        backgroundColor: palette.lavender,
     },
     daysContainer: {
         flexDirection: "row",
@@ -499,7 +504,7 @@ const styles = StyleSheet.create({
         paddingHorizontal: Spacing.md,
         paddingVertical: Spacing.sm,
         borderRadius: Radius.md,
-        backgroundColor: Colors.lavender,
+        backgroundColor: palette.lavender,
         minWidth: 44,
         alignItems: "center",
     },
@@ -516,7 +521,7 @@ const styles = StyleSheet.create({
     },
     colorCircleSelected: {
         borderWidth: 2,
-        borderColor: Colors.textInverse,
+        borderColor: palette.textInverse,
         ...Shadows.sm,
     },
     spacer: {
@@ -529,7 +534,7 @@ const styles = StyleSheet.create({
         marginTop: Spacing.md,
         paddingTop: Spacing.md,
         borderTopWidth: 1,
-        borderTopColor: Colors.border,
+        borderTopColor: palette.border,
     },
     submitError: {
         marginTop: Spacing.sm,
@@ -556,4 +561,4 @@ const styles = StyleSheet.create({
     submitText: {
         fontWeight: "600",
     },
-});
+}));

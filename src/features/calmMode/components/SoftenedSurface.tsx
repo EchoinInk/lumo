@@ -9,7 +9,8 @@
 import React from 'react';
 import { View, StyleSheet, ViewStyle } from 'react-native';
 import { useEnvironmentalSoftening } from '../hooks/useEnvironmentalSoftening';
-import { Colors, Radius, Spacing } from '@/theme/tokens';
+import { createThemedValue } from "@/theme/usePalette";
+import { Radius, Spacing } from '@/theme/tokens';
 
 interface SoftenedSurfaceProps {
   children: React.ReactNode;
@@ -18,6 +19,8 @@ interface SoftenedSurfaceProps {
 }
 
 export function SoftenedSurface({ children, style, backgroundColor }: SoftenedSurfaceProps) {
+  const styles = useStyles();
+
   const { shouldSoftenSurfaceBorders, shouldReduceGlowIntensity } = useEnvironmentalSoftening();
 
   const containerStyle = [
@@ -31,15 +34,15 @@ export function SoftenedSurface({ children, style, backgroundColor }: SoftenedSu
   return <View style={containerStyle}>{children}</View>;
 }
 
-const styles = StyleSheet.create({
+const useStyles = createThemedValue((palette) => StyleSheet.create({
   container: {
-    backgroundColor: Colors.backgroundAlt,
+    backgroundColor: palette.backgroundAlt,
     borderRadius: Radius.md,
     padding: Spacing.md,
   },
   softenedBorder: {
     borderWidth: 1,
-    borderColor: Colors.borderLight,
+    borderColor: palette.borderLight,
   },
   reducedGlow: {
     shadowOpacity: 0.05,
@@ -47,4 +50,4 @@ const styles = StyleSheet.create({
     shadowOffset: { width: 0, height: 2 },
     elevation: 1,
   },
-});
+}));

@@ -1,3 +1,4 @@
+import { createThemedValue } from "@/theme/usePalette";
 /**
  * Recovery Sheet
  *
@@ -27,6 +28,8 @@ interface Props {
 }
 
 export function RecoverySheet({ title, message, actions, onClose }: Props): React.JSX.Element {
+  const styles = useStyles();
+
   return (
     <ScrollView style={styles.container} contentContainerStyle={styles.content}>
       <Text variant="heading" style={styles.title}>
@@ -59,10 +62,10 @@ export function RecoverySheet({ title, message, actions, onClose }: Props): Reac
   );
 }
 
-const styles = StyleSheet.create({
+const useStyles = createThemedValue((palette) => StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: "#0a0a0f",
+    backgroundColor: palette.background,
   },
   content: {
     padding: 24,
@@ -80,4 +83,4 @@ const styles = StyleSheet.create({
   action: {
     width: "100%",
   },
-});
+}));

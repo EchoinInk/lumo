@@ -1,0 +1,109 @@
+{
+  "version": "1.0",
+  "gradient": {
+    "onPlum": [
+      "#F8CDE1",
+      "#B29DCB",
+      "#A7C8E5"
+    ],
+    "onPorcelain": [
+      "#99566F",
+      "#75618D",
+      "#3C6582"
+    ],
+    "stops": [
+      0,
+      0.5,
+      1
+    ]
+  },
+  "themes": {
+    "light": {
+      "surface": "#FAF7F8",
+      "text": "#302B3D",
+      "text-secondary": "#5C5866",
+      "action": "#3C6582",
+      "on-action": "#FAF7F8",
+      "task-panel": "#EFEAF1",
+      "reset-panel": "#FAF1F5",
+      "selected-fill": "#EAE2F0",
+      "selected-text": "#473850",
+      "selected-edge": "#766589",
+      "control-outline": "#7B7682",
+      "separator": "#CECACF",
+      "focus": "#3C6582"
+    },
+    "dark": {
+      "surface": "#262334",
+      "text": "#FAF7F8",
+      "text-secondary": "#C7C4C9",
+      "action": "#A7C8E5",
+      "on-action": "#262334",
+      "task-panel": "#363145",
+      "reset-panel": "#3E3748",
+      "selected-fill": "#40364E",
+      "selected-text": "#F0EAF5",
+      "selected-edge": "#BAA8CF",
+      "control-outline": "#ACA9AF",
+      "separator": "#55525F",
+      "focus": "#A7C8E5"
+    }
+  },
+  "typography": {
+    "screen-title": {
+      "family": "Noto Sans Display",
+      "weight": 400,
+      "size": 28,
+      "lineHeight": 34
+    },
+    "section-title": {
+      "family": "Noto Sans Display",
+      "weight": 700,
+      "size": 21,
+      "lineHeight": 27
+    },
+    "task-title": {
+      "family": "Noto Sans Display",
+      "weight": 700,
+      "size": 20,
+      "lineHeight": 26
+    },
+    "body": {
+      "family": "Noto Sans",
+      "weight": 400,
+      "size": 16,
+      "lineHeight": 24
+    },
+    "button": {
+      "family": "Noto Sans",
+      "weight": 700,
+      "size": 16,
+      "lineHeight": 22
+    },
+    "helper": {
+      "family": "Noto Sans",
+      "weight": 400,
+      "size": 14,
+      "lineHeight": 20
+    }
+  },
+  "spacing": [
+    4,
+    8,
+    12,
+    16,
+    24,
+    32
+  ],
+  "sizes": {
+    "minimumTarget": 44,
+    "focusRing": 2,
+    "focusGap": 2,
+    "buttonRadius": 11,
+    "panelRadius": 16
+  },
+  "motion": {
+    "selectionFadeMs": 140,
+    "reducedMotionMs": 0
+  }
+}

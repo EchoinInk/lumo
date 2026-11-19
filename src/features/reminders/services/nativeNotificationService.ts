@@ -62,7 +62,7 @@ export const nativeNotificationService: NativeNotificationService = {
   async schedule(input) {
     await ensureAndroidChannel();
     return Notifications.scheduleNotificationAsync({
-      content: { title: input.title, body: "A gentle reminder from Lumo.", sound: "default", data: { lumoOwner: OWNER, lumoReminderId: input.reminderId, lumoFingerprint: input.fingerprint } },
+      content: { title: input.title, body: "A gentle reminder from Mello.", sound: "default", data: { lumoOwner: OWNER, lumoReminderId: input.reminderId, lumoFingerprint: input.fingerprint } },
       trigger: { type: Notifications.SchedulableTriggerInputTypes.DATE, date: new Date(input.scheduledAt), ...(Platform.OS === "android" ? { channelId: CHANNEL_ID } : {}) },
     });
   },

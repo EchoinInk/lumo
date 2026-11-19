@@ -9,17 +9,21 @@ import { Text } from "@/src/components/ui/Text";
 import { useOnboarding } from "@/src/features/onboarding/hooks/useOnboarding";
 import { observability } from "@/src/services/observability";
 import { useSettingsStore } from "@/src/store/useSettingsStore";
-import { Colors, Radius, Shadows, Spacing } from "@/src/theme/tokens";
+import { usePalette, createThemedValue } from "@/theme/usePalette";
+import { Radius, Shadows, Spacing } from "@/src/theme/tokens";
 import { LinearGradient } from "expo-linear-gradient";
 import { router } from "expo-router";
 import { Sparkles } from "lucide-react-native";
 import { StyleSheet, View } from "react-native";
 
 export default function OnboardingCompleteScreen() {
+  const palette = usePalette();
+  const styles = useStyles();
+
   const { completeOnboarding, preferences } = useOnboarding();
   const updateSettings = useSettingsStore((state) => state.updateSettings);
 
-  const handleEnterLumo = async () => {
+  const handleEnterMello = async () => {
     await completeOnboarding();
     updateSettings({ simplifiedMode: preferences.planningStyle === "minimal" });
     observability.analytics.track("onboarding_completed");
@@ -28,13 +32,13 @@ export default function OnboardingCompleteScreen() {
 
   return (
     <LinearGradient
-      colors={[Colors.lavender, Colors.background]}
+      colors={[palette.lavender, palette.background]}
       style={styles.container}
     >
       <View style={styles.content}>
         <View style={styles.iconContainer}>
           <View style={styles.iconBackground}>
-            <Sparkles size={48} color={Colors.primary} />
+            <Sparkles size={48} color={palette.primary} />
           </View>
         </View>
 
@@ -44,14 +48,14 @@ export default function OnboardingCompleteScreen() {
 
         <Text
           variant="body"
-          color={Colors.textSecondary}
+          color={palette.textSecondary}
           style={styles.subtitle}
         >
-          Start small. Lumo will keep things gentle.
+          Start small. Mello will keep things gentle.
         </Text>
 
         <Card variant="elevated" style={styles.reminderCard}>
-          <Text variant="caption" color={Colors.textSecondary}>
+          <Text variant="caption" color={palette.textSecondary}>
             You can always adjust your preferences in Settings.
           </Text>
         </Card>
@@ -59,19 +63,19 @@ export default function OnboardingCompleteScreen() {
 
       <View style={styles.footer}>
         <Button
-          onPress={() => void handleEnterLumo()}
+          onPress={() => void handleEnterMello()}
           variant="primary"
           size="lg"
           style={styles.enterButton}
         >
-          Enter Lumo
+          Enter Mello
         </Button>
       </View>
     </LinearGradient>
   );
 }
 
-const styles = StyleSheet.create({
+const useStyles = createThemedValue((palette) => StyleSheet.create({
   container: {
     flex: 1,
     paddingHorizontal: Spacing.lg,
@@ -90,7 +94,7 @@ const styles = StyleSheet.create({
     width: 100,
     height: 100,
     borderRadius: Radius.xl,
-    backgroundColor: Colors.background,
+    backgroundColor: palette.background,
     alignItems: "center",
     justifyContent: "center",
     shadowColor: Shadows.sm.shadowColor,
@@ -119,4 +123,4 @@ const styles = StyleSheet.create({
   enterButton: {
     borderRadius: Radius.lg,
   },
-});
+}));

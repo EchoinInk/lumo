@@ -7,7 +7,8 @@ import type {
   PlanningEnergyLevel,
   PlanningNextStep,
 } from "@/src/features/planning/types/planning";
-import { Colors, Spacing } from "@/src/theme/tokens";
+import { usePalette } from "@/theme/usePalette";
+import { Spacing } from "@/src/theme/tokens";
 import { StyleSheet, View } from "react-native";
 
 const energyLabels: Record<PlanningEnergyLevel, string> = {
@@ -35,21 +36,23 @@ export function MorningPlanningCompleteCard({
   onOpenTodayFocus,
   onAdjustPlan,
 }: MorningPlanningCompleteCardProps) {
+  const palette = usePalette();
+
   const nextStepLabel = getPlanningNextStepDisplayLabel(nextStep);
 
   return (
     <PlanningGentleFade>
-      <Card variant="gradient" style={styles.card}>
+      <Card variant="plain" style={styles.card}>
         <Text variant="subheading" style={styles.title}>
           Today has a gentle shape.
         </Text>
-        <Text variant="body" color={Colors.textSecondary}>
+        <Text variant="body" color={palette.textSecondary}>
           Start with one small thing. You can adjust this later.
         </Text>
 
         <View style={styles.details}>
           {energyLevel && (
-            <Text variant="caption" color={Colors.textTertiary}>
+            <Text variant="caption" color={palette.textTertiary}>
               Energy: {energyLabels[energyLevel]}
             </Text>
           )}
@@ -59,18 +62,18 @@ export function MorningPlanningCompleteCard({
             </Text>
           )}
           {carryOverCount > 0 && (
-            <Text variant="caption" color={Colors.textTertiary}>
+            <Text variant="caption" color={palette.textTertiary}>
               {carryOverCount} thing{carryOverCount === 1 ? "" : "s"} carried
               gently
             </Text>
           )}
           {brainDumpCount > 0 && (
-            <Text variant="caption" color={Colors.textTertiary}>
+            <Text variant="caption" color={palette.textTertiary}>
               {brainDumpCount} thought{brainDumpCount === 1 ? "" : "s"} waiting
               in Brain Dump
             </Text>
           )}
-          <Text variant="caption" color={Colors.textTertiary}>
+          <Text variant="caption" color={palette.textTertiary}>
             The rest can stay parked.
           </Text>
         </View>

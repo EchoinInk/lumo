@@ -26,7 +26,8 @@ import { useWeightStore } from "@/src/features/weight/store/useWeightStore";
 import { useWorkoutStore } from "@/src/features/workouts/store/useWorkoutStore";
 import { useLocalDay } from "@/src/hooks/useLocalDay";
 import { addLocalDays, formatLocalDate } from "@/src/utils/dateTime";
-import { Colors, Radius, Shadows, Spacing } from "@/src/theme/tokens";
+import { usePalette, createThemedValue } from "@/theme/usePalette";
+import { Radius, Shadows, Spacing } from "@/src/theme/tokens";
 import { LinearGradient } from "expo-linear-gradient";
 import { router } from "expo-router";
 import {
@@ -44,40 +45,44 @@ import { useMemo, useState } from "react";
 import { StyleSheet, TouchableOpacity, View } from "react-native";
 
 // Quick links to health screens
-const healthLinks = [
+const useHealthLinks = createThemedValue((palette) => [
   {
     title: "My Habits",
     icon: Flame,
-    color: Colors.purple,
+    color: palette.purple,
     route: "/(tabs)/more/habits",
   },
   {
     title: "My Meals",
     icon: Utensils,
-    color: Colors.pink,
+    color: palette.pink,
     route: "/(tabs)/more/meals",
   },
   {
     title: "Weight Tracker",
     icon: Scale,
-    color: Colors.primary,
+    color: palette.primary,
     route: "/(tabs)/more/weight",
   },
   {
     title: "Workout Log",
     icon: Dumbbell,
-    color: Colors.warning,
+    color: palette.warning,
     route: "/(tabs)/more/workouts",
   },
   {
     title: "Body Measurements",
     icon: Ruler,
-    color: Colors.purple,
+    color: palette.purple,
     route: "/(tabs)/more/measurements",
   },
-];
+]);
 
 export default function HealthScreen() {
+  const palette = usePalette();
+  const styles = useStyles();
+  const healthLinks = useHealthLinks();
+
   const today = useLocalDay(); const meals = useMealStore(); const caloriePreferences = useCaloriePreferencesStore(); const weight = useWeightStore(); const workouts = useWorkoutStore();
   const [calorieDate, setCalorieDate] = useState(today); const calorieSummary = useMemo(() => calorieSummaryForDate(meals.meals, calorieDate), [meals.meals, calorieDate]);
   const goal = caloriePreferences.preferences.dailyGoalKcal; const calorieProgress = goal ? Math.min(100, calorieSummary.knownKcal * 100 / goal) : 0;
@@ -151,12 +156,12 @@ export default function HealthScreen() {
 
       {error && (
         <Card variant="outlined" style={styles.errorCard}>
-          <Text variant="small" color={Colors.danger} accessibilityRole="alert">
+          <Text variant="small" color={palette.danger} accessibilityRole="alert">
             {error}
           </Text>
         </Card>
       )}
-      {(meals.error || caloriePreferences.error || weight.error || workouts.error) && <Card variant="outlined" style={styles.errorCard}><Text variant="small" color={Colors.danger} accessibilityRole="alert">{meals.error ?? caloriePreferences.error ?? weight.error ?? workouts.error}</Text></Card>}
+      {(meals.error || caloriePreferences.error || weight.error || workouts.error) && <Card variant="outlined" style={styles.errorCard}><Text variant="small" color={palette.danger} accessibilityRole="alert">{meals.error ?? caloriePreferences.error ?? weight.error ?? workouts.error}</Text></Card>}
 
       {/* Habits Summary */}
       <Card variant="elevated" style={styles.summaryCard}>
@@ -164,16 +169,16 @@ export default function HealthScreen() {
           <View
             style={[
               styles.summaryIcon,
-              { backgroundColor: Colors.purple + "15" },
+              { backgroundColor: palette.purple + "15" },
             ]}
           >
-            <Flame size={22} color={Colors.purple} />
+            <Flame size={22} color={palette.purple} />
           </View>
           <View style={styles.summaryTitle}>
             <Text variant="body" style={styles.summaryLabel}>
               Habits
             </Text>
-            <Text variant="caption" color={Colors.textSecondary}>
+            <Text variant="caption" color={palette.textSecondary}>
               {isHydrated
                 ? habitSummary.longestCurrentStreakDays === null
                   ? "No streak yet"
@@ -199,7 +204,7 @@ export default function HealthScreen() {
 
       {isLoading && (
         <Card variant="outlined" style={styles.emptyCard}>
-          <Text variant="body" color={Colors.textSecondary}>
+          <Text variant="body" color={palette.textSecondary}>
             Loading your habits...
           </Text>
         </Card>
@@ -209,12 +214,12 @@ export default function HealthScreen() {
         <Card variant="outlined" style={styles.emptyCard}>
           <Text
             variant="body"
-            color={Colors.textSecondary}
+            color={palette.textSecondary}
             style={styles.emptyTitle}
           >
             Nothing needs your attention here yet.
           </Text>
-          <Text variant="caption" color={Colors.textTertiary}>
+          <Text variant="caption" color={palette.textTertiary}>
             Add a gentle routine when you are ready.
           </Text>
         </Card>
@@ -246,15 +251,15 @@ export default function HealthScreen() {
         accessibilityRole="button"
       >
         <LinearGradient
-          colors={[Colors.pink, Colors.purple]}
+          colors={[palette.pink, palette.purple]}
           start={{ x: 0, y: 0 }}
           end={{ x: 1, y: 1 }}
           style={styles.gradientButton}
         >
-          <Plus size={20} color={Colors.textInverse} />
+          <Plus size={20} color={palette.textInverse} />
           <Text
             variant="body"
-            color={Colors.textInverse}
+            color={palette.textInverse}
             style={styles.addButtonText}
           >
             Add Habit
@@ -277,25 +282,25 @@ export default function HealthScreen() {
           <View
             style={[
               styles.summaryIcon,
-              { backgroundColor: Colors.pink + "15" },
+              { backgroundColor: palette.pink + "15" },
             ]}
           >
-            <Utensils size={22} color={Colors.pink} />
+            <Utensils size={22} color={palette.pink} />
           </View>
           <View style={styles.summaryTitle}>
             <Text variant="body" style={styles.summaryLabel}>
               Calories
             </Text>
-            <Text variant="caption" color={Colors.textSecondary}>{formatLocalDate(calorieDate, { month: "short", day: "numeric", year: "numeric" })}</Text>
+            <Text variant="caption" color={palette.textSecondary}>{formatLocalDate(calorieDate, { month: "short", day: "numeric", year: "numeric" })}</Text>
           </View>
           <Text variant="subheading" style={styles.summaryValue}>
             {calorieSummary.knownKcal} kcal
           </Text>
         </View>
         {goal !== null && <ProgressBar progress={calorieProgress} height={8} variant="default" />}
-        <Text variant="caption" color={Colors.textSecondary} style={styles.goalText}>{goal === null ? "No calorie goal configured" : `Goal: ${goal} kcal`}{calorieSummary.unknownEntryCount ? ` · ${calorieSummary.unknownEntryCount} ${calorieSummary.unknownEntryCount === 1 ? "entry has" : "entries have"} unknown calories` : ""}</Text>
-        <View style={styles.inlineActions}><Button size="sm" variant="ghost" onPress={() => setCalorieDate(addLocalDays(calorieDate, -1))} leftIcon={<ChevronLeft size={16}/>}>Earlier</Button><Button size="sm" variant="ghost" disabled={calorieDate >= today} onPress={() => setCalorieDate(addLocalDays(calorieDate, 1))} rightIcon={<ChevronRight size={16}/>}>Later</Button><Button size="sm" variant="ghost" onPress={() => { setGoalInput(goal?.toString() ?? ""); setGoalError(null); setGoalVisible(true); }}>Goal</Button></View>
-        {calorieSummary.entries.length === 0 ? <Text variant="small" color={Colors.textTertiary}>No consumed meals recorded for this date.</Text> : <View style={styles.calorieEntries}>{calorieSummary.entries.map((meal) => <View key={meal.id} style={styles.calorieRow}><View style={styles.summaryTitle}><Text variant="small">{meal.name}</Text><Text variant="small" color={Colors.textTertiary}>{meal.nutrition?.calories === undefined ? "Calories unknown" : `${meal.nutrition.calories} kcal`}</Text></View><Button size="sm" variant="ghost" onPress={() => { setEditingMeal(meal); setMealVisible(true); }}>Edit</Button><Button size="sm" variant="ghost" onPress={() => void meals.deleteMeal(meal.id).catch(() => undefined)}>Delete</Button></View>)}</View>}
+        <Text variant="caption" color={palette.textSecondary} style={styles.goalText}>{goal === null ? "No calorie goal configured" : `Goal: ${goal} kcal`}{calorieSummary.unknownEntryCount ? ` · ${calorieSummary.unknownEntryCount} ${calorieSummary.unknownEntryCount === 1 ? "entry has" : "entries have"} unknown calories` : ""}</Text>
+        <View style={styles.inlineActions}><Button size="sm" variant="ghost" onPress={() => setCalorieDate(addLocalDays(calorieDate, -1))} leftIcon={<ChevronLeft color={palette.textSecondary} size={16}/>}>Earlier</Button><Button size="sm" variant="ghost" disabled={calorieDate >= today} onPress={() => setCalorieDate(addLocalDays(calorieDate, 1))} rightIcon={<ChevronRight color={palette.textSecondary} size={16}/>}>Later</Button><Button size="sm" variant="ghost" onPress={() => { setGoalInput(goal?.toString() ?? ""); setGoalError(null); setGoalVisible(true); }}>Goal</Button></View>
+        {calorieSummary.entries.length === 0 ? <Text variant="small" color={palette.textTertiary}>No consumed meals recorded for this date.</Text> : <View style={styles.calorieEntries}>{calorieSummary.entries.map((meal) => <View key={meal.id} style={styles.calorieRow}><View style={styles.summaryTitle}><Text variant="small">{meal.name}</Text><Text variant="small" color={palette.textTertiary}>{meal.nutrition?.calories === undefined ? "Calories unknown" : `${meal.nutrition.calories} kcal`}</Text></View><Button size="sm" variant="ghost" onPress={() => { setEditingMeal(meal); setMealVisible(true); }}>Edit</Button><Button size="sm" variant="ghost" onPress={() => void meals.deleteMeal(meal.id).catch(() => undefined)}>Delete</Button></View>)}</View>}
         <Button size="sm" onPress={() => { setEditingMeal(null); setMealVisible(true); }}>Quick add consumed intake</Button>
       </Card>
 
@@ -305,16 +310,16 @@ export default function HealthScreen() {
           <View
             style={[
               styles.summaryIcon,
-              { backgroundColor: Colors.primary + "15" },
+              { backgroundColor: palette.primary + "15" },
             ]}
           >
-            <Scale size={22} color={Colors.primary} />
+            <Scale size={22} color={palette.primary} />
           </View>
           <View style={styles.summaryTitle}>
             <Text variant="body" style={styles.summaryLabel}>
               Weight
             </Text>
-            <Text variant="caption" color={Colors.textSecondary}>
+            <Text variant="caption" color={palette.textSecondary}>
               Current
             </Text>
           </View>
@@ -322,13 +327,13 @@ export default function HealthScreen() {
             <Text variant="subheading" style={styles.summaryValue}>
               {weightSummary.latest ? formatWeight(weightSummary.latest.grams, weightUnit) : "No entries"}
             </Text>
-            {weightSummary.changeGrams !== null && <Text variant="small" color={Colors.textSecondary}>{weightSummary.changeGrams > 0 ? "+" : ""}{gramsToUnit(weightSummary.changeGrams, weightUnit).toFixed(1)} {weightUnit} from prior entry</Text>}
+            {weightSummary.changeGrams !== null && <Text variant="small" color={palette.textSecondary}>{weightSummary.changeGrams > 0 ? "+" : ""}{gramsToUnit(weightSummary.changeGrams, weightUnit).toFixed(1)} {weightUnit} from prior entry</Text>}
           </View>
         </View>
       </Card>
 
       <MealFormSheet visible={mealVisible} meal={editingMeal} defaultDate={calorieDate} saving={mealSaving} onClose={() => setMealVisible(false)} onSave={saveMeal}/>
-      <BottomSheet visible={goalVisible} onClose={() => setGoalVisible(false)}><Text variant="heading">Daily calorie goal</Text><View style={styles.goalForm}><Input label="Goal in kcal (optional)" value={goalInput} onChangeText={setGoalInput} keyboardType="number-pad" helperText="Leave blank to use no goal."/>{goalError && <Text color={Colors.danger} accessibilityRole="alert">{goalError}</Text>}<View style={styles.inlineActions}><Button style={styles.formButton} variant="ghost" onPress={() => setGoalVisible(false)}>Cancel</Button><Button style={styles.formButton} loading={caloriePreferences.isSaving} onPress={() => void saveGoal()}>Save</Button></View></View></BottomSheet>
+      <BottomSheet visible={goalVisible} onClose={() => setGoalVisible(false)}><Text variant="heading">Daily calorie goal</Text><View style={styles.goalForm}><Input label="Goal in kcal (optional)" value={goalInput} onChangeText={setGoalInput} keyboardType="number-pad" helperText="Leave blank to use no goal."/>{goalError && <Text color={palette.danger} accessibilityRole="alert">{goalError}</Text>}<View style={styles.inlineActions}><Button style={styles.formButton} variant="ghost" onPress={() => setGoalVisible(false)}>Cancel</Button><Button style={styles.formButton} loading={caloriePreferences.isSaving} onPress={() => void saveGoal()}>Save</Button></View></View></BottomSheet>
 
       {/* Workout Summary */}
       <Card variant="elevated" style={styles.summaryCard}>
@@ -336,16 +341,16 @@ export default function HealthScreen() {
           <View
             style={[
               styles.summaryIcon,
-              { backgroundColor: Colors.warning + "15" },
+              { backgroundColor: palette.warning + "15" },
             ]}
           >
-            <Dumbbell size={22} color={Colors.warning} />
+            <Dumbbell size={22} color={palette.warning} />
           </View>
           <View style={styles.summaryTitle}>
             <Text variant="body" style={styles.summaryLabel}>
               Workouts
             </Text>
-            <Text variant="caption" color={Colors.textSecondary}>
+            <Text variant="caption" color={palette.textSecondary}>
               This week
             </Text>
           </View>
@@ -353,7 +358,7 @@ export default function HealthScreen() {
             <Text variant="subheading" style={styles.summaryValue}>
               {workoutSummary.count}
             </Text>
-            <Text variant="caption" color={Colors.textSecondary}>
+            <Text variant="caption" color={palette.textSecondary}>
               {workoutSummary.durationMinutes} min{workoutSummary.knownCalorieEntryCount ? ` · ${workoutSummary.knownKcal} manually recorded kcal` : " · no calorie estimates"}{workoutSummary.unknownCalorieEntryCount ? ` · ${workoutSummary.unknownCalorieEntryCount} unknown` : ""}
             </Text>
           </View>
@@ -384,7 +389,7 @@ export default function HealthScreen() {
               <Text variant="body" style={styles.linkTitle}>
                 {link.title}
               </Text>
-              <ArrowRight size={16} color={Colors.textTertiary} />
+              <ArrowRight size={16} color={palette.textTertiary} />
             </Card>
           </TouchableOpacity>
         ))}
@@ -394,12 +399,12 @@ export default function HealthScreen() {
   );
 }
 
-const styles = StyleSheet.create({
+const useStyles = createThemedValue((palette) => StyleSheet.create({
   errorCard: {
     marginBottom: Spacing.md,
     padding: Spacing.md,
-    backgroundColor: Colors.dangerSoft,
-    borderColor: Colors.danger + "30",
+    backgroundColor: palette.dangerSoft,
+    borderColor: palette.danger + "30",
   },
   summaryCard: {
     marginBottom: Spacing.lg,
@@ -435,7 +440,7 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     alignItems: "center",
     gap: Spacing.xs,
-    backgroundColor: Colors.success + "15",
+    backgroundColor: palette.success + "15",
     paddingHorizontal: Spacing.sm,
     paddingVertical: 2,
     borderRadius: Radius.sm,
@@ -506,4 +511,4 @@ const styles = StyleSheet.create({
   emptyTitle: {
     marginBottom: Spacing.xs,
   },
-});
+}));

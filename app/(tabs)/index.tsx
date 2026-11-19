@@ -1,3 +1,4 @@
+import { MelloLogo } from "@/components/ui/MelloLogo";
 import { QuickCaptureSheet } from "@/src/components/capture/QuickCaptureSheet";
 import { Screen } from "@/src/components/ui/Screen";
 import { SectionHeader } from "@/src/components/ui/SectionHeader";
@@ -23,35 +24,38 @@ import { StyleSheet, TouchableOpacity, View } from "react-native";
 // Quick Actions Component
 import { Card } from "@/src/components/ui/Card";
 import { Text } from "@/src/components/ui/Text";
-import { Colors, Radius, Spacing } from "@/src/theme/tokens";
+import { usePalette } from "@/theme/usePalette";
+import { Radius, Spacing } from "@/src/theme/tokens";
 import { Brain, Calendar, Cloud, Menu } from "lucide-react-native";
 import { useState } from "react";
 
 function QuickActions({ onQuickCapture }: { onQuickCapture: () => void }) {
+  const palette = usePalette();
+
   const actions = [
     {
       label: "Quick Capture",
       icon: Cloud,
-      color: Colors.primary,
+      color: palette.primary,
       onPress: onQuickCapture,
     },
     {
       label: "Brain Dump",
       icon: Brain,
-      color: Colors.purple,
+      color: palette.purple,
       onPress: () => router.push({ pathname: "/brain-dump" as const } as any),
     },
     {
       label: "Calendar",
       icon: Calendar,
-      color: Colors.pink,
+      color: palette.pink,
       onPress: () =>
         router.push({ pathname: "/(tabs)/calendar" as const } as any),
     },
     {
       label: "More",
       icon: Menu,
-      color: Colors.success,
+      color: palette.success,
       onPress: () => router.push({ pathname: "/(tabs)/more" as const } as any),
     },
   ];
@@ -138,6 +142,7 @@ export default function DashboardScreen() {
 
   return (
     <Screen scrollable padded>
+      <MelloLogo compact />
       {isFocusModeEnabled && <FocusModeBanner onExit={disableFocusMode} />}
 
       <SectionHeader

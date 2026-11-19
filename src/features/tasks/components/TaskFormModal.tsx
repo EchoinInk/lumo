@@ -1,6 +1,7 @@
 import { Input } from "@/src/components/ui/Input";
 import { Text } from "@/src/components/ui/Text";
-import { Colors, Radius, Shadows, Spacing } from "@/src/theme/tokens";
+import { usePalette, createThemedValue } from "@/theme/usePalette";
+import { Radius, Shadows, Spacing } from "@/src/theme/tokens";
 import { MutationSubmissionGuard } from "@/src/services/storage/durableMutation";
 import {
   toLocalDateKey,
@@ -40,11 +41,11 @@ interface TaskFormModalProps {
   onClose: () => void;
 }
 
-const priorities: { key: TaskPriority; label: string; color: string }[] = [
-  { key: "low", label: "Low", color: Colors.blue },
-  { key: "medium", label: "Medium", color: Colors.warning },
-  { key: "high", label: "High", color: Colors.pink },
-];
+const usePriorities = createThemedValue((palette): { key: TaskPriority; label: string; color: string }[] => [
+  { key: "low", label: "Low", color: palette.blue },
+  { key: "medium", label: "Medium", color: palette.warning },
+  { key: "high", label: "High", color: palette.pink },
+]);
 
 const dateOptions = [
   { key: "today" as const, label: "Today" },
@@ -61,6 +62,10 @@ export function TaskFormModal({
   onSubmit,
   onClose,
 }: TaskFormModalProps) {
+  const palette = usePalette();
+  const styles = useStyles();
+  const priorities = usePriorities();
+
   const [title, setTitle] = useState("");
   const [notes, setNotes] = useState("");
   const [priority, setPriority] = useState<TaskPriority>("medium");
@@ -191,7 +196,7 @@ export function TaskFormModal({
                       </Text>
                       <Text
                         variant="body"
-                        color={Colors.textSecondary}
+                        color={palette.textSecondary}
                         style={styles.subtitle}
                       >
                         {subtitleText}
@@ -202,7 +207,7 @@ export function TaskFormModal({
                       style={styles.closeButton}
                       activeOpacity={0.7}
                     >
-                      <X size={24} color={Colors.textSecondary} />
+                      <X size={24} color={palette.textSecondary} />
                     </TouchableOpacity>
                   </View>
 
@@ -227,7 +232,7 @@ export function TaskFormModal({
                     <View style={styles.inputGroup}>
                       <Text
                         variant="label"
-                        color={Colors.textSecondary}
+                        color={palette.textSecondary}
                         style={styles.label}
                       >
                         When?
@@ -251,8 +256,8 @@ export function TaskFormModal({
                               style={[
                                 styles.dateChip,
                                 selectedDate === option.key && {
-                                  backgroundColor: Colors.purple + "20",
-                                  borderColor: Colors.purple,
+                                  backgroundColor: palette.purple + "20",
+                                  borderColor: palette.purple,
                                   borderWidth: 1,
                                 },
                               ]}
@@ -261,16 +266,16 @@ export function TaskFormModal({
                                 size={14}
                                 color={
                                   selectedDate === option.key
-                                    ? Colors.purple
-                                    : Colors.textTertiary
+                                    ? palette.purple
+                                    : palette.textTertiary
                                 }
                               />
                               <Text
                                 variant="small"
                                 color={
                                   selectedDate === option.key
-                                    ? Colors.purple
-                                    : Colors.textSecondary
+                                    ? palette.purple
+                                    : palette.textSecondary
                                 }
                               >
                                 {option.label}
@@ -311,7 +316,7 @@ export function TaskFormModal({
                             setSubmitError(null);
                           }}
                           leftIcon={
-                            <Clock size={18} color={Colors.textTertiary} />
+                            <Clock size={18} color={palette.textTertiary} />
                           }
                           accessibilityLabel="Due time input"
                         />
@@ -322,7 +327,7 @@ export function TaskFormModal({
                     <View style={styles.inputGroup}>
                       <Text
                         variant="label"
-                        color={Colors.textSecondary}
+                        color={palette.textSecondary}
                         style={styles.label}
                       >
                         How important is this?
@@ -360,7 +365,7 @@ export function TaskFormModal({
                                 color={
                                   priority === p.key
                                     ? p.color
-                                    : Colors.textSecondary
+                                    : palette.textSecondary
                                 }
                               >
                                 {p.label}
@@ -407,7 +412,7 @@ export function TaskFormModal({
                   {submitError && (
                     <Text
                       variant="small"
-                      color={Colors.danger}
+                      color={palette.danger}
                       style={styles.submitError}
                       accessibilityRole="alert"
                     >
@@ -428,7 +433,7 @@ export function TaskFormModal({
                     >
                       <Text
                         variant="body"
-                        color={Colors.textSecondary}
+                        color={palette.textSecondary}
                         style={styles.cancelText}
                       >
                         Not now
@@ -446,7 +451,7 @@ export function TaskFormModal({
                       }}
                     >
                       <LinearGradient
-                        colors={[Colors.pink, Colors.purple]}
+                        colors={[palette.pink, palette.purple]}
                         start={{ x: 0, y: 0 }}
                         end={{ x: 1, y: 0 }}
                         style={[
@@ -456,13 +461,13 @@ export function TaskFormModal({
                         ]}
                       >
                         {mode === "edit" ? (
-                          <Check size={20} color={Colors.textInverse} />
+                          <Check size={20} color={palette.textInverse} />
                         ) : (
-                          <Plus size={20} color={Colors.textInverse} />
+                          <Plus size={20} color={palette.textInverse} />
                         )}
                         <Text
                           variant="body"
-                          color={Colors.textInverse}
+                          color={palette.textInverse}
                           style={styles.submitText}
                         >
                           {submitText}
@@ -478,7 +483,7 @@ export function TaskFormModal({
   );
 }
 
-const styles = StyleSheet.create({
+const useStyles = createThemedValue((palette) => StyleSheet.create({
   modalRoot: {
     position: 'absolute',
     inset: 0,
@@ -487,7 +492,7 @@ const styles = StyleSheet.create({
   backdrop: {
     position: 'absolute',
     inset: 0,
-    backgroundColor: Colors.overlay,
+    backgroundColor: palette.overlay,
     zIndex: 1,
   },
   keyboardView: {
@@ -504,7 +509,7 @@ const styles = StyleSheet.create({
     elevation: 3,
   },
   sheet: {
-    backgroundColor: Colors.card,
+    backgroundColor: palette.card,
     borderRadius: Radius["3xl"],
     maxHeight: "85%",
     padding: Spacing.xl,
@@ -553,7 +558,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: Spacing.md,
     paddingVertical: Spacing.sm,
     borderRadius: Radius.full,
-    backgroundColor: Colors.lavender,
+    backgroundColor: palette.lavender,
   },
   priorityContainer: {
     flexDirection: "row",
@@ -566,7 +571,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: Spacing.lg,
     paddingVertical: Spacing.md,
     borderRadius: Radius.full,
-    backgroundColor: Colors.lavender,
+    backgroundColor: palette.lavender,
   },
   priorityDot: {
     width: 8,
@@ -583,7 +588,7 @@ const styles = StyleSheet.create({
     marginTop: Spacing.md,
     paddingTop: Spacing.md,
     borderTopWidth: 1,
-    borderTopColor: Colors.border,
+    borderTopColor: palette.border,
   },
   submitError: {
     marginTop: Spacing.sm,
@@ -610,4 +615,4 @@ const styles = StyleSheet.create({
   submitText: {
     fontWeight: "600",
   },
-});
+}));

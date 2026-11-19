@@ -10,7 +10,8 @@
  * - Offer clear retry path
  */
 
-import { Colors, Radius, Spacing } from "@/theme/tokens";
+import { createThemedValue } from "@/theme/usePalette";
+import { Radius, Spacing } from "@/theme/tokens";
 import React from "react";
 import { StyleSheet, View } from "react-native";
 import { Text } from "../ui/Text";
@@ -25,6 +26,8 @@ export function SyncFailureBanner({
   onRetry,
   isRetrying = false,
 }: Props): React.JSX.Element {
+  const styles = useStyles();
+
   return (
     <View
       style={styles.container}
@@ -39,10 +42,10 @@ export function SyncFailureBanner({
   );
 }
 
-const styles = StyleSheet.create({
+const useStyles = createThemedValue((palette) => StyleSheet.create({
   container: {
-    backgroundColor: Colors.card,
-    borderColor: Colors.border,
+    backgroundColor: palette.card,
+    borderColor: palette.border,
     borderRadius: Radius.lg,
     borderWidth: 1,
     padding: Spacing.md,
@@ -56,4 +59,4 @@ const styles = StyleSheet.create({
   message: {
     flex: 1,
   },
-});
+}));

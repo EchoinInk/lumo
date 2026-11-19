@@ -6,7 +6,8 @@
  */
 
 import { UX } from '@/constants/ux';
-import { Colors, Spacing } from '@/theme/tokens';
+import { usePalette } from "@/theme/usePalette";
+import { Spacing } from '@/theme/tokens';
 import React from 'react';
 import { Text, TextInput, TextInputProps, View, ViewProps } from 'react-native';
 
@@ -27,6 +28,8 @@ export function FormField({
   className = '',
   ...props
 }: FormFieldProps) {
+  const palette = usePalette();
+
   return (
     <View
       className={className}
@@ -40,14 +43,14 @@ export function FormField({
           style={{
             fontSize: 14,
             fontWeight: '600',
-            color: Colors.textPrimary,
+            color: palette.textPrimary,
           }}
           accessible
           accessibilityRole="text"
         >
           {label}
           {required && (
-            <Text style={{ color: Colors.danger }}> *</Text>
+            <Text style={{ color: palette.danger }}> *</Text>
           )}
         </Text>
       </View>
@@ -59,7 +62,7 @@ export function FormField({
           <Text
             style={{
               fontSize: 12,
-              color: error ? Colors.danger : Colors.textSecondary,
+              color: error ? palette.danger : palette.textSecondary,
             }}
             accessible
             accessibilityRole={error ? 'alert' : 'text'}
@@ -83,20 +86,22 @@ export function AccessibleTextInput({
   style,
   ...props
 }: AccessibleTextInputProps) {
+  const palette = usePalette();
+
   return (
     <TextInput
       style={{
         height: UX.form.preferredInputHeight,
         borderWidth: 1,
-        borderColor: error ? Colors.danger : Colors.border,
+        borderColor: error ? palette.danger : palette.border,
         borderRadius: 8,
         paddingHorizontal: Spacing.md,
         fontSize: 16,
-        color: Colors.textPrimary,
-        backgroundColor: Colors.card,
+        color: palette.textPrimary,
+        backgroundColor: palette.card,
         ...style,
       }}
-      placeholderTextColor={Colors.textTertiary}
+      placeholderTextColor={palette.textTertiary}
       accessible
       accessibilityLabel={label}
       accessibilityHint={error ? 'Contains error' : undefined}

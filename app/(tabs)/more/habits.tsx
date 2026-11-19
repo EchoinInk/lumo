@@ -8,13 +8,17 @@ import { HabitListItem } from "@/src/features/habits/components/HabitListItem";
 import { useHabits } from "@/src/features/habits/hooks/useHabits";
 import { CreateHabitInput, Habit } from "@/src/features/habits/types/habit";
 import { MoreScreenHeader } from "@/src/features/more/components";
-import { Colors, Radius, Shadows, Spacing } from "@/src/theme/tokens";
+import { usePalette, createThemedValue } from "@/theme/usePalette";
+import { Radius, Shadows, Spacing } from "@/src/theme/tokens";
 import { LinearGradient } from "expo-linear-gradient";
 import { Flame, Plus } from "lucide-react-native";
 import { useState } from "react";
 import { Alert, ScrollView, StyleSheet, TouchableOpacity, View } from "react-native";
 
 export default function HabitsScreen() {
+  const palette = usePalette();
+  const styles = useStyles();
+
   const {
     habits,
     todayHabits,
@@ -108,7 +112,7 @@ export default function HabitsScreen() {
 
       {error && (
         <Card variant="outlined" style={styles.errorCard}>
-          <Text variant="small" color={Colors.danger} accessibilityRole="alert">
+          <Text variant="small" color={palette.danger} accessibilityRole="alert">
             {error}
           </Text>
         </Card>
@@ -116,11 +120,11 @@ export default function HabitsScreen() {
 
       {recentlyDeleted && (
         <Card variant="outlined" style={styles.undoCard}>
-          <Text variant="small" color={Colors.textSecondary} style={styles.undoText}>
+          <Text variant="small" color={palette.textSecondary} style={styles.undoText}>
             “{recentlyDeleted.title}” was deleted.
           </Text>
           <TouchableOpacity onPress={undoDelete} accessibilityRole="button" accessibilityLabel={`Undo deletion of ${recentlyDeleted.title}`}>
-            <Text variant="body" color={Colors.purple}>Undo</Text>
+            <Text variant="body" color={palette.purple}>Undo</Text>
           </TouchableOpacity>
         </Card>
       )}
@@ -128,34 +132,34 @@ export default function HabitsScreen() {
       {/* Stats Summary */}
       <Card variant="gradient" style={styles.summaryCard}>
         <View style={styles.summaryContent}>
-          <Text variant="caption" color={Colors.textInverse}>
+          <Text variant="caption" color={palette.textInverse}>
             Today
           </Text>
           <View style={styles.summaryStats}>
             <View style={styles.summaryStat}>
-              <Text variant="heading" color={Colors.textInverse}>
+              <Text variant="heading" color={palette.textInverse}>
                 {isHydrated ? completedToday.length : "-"}
               </Text>
-              <Text variant="caption" color={Colors.textInverse}>
+              <Text variant="caption" color={palette.textInverse}>
                 Completed
               </Text>
             </View>
             <View style={styles.summaryStat}>
               <View style={styles.streakRow}>
-                <Flame size={16} color={Colors.warning} />
-                <Text variant="heading" color={Colors.textInverse}>
+                <Flame size={16} color={palette.warning} />
+                <Text variant="heading" color={palette.textInverse}>
                   {isHydrated ? bestStreak : "-"}
                 </Text>
               </View>
-              <Text variant="caption" color={Colors.textInverse}>
+              <Text variant="caption" color={palette.textInverse}>
                 Best Streak
               </Text>
             </View>
             <View style={styles.summaryStat}>
-              <Text variant="heading" color={Colors.textInverse}>
+              <Text variant="heading" color={palette.textInverse}>
                 {isHydrated ? `${completionRate}%` : "-"}
               </Text>
-              <Text variant="caption" color={Colors.textInverse}>
+              <Text variant="caption" color={palette.textInverse}>
                 Success Rate
               </Text>
             </View>
@@ -170,7 +174,7 @@ export default function HabitsScreen() {
 
       {isLoading && (
         <Card variant="outlined" style={styles.emptyCard}>
-          <Text variant="body" color={Colors.textSecondary}>
+          <Text variant="body" color={palette.textSecondary}>
             Loading your habits...
           </Text>
         </Card>
@@ -180,12 +184,12 @@ export default function HabitsScreen() {
         <Card variant="outlined" style={styles.emptyCard}>
           <Text
             variant="body"
-            color={Colors.textSecondary}
+            color={palette.textSecondary}
             style={styles.emptyTitle}
           >
             No habits yet
           </Text>
-          <Text variant="caption" color={Colors.textTertiary}>
+          <Text variant="caption" color={palette.textTertiary}>
             Add a gentle routine to get started
           </Text>
         </Card>
@@ -217,7 +221,7 @@ export default function HabitsScreen() {
       <SectionHeader title={`Manage all habits (${habits.length})`} />
       {habits.length === 0 ? (
         <Card variant="outlined" style={styles.emptyCard}>
-          <Text variant="caption" color={Colors.textTertiary}>Every habit, including off-day habits, will appear here.</Text>
+          <Text variant="caption" color={palette.textTertiary}>Every habit, including off-day habits, will appear here.</Text>
         </Card>
       ) : (
         <View style={styles.habitsList}>
@@ -247,15 +251,15 @@ export default function HabitsScreen() {
         accessibilityRole="button"
       >
         <LinearGradient
-          colors={[Colors.pink, Colors.purple]}
+          colors={[palette.pink, palette.purple]}
           start={{ x: 0, y: 0 }}
           end={{ x: 1, y: 1 }}
           style={styles.gradientButton}
         >
-          <Plus size={20} color={Colors.textInverse} />
+          <Plus size={20} color={palette.textInverse} />
           <Text
             variant="body"
-            color={Colors.textInverse}
+            color={palette.textInverse}
             style={styles.addButtonText}
           >
             Add Habit
@@ -275,12 +279,12 @@ export default function HabitsScreen() {
   );
 }
 
-const styles = StyleSheet.create({
+const useStyles = createThemedValue((palette) => StyleSheet.create({
   errorCard: {
     marginBottom: Spacing.md,
     padding: Spacing.md,
-    backgroundColor: Colors.dangerSoft,
-    borderColor: Colors.danger + "30",
+    backgroundColor: palette.dangerSoft,
+    borderColor: palette.danger + "30",
   },
   undoCard: {
     marginBottom: Spacing.md,
@@ -339,4 +343,4 @@ const styles = StyleSheet.create({
   emptyTitle: {
     marginBottom: Spacing.xs,
   },
-});
+}));

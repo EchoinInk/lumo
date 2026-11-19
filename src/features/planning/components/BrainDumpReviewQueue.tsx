@@ -6,7 +6,8 @@ import type {
   BrainDumpEntry,
 } from "@/src/features/brain-dump";
 import type { BrainDumpQueueItem } from "@/src/features/planning/types/planning";
-import { Colors, Spacing } from "@/src/theme/tokens";
+import { usePalette } from "@/theme/usePalette";
+import { Spacing } from "@/src/theme/tokens";
 import { StyleSheet, View } from "react-native";
 
 interface BrainDumpReviewQueueProps {
@@ -26,10 +27,12 @@ export function BrainDumpReviewQueue({
   onReviewAll,
   compact = false,
 }: BrainDumpReviewQueueProps) {
+  const palette = usePalette();
+
   if (items.length === 0) {
     return (
       <Card variant="outlined" style={styles.card}>
-        <Text variant="body" color={Colors.textSecondary}>
+        <Text variant="body" color={palette.textSecondary}>
           Your Brain Dump is clear for the moment.
         </Text>
       </Card>
@@ -47,7 +50,7 @@ export function BrainDumpReviewQueue({
 
         return (
           <Card key={item.id} variant="outlined" style={styles.card}>
-            <Text variant="caption" color={Colors.primary}>
+            <Text variant="caption" color={palette.primary}>
               {item.reason}
             </Text>
             <Text variant="body" style={styles.label}>

@@ -1,7 +1,8 @@
 import { Card } from "@/src/components/ui/Card";
 import { Text } from "@/src/components/ui/Text";
 import { Task } from "@/src/features/tasks/types/task";
-import { Colors, Radius, Spacing } from "@/src/theme/tokens";
+import { usePalette, createThemedValue } from "@/theme/usePalette";
+import { Radius, Spacing } from "@/src/theme/tokens";
 import { CheckCircle2, Circle } from "lucide-react-native";
 import { StyleSheet, TouchableOpacity, View } from "react-native";
 
@@ -12,11 +13,11 @@ interface TodayFocusCardProps {
   emptyMessage?: string;
 }
 
-const priorityColors: Record<string, string> = {
-  high: Colors.pink,
-  medium: Colors.warning,
-  low: Colors.blue,
-};
+const usePriorityColors = createThemedValue((palette): Record<string, string> => ({
+  high: palette.pink,
+  medium: palette.warning,
+  low: palette.blue,
+}));
 
 export function TodayFocusCard({
   tasks,
@@ -24,12 +25,16 @@ export function TodayFocusCard({
   onAddPress,
   emptyMessage = "Nothing lined up here. You can add one small step when you're ready.",
 }: TodayFocusCardProps) {
+  const palette = usePalette();
+  const styles = useStyles();
+  const priorityColors = usePriorityColors();
+
   if (tasks.length === 0) {
     return (
       <Card variant="outlined" style={styles.emptyCard}>
         <Text
           variant="body"
-          color={Colors.textSecondary}
+          color={palette.textSecondary}
           style={styles.emptyText}
         >
           {emptyMessage}
@@ -42,7 +47,7 @@ export function TodayFocusCard({
           accessibilityLabel="Add a task"
           accessibilityHint="Opens Tasks so you can add one small step"
         >
-          <Text variant="caption" color={Colors.purple}>
+          <Text variant="caption" color={palette.purple}>
             Add a task →
           </Text>
         </TouchableOpacity>
@@ -55,7 +60,7 @@ export function TodayFocusCard({
       <Text variant="subheading" style={styles.title}>
         One next step
       </Text>
-      <Text variant="caption" color={Colors.textSecondary} style={styles.subtitle}>
+      <Text variant="caption" color={palette.textSecondary} style={styles.subtitle}>
         Pick one small thing. That counts.
       </Text>
 
@@ -63,7 +68,7 @@ export function TodayFocusCard({
         {tasks.slice(0, 3).map((task) => {
           const isCompleted = task.completed;
           const priorityColor =
-            priorityColors[task.priority] || Colors.textSecondary;
+            priorityColors[task.priority] || palette.textSecondary;
 
           return (
             <TouchableOpacity
@@ -87,11 +92,11 @@ export function TodayFocusCard({
                 ]}
               >
                 {isCompleted ? (
-                  <CheckCircle2 size={18} color={Colors.textInverse} />
+                  <CheckCircle2 size={18} color={palette.textInverse} />
                 ) : (
                   <Circle
                     size={18}
-                    color={isCompleted ? Colors.border : priorityColor}
+                    color={isCompleted ? palette.border : priorityColor}
                   />
                 )}
               </View>
@@ -122,7 +127,7 @@ export function TodayFocusCard({
           accessibilityLabel={`View ${tasks.length - 3} more tasks`}
           accessibilityHint="Opens the Tasks screen"
         >
-          <Text variant="caption" color={Colors.textSecondary}>
+          <Text variant="caption" color={palette.textSecondary}>
             + {tasks.length - 3} more tasks
           </Text>
         </TouchableOpacity>
@@ -131,7 +136,7 @@ export function TodayFocusCard({
   );
 }
 
-const styles = StyleSheet.create({
+const useStyles = createThemedValue((palette) => StyleSheet.create({
   card: {
     padding: Spacing.lg,
     marginBottom: Spacing.lg,
@@ -158,13 +163,13 @@ const styles = StyleSheet.create({
     height: 28,
     borderRadius: Radius.md,
     borderWidth: 2,
-    borderColor: Colors.border,
+    borderColor: palette.border,
     alignItems: "center",
     justifyContent: "center",
   },
   checkboxChecked: {
-    backgroundColor: Colors.success,
-    borderColor: Colors.success,
+    backgroundColor: palette.success,
+    borderColor: palette.success,
   },
   taskInfo: {
     flex: 1,
@@ -174,7 +179,7 @@ const styles = StyleSheet.create({
   },
   taskTitleCompleted: {
     textDecorationLine: "line-through",
-    color: Colors.textTertiary,
+    color: palette.textTertiary,
   },
   moreLink: {
     marginTop: Spacing.sm,
@@ -196,4 +201,4 @@ const styles = StyleSheet.create({
     justifyContent: "center",
     paddingHorizontal: Spacing.sm,
   },
-});
+}));

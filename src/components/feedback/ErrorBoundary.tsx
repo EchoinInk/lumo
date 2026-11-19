@@ -7,7 +7,7 @@
 
 import { useTheme } from "@/hooks/use-theme";
 import { observability } from "@/services/observability";
-import { Colors } from "@/theme/colors";
+import { usePalette, createThemedValue } from "@/theme/usePalette";
 import React, { Component, ReactNode } from "react";
 import { StyleSheet, Text, TouchableOpacity, View } from "react-native";
 
@@ -89,13 +89,16 @@ const ErrorBoundaryInner: React.FC<{
   isDark: boolean;
   onReset: () => void;
 }> = ({ isDark, onReset }) => {
+  const palette = usePalette();
+  const styles = useStyles();
+
   return (
     <View style={styles.container}>
       <View style={styles.content}>
         <Text
           style={[
             styles.title,
-            { color: isDark ? Colors.textPrimary : Colors.textPrimary },
+            { color: isDark ? palette.textPrimary : palette.textPrimary },
           ]}
         >
           Something didn't work
@@ -103,13 +106,13 @@ const ErrorBoundaryInner: React.FC<{
         <Text
           style={[
             styles.description,
-            { color: isDark ? Colors.textSecondary : Colors.textSecondary },
+            { color: isDark ? palette.textSecondary : palette.textSecondary },
           ]}
         >
           Let's try that again together.
         </Text>
         <TouchableOpacity
-          style={[styles.button, { backgroundColor: Colors.primary }]}
+          style={[styles.button, { backgroundColor: palette.primary }]}
           onPress={onReset}
           accessibilityRole="button"
           accessibilityLabel="Try again"
@@ -121,7 +124,7 @@ const ErrorBoundaryInner: React.FC<{
   );
 };
 
-const styles = StyleSheet.create({
+const useStyles = createThemedValue((palette) => StyleSheet.create({
   container: {
     flex: 1,
     justifyContent: "center",
@@ -154,6 +157,6 @@ const styles = StyleSheet.create({
   buttonText: {
     fontSize: 16,
     fontWeight: "600",
-    color: Colors.textPrimary,
+    color: palette.textPrimary,
   },
-});
+}));
