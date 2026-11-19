@@ -5,8 +5,9 @@
 
 import { Button } from "@/src/components/ui/Button";
 import { Text } from "@/src/components/ui/Text";
-import { Colors, Radius, Spacing } from "@/src/theme/tokens";
-import { LinearGradient } from "expo-linear-gradient";
+import { usePalette } from "@/theme/usePalette";
+import { Radius, Spacing } from "@/src/theme/tokens";
+import { MelloLogo } from "@/components/ui/MelloLogo";
 import { ReactNode } from "react";
 import {
     KeyboardAvoidingView,
@@ -40,11 +41,10 @@ export function OnboardingShell({
   nextLabel = "Continue",
   canProceed = true,
 }: OnboardingShellProps) {
+  const palette = usePalette();
+
   return (
-    <LinearGradient
-      colors={[Colors.lavender, Colors.background]}
-      style={styles.container}
-    >
+    <View style={[styles.container, { backgroundColor: palette.background }]}>
       <KeyboardAvoidingView
         behavior={Platform.OS === "ios" ? "padding" : "height"}
         style={styles.keyboardView}
@@ -55,6 +55,7 @@ export function OnboardingShell({
         >
           {/* Progress Header */}
           <View style={styles.header}>
+            <MelloLogo compact={currentStep !== 1} />
             <OnboardingProgress current={currentStep} total={totalSteps} />
           </View>
 
@@ -66,7 +67,7 @@ export function OnboardingShell({
             {subtitle && (
               <Text
                 variant="body"
-                color={Colors.textSecondary}
+                color={palette.textSecondary}
                 style={styles.subtitle}
               >
                 {subtitle}
@@ -105,7 +106,7 @@ export function OnboardingShell({
           </View>
         </ScrollView>
       </KeyboardAvoidingView>
-    </LinearGradient>
+    </View>
   );
 }
 
@@ -123,6 +124,7 @@ const styles = StyleSheet.create({
     paddingBottom: Spacing.xl,
   },
   header: {
+    gap: Spacing.lg,
     marginBottom: Spacing.xl,
   },
   titleSection: {

@@ -1,4 +1,5 @@
-import { Colors, Radius, Shadows, Spacing } from '@/theme/tokens';
+import { createThemedValue } from "@/theme/usePalette";
+import { Radius, Shadows, Spacing } from '@/theme/tokens';
 import React from 'react';
 import {
   KeyboardAvoidingView,
@@ -27,6 +28,8 @@ export function BottomSheet({
   style,
   ...props 
 }: BottomSheetProps) {
+  const styles = useStyles();
+
   const insets = useSafeAreaInsets();
 
   return (
@@ -68,7 +71,7 @@ export function BottomSheet({
   );
 }
 
-const styles = StyleSheet.create({
+const useStyles = createThemedValue((palette) => StyleSheet.create({
   modalRoot: {
     position: 'absolute',
     inset: 0,
@@ -77,7 +80,7 @@ const styles = StyleSheet.create({
   backdrop: {
     position: 'absolute',
     inset: 0,
-    backgroundColor: Colors.overlay,
+    backgroundColor: palette.overlay,
     zIndex: 1,
   },
   sheetLayer: {
@@ -88,7 +91,7 @@ const styles = StyleSheet.create({
     elevation: 2,
   },
   container: {
-    backgroundColor: Colors.card,
+    backgroundColor: palette.card,
     borderTopLeftRadius: Radius['3xl'],
     borderTopRightRadius: Radius['3xl'],
     paddingTop: Spacing.lg,
@@ -100,9 +103,9 @@ const styles = StyleSheet.create({
   handle: {
     width: 40,
     height: 4,
-    backgroundColor: Colors.border,
+    backgroundColor: palette.border,
     borderRadius: 2,
     alignSelf: 'center',
     marginBottom: Spacing.lg,
   },
-});
+}));

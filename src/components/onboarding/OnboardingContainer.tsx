@@ -8,7 +8,7 @@
 import React from 'react';
 import { View, StyleSheet, ScrollView, SafeAreaView } from 'react-native';
 import { useTheme } from '@/hooks/use-theme';
-import { Colors } from '@/theme/colors';
+import { usePalette } from "@/theme/usePalette";
 import { BlurView } from 'expo-blur';
 
 interface OnboardingContainerProps {
@@ -22,10 +22,12 @@ export const OnboardingContainer: React.FC<OnboardingContainerProps> = ({
   step,
   totalSteps,
 }) => {
+  const palette = usePalette();
+
   const { isDark } = useTheme();
 
   return (
-    <SafeAreaView style={[styles.container, { backgroundColor: isDark ? Colors.background : Colors.background }]}>
+    <SafeAreaView style={[styles.container, { backgroundColor: isDark ? palette.background : palette.background }]}>
       <BlurView
         intensity={20}
         tint={isDark ? 'dark' : 'light'}

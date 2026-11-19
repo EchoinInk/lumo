@@ -3,12 +3,16 @@ import { Card } from "@/src/components/ui/Card";
 import { Text } from "@/src/components/ui/Text";
 import { resolveEffectiveReminderPolicy, useReminders, type ReminderTone } from "@/src/features/reminders";
 import { useSettingsStore } from "@/src/store/useSettingsStore";
-import { Colors, Radius, Spacing } from "@/src/theme/tokens";
+import { usePalette, createThemedValue } from "@/theme/usePalette";
+import { Radius, Spacing } from "@/src/theme/tokens";
 import { StyleSheet, TouchableOpacity, View } from "react-native";
 
 const tones: ReminderTone[] = ["gentle", "practical", "encouraging"];
 
 export function ReminderSettingsCard() {
+  const palette = usePalette();
+  const styles = useStyles();
+
   const { settings, updateSettings } = useReminders();
   const appNotificationsEnabled = useSettingsStore((state) => state.settings.notificationsEnabled);
   const policy = resolveEffectiveReminderPolicy({ notificationsEnabled: appNotificationsEnabled }, settings);
@@ -18,7 +22,7 @@ export function ReminderSettingsCard() {
       <View style={styles.header}>
         <View>
           <Text variant="subheading">Gentle reminders</Text>
-          <Text variant="caption" color={Colors.textSecondary}>
+          <Text variant="caption" color={palette.textSecondary}>
             Soft nudges, quiet hours respected.
           </Text>
         </View>
@@ -49,7 +53,7 @@ export function ReminderSettingsCard() {
             >
               <Text
                 variant="caption"
-                color={isSelected ? Colors.textInverse : Colors.textSecondary}
+                color={isSelected ? palette.textInverse : palette.textSecondary}
               >
                 {tone.charAt(0).toUpperCase() + tone.slice(1)}
               </Text>
@@ -59,7 +63,7 @@ export function ReminderSettingsCard() {
       </View>
 
       {!policy.enabled && (
-        <Text variant="caption" color={Colors.warning} accessibilityLiveRegion="polite">
+        <Text variant="caption" color={palette.warning} accessibilityLiveRegion="polite">
           {policy.reason === "app-notifications-disabled"
             ? "Reminder delivery is off because Notifications are disabled in app preferences."
             : "Reminder delivery is off in reminder preferences."}
@@ -67,23 +71,23 @@ export function ReminderSettingsCard() {
       )}
 
       <View style={styles.quietHours}>
-        <Text variant="label" color={Colors.textSecondary}>
+        <Text variant="label" color={palette.textSecondary}>
           Quiet hours
         </Text>
         <Text variant="body">
           {settings.quietHoursStart} – {settings.quietHoursEnd}
         </Text>
-        <Text variant="caption" color={Colors.textTertiary}>
+        <Text variant="caption" color={palette.textTertiary}>
           Reminders stay gentle during this window.
         </Text>
       </View>
 
       <View style={styles.hapticsRow}>
         <View style={styles.hapticsCopy}>
-          <Text variant="label" color={Colors.textSecondary}>
+          <Text variant="label" color={palette.textSecondary}>
             Haptics
           </Text>
-          <Text variant="caption" color={Colors.textTertiary}>
+          <Text variant="caption" color={palette.textTertiary}>
             Soft feedback when reminders are used.
           </Text>
         </View>
@@ -104,7 +108,7 @@ export function ReminderSettingsCard() {
   );
 }
 
-const styles = StyleSheet.create({
+const useStyles = createThemedValue((palette) => StyleSheet.create({
   card: {
     gap: Spacing.md,
   },
@@ -123,13 +127,13 @@ const styles = StyleSheet.create({
     minHeight: 44,
     justifyContent: "center",
     borderWidth: 1,
-    borderColor: Colors.border,
+    borderColor: palette.border,
     borderRadius: Radius.full,
     paddingHorizontal: Spacing.md,
   },
   toneSelected: {
-    backgroundColor: Colors.primary,
-    borderColor: Colors.primary,
+    backgroundColor: palette.primary,
+    borderColor: palette.primary,
   },
   quietHours: {
     gap: Spacing.xs,
@@ -144,4 +148,4 @@ const styles = StyleSheet.create({
     flex: 1,
     gap: Spacing.xs,
   },
-});
+}));

@@ -6,7 +6,7 @@
  */
 
 import { getLoadingMessage } from "@/constants/feedbackMessages";
-import { Colors } from "@/theme/colors";
+import { usePalette } from "@/theme/usePalette";
 import React from "react";
 import { ActivityIndicator, StyleSheet, Text, View } from "react-native";
 
@@ -21,13 +21,15 @@ export const LoadingState: React.FC<LoadingStateProps> = ({
   message,
   testID,
 }) => {
+  const palette = usePalette();
+
   const loadingMessage = message || getLoadingMessage(loadingKey);
 
   return (
     <View style={styles.container} testID={testID}>
       <View style={styles.content}>
-        <ActivityIndicator color={Colors.primary} size="large" />
-        <Text style={[styles.message, { color: Colors.textSecondary }]}>
+        <ActivityIndicator color={palette.primary} size="large" />
+        <Text style={[styles.message, { color: palette.textSecondary }]}>
           {loadingMessage}
         </Text>
       </View>

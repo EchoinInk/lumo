@@ -1,6 +1,7 @@
 import { Text } from "@/components/ui/Text";
 import { UX } from "@/constants/ux";
-import { Colors, Spacing } from "@/theme/tokens";
+import { createThemedValue } from "@/theme/usePalette";
+import { Spacing } from "@/theme/tokens";
 import React from "react";
 import { ScrollView, StyleSheet, TouchableOpacity } from "react-native";
 import { TaskFilter } from "../types/task";
@@ -23,6 +24,8 @@ export function TaskFilterPills({
   selectedFilter,
   onFilterChange,
 }: TaskFilterPillsProps) {
+  const styles = useStyles();
+
   return (
     <ScrollView
       horizontal
@@ -57,7 +60,7 @@ export function TaskFilterPills({
   );
 }
 
-const styles = StyleSheet.create({
+const useStyles = createThemedValue((palette) => StyleSheet.create({
   container: {
     flexDirection: "row",
     gap: Spacing.sm,
@@ -69,18 +72,18 @@ const styles = StyleSheet.create({
     minHeight: UX.touchTarget,
     justifyContent: "center",
     borderRadius: 20,
-    backgroundColor: Colors.card,
+    backgroundColor: palette.card,
     borderWidth: 1,
-    borderColor: Colors.border,
+    borderColor: palette.border,
   },
   pillActive: {
-    backgroundColor: Colors.primary,
-    borderColor: Colors.primary,
+    backgroundColor: palette.primary,
+    borderColor: palette.primary,
   },
   pillText: {
-    color: Colors.textSecondary,
+    color: palette.textSecondary,
   },
   pillTextActive: {
-    color: Colors.textInverse,
+    color: palette.textInverse,
   },
-});
+}));

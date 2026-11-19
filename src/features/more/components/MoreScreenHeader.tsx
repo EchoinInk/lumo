@@ -1,5 +1,6 @@
 import { Text } from "@/src/components/ui/Text";
-import { Colors, Radius, Spacing } from "@/src/theme/tokens";
+import { usePalette, createThemedValue } from "@/theme/usePalette";
+import { Radius, Spacing } from "@/src/theme/tokens";
 import { router } from "expo-router";
 import { ChevronLeft } from "lucide-react-native";
 import { StyleSheet, TouchableOpacity, View } from "react-native";
@@ -10,6 +11,9 @@ interface MoreScreenHeaderProps {
 }
 
 export function MoreScreenHeader({ title, subtitle }: MoreScreenHeaderProps) {
+  const palette = usePalette();
+  const styles = useStyles();
+
   const handleBack = () => {
     if (router.canGoBack()) {
       router.back();
@@ -27,8 +31,8 @@ export function MoreScreenHeader({ title, subtitle }: MoreScreenHeaderProps) {
         accessibilityLabel="Back to More"
       >
         <View style={styles.backButtonInner}>
-          <ChevronLeft size={20} color={Colors.textSecondary} />
-          <Text variant="body" color={Colors.textSecondary}>
+          <ChevronLeft size={20} color={palette.textSecondary} />
+          <Text variant="body" color={palette.textSecondary}>
             More
           </Text>
         </View>
@@ -39,7 +43,7 @@ export function MoreScreenHeader({ title, subtitle }: MoreScreenHeaderProps) {
           {title}
         </Text>
         {subtitle && (
-          <Text variant="body" color={Colors.textSecondary}>
+          <Text variant="body" color={palette.textSecondary}>
             {subtitle}
           </Text>
         )}
@@ -48,7 +52,7 @@ export function MoreScreenHeader({ title, subtitle }: MoreScreenHeaderProps) {
   );
 }
 
-const styles = StyleSheet.create({
+const useStyles = createThemedValue((palette) => StyleSheet.create({
   container: {
     marginBottom: Spacing.lg,
   },
@@ -60,7 +64,7 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     alignItems: "center",
     gap: Spacing.xs,
-    backgroundColor: Colors.lavender,
+    backgroundColor: palette.lavender,
     paddingHorizontal: Spacing.md,
     paddingVertical: Spacing.sm,
     borderRadius: Radius.full,
@@ -71,4 +75,4 @@ const styles = StyleSheet.create({
   title: {
     fontWeight: "600",
   },
-});
+}));

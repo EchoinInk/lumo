@@ -6,7 +6,7 @@
  */
 
 import { getOfflineMessage } from "@/constants/feedbackMessages";
-import { Colors } from "@/theme/colors";
+import { usePalette } from "@/theme/usePalette";
 import React from "react";
 import { StyleSheet, Text, View } from "react-native";
 
@@ -23,16 +23,18 @@ export const OfflineView: React.FC<OfflineViewProps> = ({
   description,
   testID,
 }) => {
+  const palette = usePalette();
+
   const message = getOfflineMessage(offlineKey);
 
   return (
     <View style={styles.container} testID={testID}>
       <View style={styles.content}>
-        <View style={[styles.indicator, { backgroundColor: Colors.warning }]} />
-        <Text style={[styles.title, { color: Colors.textPrimary }]}>
+        <View style={[styles.indicator, { backgroundColor: palette.warning }]} />
+        <Text style={[styles.title, { color: palette.textPrimary }]}>
           {title || message.title}
         </Text>
-        <Text style={[styles.description, { color: Colors.textSecondary }]}>
+        <Text style={[styles.description, { color: palette.textSecondary }]}>
           {description || message.description}
         </Text>
       </View>

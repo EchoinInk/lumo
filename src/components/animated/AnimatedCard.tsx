@@ -6,7 +6,7 @@
  */
 
 import { softFadeIn } from "@/animations/transitions";
-import { Colors } from "@/theme/colors";
+import { usePalette } from "@/theme/usePalette";
 import React from "react";
 import { GestureResponderEvent, StyleSheet, ViewStyle } from "react-native";
 import Animated, {
@@ -30,6 +30,8 @@ export const AnimatedCard: React.FC<AnimatedCardProps> = ({
   onPress,
   testID,
 }) => {
+  const palette = usePalette();
+
   const isPressed = useSharedValue(false);
 
   const animatedStyle = useAnimatedStyle(() => {
@@ -59,7 +61,7 @@ export const AnimatedCard: React.FC<AnimatedCardProps> = ({
   const cardStyle = [
     styles.card,
     {
-      backgroundColor: Colors.card,
+      backgroundColor: palette.card,
       shadowColor: "#000",
     },
     animatedStyle,

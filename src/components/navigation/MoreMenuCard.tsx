@@ -2,7 +2,8 @@ import React from 'react';
 import { View, StyleSheet, TouchableOpacity } from 'react-native';
 import { Card } from '@/components/ui/Card';
 import { Text } from '@/components/ui/Text';
-import { Colors, Radius, Spacing } from '@/theme/tokens';
+import { createThemedValue } from "@/theme/usePalette";
+import { Radius, Spacing } from '@/theme/tokens';
 
 interface MoreMenuCardProps {
   title: string;
@@ -11,6 +12,8 @@ interface MoreMenuCardProps {
 }
 
 export function MoreMenuCard({ title, icon, onPress }: MoreMenuCardProps) {
+  const styles = useStyles();
+
   return (
     <TouchableOpacity onPress={onPress} activeOpacity={0.7}>
       <Card variant="elevated" padding="lg" style={styles.container}>
@@ -25,7 +28,7 @@ export function MoreMenuCard({ title, icon, onPress }: MoreMenuCardProps) {
   );
 }
 
-const styles = StyleSheet.create({
+const useStyles = createThemedValue((palette) => StyleSheet.create({
   container: {
     marginBottom: Spacing.sm,
   },
@@ -38,11 +41,11 @@ const styles = StyleSheet.create({
     width: 40,
     height: 40,
     borderRadius: Radius.md,
-    backgroundColor: Colors.backgroundAlt,
+    backgroundColor: palette.backgroundAlt,
     alignItems: 'center',
     justifyContent: 'center',
   },
   title: {
     flex: 1,
   },
-});
+}));

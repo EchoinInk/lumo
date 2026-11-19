@@ -1,3 +1,4 @@
+import { createThemedValue } from "@/theme/usePalette";
 import React from 'react';
 import { StyleSheet, Text, View } from 'react-native';
 
@@ -6,6 +7,8 @@ interface ListEmptyStateProps {
 }
 
 export function ListEmptyState({ message = 'No items found' }: ListEmptyStateProps) {
+  const styles = useStyles();
+
   return (
     <View style={styles.container}>
       <Text style={styles.message}>{message}</Text>
@@ -13,7 +16,7 @@ export function ListEmptyState({ message = 'No items found' }: ListEmptyStatePro
   );
 }
 
-const styles = StyleSheet.create({
+const useStyles = createThemedValue((palette) => StyleSheet.create({
   container: {
     flex: 1,
     alignItems: 'center',
@@ -23,8 +26,8 @@ const styles = StyleSheet.create({
   },
   message: {
     fontSize: 16,
-    color: '#60646C',
+    color: palette.textSecondary,
     textAlign: 'center',
     lineHeight: 24,
   },
-});
+}));

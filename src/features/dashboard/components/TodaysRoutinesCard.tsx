@@ -1,7 +1,8 @@
 import { Card } from "@/src/components/ui/Card";
 import { Text } from "@/src/components/ui/Text";
 import { Habit } from "@/src/features/habits/types/habit";
-import { Colors, Radius, Spacing } from "@/src/theme/tokens";
+import { usePalette, createThemedValue } from "@/theme/usePalette";
+import { Radius, Spacing } from "@/src/theme/tokens";
 import { CheckCircle2, Circle, Flame } from "lucide-react-native";
 import React from "react";
 import { StyleSheet, TouchableOpacity, View } from "react-native";
@@ -14,15 +15,15 @@ interface TodaysRoutinesCardProps {
   emptyMessage?: string;
 }
 
-const colorMap: Record<string, string> = {
-  blue: Colors.blue,
-  green: Colors.success,
-  yellow: Colors.warning,
-  orange: Colors.warning,
-  pink: Colors.pink,
-  purple: Colors.purple,
-  teal: Colors.info,
-};
+const useColorMap = createThemedValue((palette): Record<string, string> => ({
+  blue: palette.blue,
+  green: palette.success,
+  yellow: palette.warning,
+  orange: palette.warning,
+  pink: palette.pink,
+  purple: palette.purple,
+  teal: palette.info,
+}));
 
 export function TodaysRoutinesCard({
   habits,
@@ -31,10 +32,14 @@ export function TodaysRoutinesCard({
   onAddPress,
   emptyMessage = "A gentle routine can help anchor the day.",
 }: TodaysRoutinesCardProps) {
+  const palette = usePalette();
+  const styles = useStyles();
+  const colorMap = useColorMap();
+
   if (habits.length === 0) {
     return (
       <Card variant="outlined" style={styles.emptyCard}>
-        <Text variant="body" color={Colors.textSecondary} style={styles.emptyText}>
+        <Text variant="body" color={palette.textSecondary} style={styles.emptyText}>
           {emptyMessage}
         </Text>
         <TouchableOpacity
@@ -45,7 +50,7 @@ export function TodaysRoutinesCard({
           accessibilityLabel="Add a routine"
           accessibilityHint="Opens routines so you can add a gentle anchor"
         >
-          <Text variant="caption" color={Colors.purple}>
+          <Text variant="caption" color={palette.purple}>
             Add a routine →
           </Text>
         </TouchableOpacity>
@@ -82,7 +87,7 @@ export function TodaysRoutinesCard({
                 ]}
               >
                 {isCompleted ? (
-                  <CheckCircle2 size={18} color={Colors.textInverse} />
+                  <CheckCircle2 size={18} color={palette.textInverse} />
                 ) : (
                   <Circle size={18} color={habitColor} />
                 )}
@@ -103,8 +108,8 @@ export function TodaysRoutinesCard({
 
               {habit.streakCount > 0 && (
                 <View style={styles.streakBadge}>
-                  <Flame size={12} color={Colors.warning} />
-                  <Text variant="small" color={Colors.warning}>
+                  <Flame size={12} color={palette.warning} />
+                  <Text variant="small" color={palette.warning}>
                     {habit.streakCount}
                   </Text>
                 </View>
@@ -123,7 +128,7 @@ export function TodaysRoutinesCard({
           accessibilityLabel={`View ${habits.length - 4} more routines`}
           accessibilityHint="Opens the routines screen"
         >
-          <Text variant="caption" color={Colors.textSecondary}>
+          <Text variant="caption" color={palette.textSecondary}>
             + {habits.length - 4} more routines
           </Text>
         </TouchableOpacity>
@@ -132,7 +137,7 @@ export function TodaysRoutinesCard({
   );
 }
 
-const styles = StyleSheet.create({
+const useStyles = createThemedValue((palette) => StyleSheet.create({
   card: {
     padding: Spacing.lg,
     marginBottom: Spacing.lg,
@@ -156,13 +161,13 @@ const styles = StyleSheet.create({
     height: 28,
     borderRadius: Radius.md,
     borderWidth: 2,
-    borderColor: Colors.border,
+    borderColor: palette.border,
     alignItems: "center",
     justifyContent: "center",
   },
   checkboxChecked: {
-    backgroundColor: Colors.success,
-    borderColor: Colors.success,
+    backgroundColor: palette.success,
+    borderColor: palette.success,
   },
   habitInfo: {
     flex: 1,
@@ -172,13 +177,13 @@ const styles = StyleSheet.create({
   },
   habitTitleCompleted: {
     textDecorationLine: "line-through",
-    color: Colors.textTertiary,
+    color: palette.textTertiary,
   },
   streakBadge: {
     flexDirection: "row",
     alignItems: "center",
     gap: Spacing.xs,
-    backgroundColor: Colors.warning + "15",
+    backgroundColor: palette.warning + "15",
     paddingHorizontal: Spacing.sm,
     paddingVertical: 2,
     borderRadius: Radius.sm,
@@ -203,4 +208,4 @@ const styles = StyleSheet.create({
     justifyContent: "center",
     paddingHorizontal: Spacing.sm,
   },
-});
+}));

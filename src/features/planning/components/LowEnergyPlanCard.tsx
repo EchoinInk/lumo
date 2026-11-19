@@ -1,63 +1,88 @@
+import { Bookmark } from "lucide-react-native";
+import { useState } from "react";
+import Svg, { Path } from "react-native-svg";
+import tokens from "@/theme/mello-tokens.json";
 import { Button } from "@/src/components/ui/Button";
 import { Card } from "@/src/components/ui/Card";
 import { Text } from "@/src/components/ui/Text";
-import type { LowEnergyOption } from "@/src/features/planning/types/planning";
-import { Colors, Radius, Spacing } from "@/src/theme/tokens";
+import { PlanningGentleFade } from "./PlanningGentleFade";
+import type { LowEnergyOption, PlanningSourceRef } from "@/src/features/planning/types/planning";
+import { usePalette, createThemedValue } from "@/theme/usePalette";
+import { Spacing } from "@/src/theme/tokens";
 import { StyleSheet, View } from "react-native";
 
 interface LowEnergyPlanCardProps {
   options: LowEnergyOption[];
-  selectedId?: string;
+  selectedSource?: PlanningSourceRef;
   onChoose: (optionId: string) => void;
-  onPark: (sourceId: string, sourceType: LowEnergyOption["sourceType"]) => void;
+  onPark: (sourceId: string, sourceType: LowEnergyOption["sourceType"]) => void | Promise<void>;
   embedded?: boolean;
 }
 
 export function LowEnergyPlanCard({
   options,
-  selectedId,
+  selectedSource,
   onChoose,
   onPark,
   embedded = false,
 }: LowEnergyPlanCardProps) {
+  const palette = usePalette();
+  const styles = useStyles();
+
+  const [parkingFeedback, setParkingFeedback] = useState("");
+
+  async function handlePark(option: LowEnergyOption) {
+    try {
+      await onPark(option.sourceId, option.sourceType);
+      setParkingFeedback(`${option.label} parked for later.`);
+    } catch {
+      setParkingFeedback("Couldn’t park this item. Try again.");
+    }
+  }
+
   const content = (
     <>
       <Text variant="subheading" style={styles.title}>
         Today can be lighter.
       </Text>
-      <Text variant="body" color={Colors.textSecondary}>
-        A lighter plan still counts. One supportive action is enough.
+      <Text variant="body" color={palette.textSecondary}>
+        One supportive action is enough.
       </Text>
-      <Text variant="caption" color={Colors.textTertiary}>
-        The rest can wait.
-      </Text>
+
+      {parkingFeedback && (
+        <Text variant="caption" color={palette.textSecondary} accessibilityLiveRegion="polite" aria-live="polite">
+          {parkingFeedback}
+        </Text>
+      )}
 
       {options.length === 0 ? (
         <View style={styles.emptyBlock}>
-          <Text variant="body" color={Colors.textSecondary}>
+          <Text variant="body" color={palette.textSecondary}>
             No pressure — you can start with a small reset.
           </Text>
         </View>
       ) : (
         <View style={styles.list}>
           {options.map((option) => {
-            const isSelected = option.id === selectedId;
+            const isSelected = option.sourceType === selectedSource?.sourceType
+              && option.sourceId === selectedSource.sourceId;
             return (
               <View
                 key={option.id}
                 style={[styles.option, isSelected && styles.optionSelected]}
               >
                 <View style={styles.optionText}>
-                  <Text variant="caption" color={Colors.primary}>
+                  <Svg width={19} height={19} viewBox="0 0 24 24" accessible={false}><Path d="M3 19C3 10 7 5 14 5H22" fill="none" stroke={palette.primary} strokeWidth={1.8} strokeLinecap="round" /></Svg>
+                  <Text variant="caption" color={palette.primary}>
                     {option.reason}
                   </Text>
-                  <Text variant="body" style={styles.optionLabel}>
+                  <Text variant="subheading" style={styles.optionLabel}>
                     {option.label}
                   </Text>
                   {isSelected && (
-                    <Text variant="caption" color={Colors.textTertiary}>
-                      Chosen for today
-                    </Text>
+                    <PlanningGentleFade>
+                      <Text variant="caption" color={palette.textTertiary}>Chosen for today</Text>
+                    </PlanningGentleFade>
                   )}
                 </View>
                 <View style={styles.actions}>
@@ -66,7 +91,7 @@ export function LowEnergyPlanCard({
                     variant={isSelected ? "secondary" : "primary"}
                     onPress={() => onChoose(option.id)}
                     accessibilityRole="button"
-                    accessibilityLabel={`Choose ${option.label}`}
+                    accessibilityLabel={isSelected ? `${option.label}, chosen for today` : `Choose ${option.label}`}
                     accessibilityHint="Selects this as your one small step for today"
                     accessibilityState={{ selected: isSelected }}
                   >
@@ -75,7 +100,8 @@ export function LowEnergyPlanCard({
                   <Button
                     size="sm"
                     variant="ghost"
-                    onPress={() => onPark(option.sourceId, option.sourceType)}
+                    leftIcon={<Bookmark size={16} color={palette.primary} />}
+                    onPress={() => handlePark(option)}
                     accessibilityRole="button"
                     accessibilityLabel={`Park ${option.label} for later`}
                     accessibilityHint="Parks this option for later"
@@ -96,13 +122,13 @@ export function LowEnergyPlanCard({
   }
 
   return (
-    <Card variant="gradient" style={styles.card}>
+    <Card variant="plain" style={styles.card}>
       {content}
     </Card>
   );
 }
 
-const styles = StyleSheet.create({
+const useStyles = createThemedValue((palette) => StyleSheet.create({
   card: {
     padding: Spacing.lg,
     gap: Spacing.sm,
@@ -125,24 +151,25 @@ const styles = StyleSheet.create({
   option: {
     gap: Spacing.sm,
     padding: Spacing.md,
-    borderRadius: Radius.xl,
-    backgroundColor: Colors.card + "CC",
+    borderRadius: tokens.sizes.panelRadius,
+    backgroundColor: palette.taskPanel,
     borderWidth: 1,
-    borderColor: Colors.border,
+    borderColor: palette.border,
   },
   optionSelected: {
-    borderColor: Colors.primary + "80",
-    backgroundColor: Colors.card,
+    borderColor: palette.selectedEdge,
+    backgroundColor: palette.taskPanel,
   },
   optionText: {
     gap: Spacing.xs,
   },
   optionLabel: {
+    fontSize: tokens.typography["task-title"].size,
+    lineHeight: tokens.typography["task-title"].lineHeight,
     fontWeight: "600",
   },
   actions: {
-    flexDirection: "row",
-    flexWrap: "wrap",
+    alignItems: "stretch",
     gap: Spacing.sm,
   },
-});
+}));

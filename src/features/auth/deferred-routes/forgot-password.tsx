@@ -17,7 +17,7 @@ export default function ForgotPasswordScreen() {
     setError(null);
     setMessage(null);
     if (!email.trim()) {
-      setError("Enter the email address you use for Lumo.");
+      setError("Enter the email address you use for Mello.");
       return;
     }
 
@@ -28,7 +28,7 @@ export default function ForgotPasswordScreen() {
       setError(result.error?.message ?? "We couldn't send a recovery email. Please try again.");
       return;
     }
-    setMessage("If that email has a Lumo account, a recovery link is on its way.");
+    setMessage("If that email has a Mello account, a recovery link is on its way.");
   };
 
   return (
@@ -36,7 +36,7 @@ export default function ForgotPasswordScreen() {
       <View className="flex-1 justify-center py-12">
         <Text variant="heading" className="mb-2">Reset your password</Text>
         <Text variant="body" color="textSecondary" className="mb-8">
-          We’ll send a link that opens Lumo so you can choose a new password.
+          We’ll send a link that opens Mello so you can choose a new password.
         </Text>
         <Input
           label="Email"

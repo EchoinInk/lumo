@@ -1,4 +1,5 @@
-import { Colors, Radius, Shadows } from '@/theme/tokens';
+import { usePalette } from "@/theme/usePalette";
+import { Radius, Shadows } from '@/theme/tokens';
 import { LinearGradient } from 'expo-linear-gradient';
 import { Plus } from 'lucide-react-native';
 import React from 'react';
@@ -10,6 +11,8 @@ interface BottomTabAddButtonProps {
 }
 
 export function BottomTabAddButton({ onPress, focused = false }: BottomTabAddButtonProps) {
+  const palette = usePalette();
+
   return (
     <TouchableOpacity 
       onPress={onPress}
@@ -19,7 +22,7 @@ export function BottomTabAddButton({ onPress, focused = false }: BottomTabAddBut
       accessibilityLabel="Add new item"
     >
       <LinearGradient
-        colors={[Colors.pink, Colors.purple]}
+        colors={[palette.pink, palette.purple]}
         start={{ x: 0, y: 0 }}
         end={{ x: 1, y: 1 }}
         style={[
@@ -27,7 +30,7 @@ export function BottomTabAddButton({ onPress, focused = false }: BottomTabAddBut
           focused && styles.focused,
         ]}
       >
-        <Plus size={28} color={Colors.textInverse} strokeWidth={2.5} />
+        <Plus size={28} color={palette.textInverse} strokeWidth={2.5} />
       </LinearGradient>
     </TouchableOpacity>
   );

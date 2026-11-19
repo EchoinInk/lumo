@@ -54,7 +54,7 @@ export default function BrainDumpScreen() {
   const handleDelete = (entry: BrainDumpEntry) => {
     Alert.alert(
       "Delete this?",
-      "This removes it from Lumo. You can park it instead if you may want it later.",
+      "This removes it from Mello. You can park it instead if you may want it later.",
       [
         { text: "Cancel", style: "cancel" },
         {

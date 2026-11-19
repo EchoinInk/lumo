@@ -1,4 +1,5 @@
-import { Colors, Radius, Shadows, Spacing } from '@/theme/tokens';
+import { usePalette, createThemedValue } from "@/theme/usePalette";
+import { Radius, Shadows, Spacing } from '@/theme/tokens';
 import React, { useState } from 'react';
 import { StyleSheet, TextInput, TextInputProps, View } from 'react-native';
 import { Text } from './Text';
@@ -26,20 +27,23 @@ export function Input({
   nativeID,
   ...props 
 }: InputProps) {
+  const palette = usePalette();
+  const styles = useStyles();
+
   const [isFocused, setIsFocused] = useState(false);
   const hasError = !!error;
   const inputId = nativeID ?? (label ? `${label.toLowerCase().replace(/[^a-z0-9]+/g, '-')}-input` : undefined);
 
   const getBorderColor = () => {
-    if (hasError) return Colors.danger;
-    if (isFocused) return Colors.primary;
-    return Colors.border;
+    if (hasError) return palette.danger;
+    if (isFocused) return palette.primary;
+    return palette.controlOutline;
   };
 
   return (
     <View className={className}>
       {label && (
-        <Text variant="label" color={Colors.textSecondary} style={styles.label}>
+        <Text variant="label" color={palette.textSecondary} style={styles.label}>
           {label}
         </Text>
       )}
@@ -49,7 +53,7 @@ export function Input({
           {...props}
           nativeID={inputId}
           style={[styles.input, style]}
-          placeholderTextColor={Colors.textTertiary}
+          placeholderTextColor={palette.textTertiary}
           accessibilityLabel={accessibilityLabel ?? label}
           accessibilityHint={error ?? accessibilityHint ?? helperText}
           aria-invalid={hasError}
@@ -67,7 +71,7 @@ export function Input({
       {error && (
         <Text
           variant="small"
-          color={Colors.danger}
+          color={palette.danger}
           style={styles.errorText}
           accessibilityRole="alert"
           accessibilityLiveRegion="polite"
@@ -76,7 +80,7 @@ export function Input({
         </Text>
       )}
       {helperText && !error && (
-        <Text variant="small" color={Colors.textTertiary} style={styles.helperText}>
+        <Text variant="small" color={palette.textTertiary} style={styles.helperText}>
           {helperText}
         </Text>
       )}
@@ -84,14 +88,14 @@ export function Input({
   );
 }
 
-const styles = StyleSheet.create({
+const useStyles = createThemedValue((palette) => StyleSheet.create({
   label: {
     marginBottom: Spacing.sm,
   },
   inputContainer: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: Colors.card,
+    backgroundColor: palette.card,
     borderRadius: Radius.lg,
     borderWidth: 1,
     paddingHorizontal: Spacing.md,
@@ -101,7 +105,7 @@ const styles = StyleSheet.create({
   input: {
     flex: 1,
     fontSize: 16,
-    color: Colors.textPrimary,
+    color: palette.textPrimary,
     paddingVertical: Spacing.md,
   },
   leftIcon: {
@@ -116,4 +120,4 @@ const styles = StyleSheet.create({
   helperText: {
     marginTop: Spacing.xs,
   },
-});
+}));

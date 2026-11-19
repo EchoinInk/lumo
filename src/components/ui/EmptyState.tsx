@@ -1,4 +1,5 @@
-import { Colors, Spacing } from '@/theme/tokens';
+import { usePalette } from "@/theme/usePalette";
+import { Spacing } from '@/theme/tokens';
 import React from 'react';
 import { StyleSheet, View, ViewProps } from 'react-native';
 import { Button } from './Button';
@@ -22,6 +23,8 @@ export function EmptyState({
   style,
   ...props 
 }: EmptyStateProps) {
+  const palette = usePalette();
+
   return (
     <View className={className} style={[styles.container, style]} {...props}>
       {icon && <View style={styles.icon}>{icon}</View>}
@@ -29,7 +32,7 @@ export function EmptyState({
         {title}
       </Text>
       {description && (
-        <Text variant="body" color={Colors.textSecondary} textAlign="center" style={styles.description}>
+        <Text variant="body" color={palette.textSecondary} textAlign="center" style={styles.description}>
           {description}
         </Text>
       )}

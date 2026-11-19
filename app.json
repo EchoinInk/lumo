@@ -1,9 +1,9 @@
 {
   "expo": {
-    "name": "Lumo",
+    "name": "Mello",
     "slug": "lumo-mobile",
     "version": "1.0.0",
-    "icon": "./assets/images/icon.png",
+    "icon": "./assets/branding/mello/mello-app-icon-1024.png",
     "orientation": "portrait",
     "scheme": "lumomobile",
     "userInterfaceStyle": "automatic",
@@ -16,11 +16,13 @@
     "android": {
       "package": "com.echoinink.lumo",
       "versionCode": 1,
-      "permissions": ["android.permission.SCHEDULE_EXACT_ALARM"],
+      "permissions": [
+        "android.permission.SCHEDULE_EXACT_ALARM"
+      ],
       "adaptiveIcon": {
-        "foregroundImage": "./assets/images/android-icon-foreground.png",
-        "backgroundImage": "./assets/images/android-icon-background.png",
-        "monochromeImage": "./assets/images/android-icon-monochrome.png"
+        "foregroundImage": "./assets/branding/mello/mello-android-foreground.png",
+        "backgroundColor": "#262334",
+        "monochromeImage": "./assets/branding/mello/mello-android-monochrome.png"
       }
     },
     "plugins": [
@@ -29,8 +31,8 @@
       [
         "expo-notifications",
         {
-          "icon": "./assets/branding/lumo/notification-icon.png",
-          "color": "#8B6FC0",
+          "icon": "./assets/branding/mello/mello-notification-96.png",
+          "color": "#3C6582",
           "defaultChannel": "lumo-reminders"
         }
       ],
@@ -44,12 +46,26 @@
       ],
       "expo-image",
       "expo-secure-store",
-      "expo-splash-screen",
+      [
+        "expo-splash-screen",
+        {
+          "image": "./assets/branding/mello/mello-symbol-on-porcelain-256w.png",
+          "imageWidth": 100,
+          "backgroundColor": "#FAF7F8",
+          "dark": {
+            "image": "./assets/branding/mello/mello-symbol-on-plum-256w.png",
+            "backgroundColor": "#262334"
+          }
+        }
+      ],
       "expo-status-bar",
       "expo-web-browser"
     ],
     "experiments": {
       "typedRoutes": true
+    },
+    "web": {
+      "favicon": "./assets/branding/mello/mello-favicon-48.png"
     }
   }
 }

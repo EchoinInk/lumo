@@ -7,7 +7,8 @@
 
 import { Text } from "@/components/ui/Text";
 import { UX } from "@/constants/ux";
-import { Colors, Spacing } from "@/theme/tokens";
+import { createThemedValue } from "@/theme/usePalette";
+import { Spacing } from "@/theme/tokens";
 import { StyleSheet, TouchableOpacity, View } from "react-native";
 import { useCalmMode } from "../hooks/useCalmMode";
 
@@ -16,6 +17,8 @@ interface CalmModeBannerProps {
 }
 
 export function CalmModeBanner({ onDismiss }: CalmModeBannerProps) {
+  const styles = useStyles();
+
   const { isCalmModeEnabled, disableCalmMode } = useCalmMode();
 
   if (!isCalmModeEnabled) {
@@ -49,11 +52,11 @@ export function CalmModeBanner({ onDismiss }: CalmModeBannerProps) {
   );
 }
 
-const styles = StyleSheet.create({
+const useStyles = createThemedValue((palette) => StyleSheet.create({
   container: {
-    backgroundColor: Colors.backgroundAlt,
+    backgroundColor: palette.backgroundAlt,
     borderBottomWidth: 1,
-    borderBottomColor: Colors.border,
+    borderBottomColor: palette.border,
     paddingVertical: Spacing.sm,
     paddingHorizontal: Spacing.md,
   },
@@ -64,7 +67,7 @@ const styles = StyleSheet.create({
     gap: Spacing.md,
   },
   text: {
-    color: Colors.textSecondary,
+    color: palette.textSecondary,
     flex: 1,
   },
   dismissButton: {
@@ -76,7 +79,7 @@ const styles = StyleSheet.create({
     justifyContent: "center",
   },
   dismissText: {
-    color: Colors.primary,
+    color: palette.primary,
     fontWeight: "600",
   },
-});
+}));

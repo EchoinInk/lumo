@@ -1,7 +1,8 @@
 import { Card } from "@/src/components/ui/Card";
 import { ProgressBar } from "@/src/components/ui/ProgressBar";
 import { Text } from "@/src/components/ui/Text";
-import { Colors, Radius, Spacing } from "@/src/theme/tokens";
+import { usePalette, createThemedValue } from "@/theme/usePalette";
+import { Radius, Spacing } from "@/src/theme/tokens";
 import { PartyPopper, Sparkles } from "lucide-react-native";
 import React from "react";
 import { StyleSheet, View } from "react-native";
@@ -15,6 +16,9 @@ export function ProgressSummaryCard({
   completedTasks = 3,
   totalTasks = 6,
 }: ProgressSummaryCardProps) {
+  const palette = usePalette();
+  const styles = useStyles();
+
   const progress = totalTasks > 0 ? (completedTasks / totalTasks) * 100 : 0;
 
   return (
@@ -22,7 +26,7 @@ export function ProgressSummaryCard({
       <View style={styles.content}>
         <View style={styles.leftContent}>
           <View style={styles.header}>
-            <PartyPopper size={18} color={Colors.pink} />
+            <PartyPopper size={18} color={palette.pink} />
             <Text variant="body" style={styles.celebrationText}>
               You did this!
             </Text>
@@ -30,7 +34,7 @@ export function ProgressSummaryCard({
           <Text variant="subheading" style={styles.title}>
             Completed
           </Text>
-          <Text variant="body" color={Colors.textSecondary}>
+          <Text variant="body" color={palette.textSecondary}>
             {completedTasks} / {totalTasks} tasks
           </Text>
           <ProgressBar
@@ -43,7 +47,7 @@ export function ProgressSummaryCard({
         <View style={styles.illustrationContainer}>
           {/* Placeholder for mascot illustration */}
           <View style={styles.mascotPlaceholder}>
-            <Sparkles size={24} color={Colors.purpleSoft} />
+            <Sparkles size={24} color={palette.purpleSoft} />
           </View>
         </View>
       </View>
@@ -51,7 +55,7 @@ export function ProgressSummaryCard({
   );
 }
 
-const styles = StyleSheet.create({
+const useStyles = createThemedValue((palette) => StyleSheet.create({
   container: {
     marginBottom: Spacing.lg,
   },
@@ -70,7 +74,7 @@ const styles = StyleSheet.create({
   },
   celebrationText: {
     fontWeight: "600",
-    color: Colors.pink,
+    color: palette.pink,
   },
   title: {
     marginBottom: Spacing.xs,
@@ -86,11 +90,11 @@ const styles = StyleSheet.create({
     width: 80,
     height: 80,
     borderRadius: Radius['3xl'],
-    backgroundColor: Colors.lavender,
+    backgroundColor: palette.lavender,
     alignItems: "center",
     justifyContent: "center",
     borderWidth: 2,
-    borderColor: Colors.borderLight,
+    borderColor: palette.borderLight,
     borderStyle: "dashed",
   },
-});
+}));

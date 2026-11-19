@@ -1,6 +1,7 @@
 import { Card } from "@/src/components/ui/Card";
 import { Text } from "@/src/components/ui/Text";
-import { Colors, Radius, Spacing } from "@/src/theme/tokens";
+import { createThemedValue } from "@/theme/usePalette";
+import { Radius, Spacing } from "@/src/theme/tokens";
 import {
     CheckSquare,
     DollarSign,
@@ -20,34 +21,36 @@ interface QuickAction {
   route?: string;
 }
 
-const quickActions: QuickAction[] = [
+const useQuickActions = createThemedValue((palette): QuickAction[] => [
   {
     icon: CheckSquare,
     label: "Add Task",
-    color: Colors.blue,
-    bgColor: Colors.blue + "15",
+    color: palette.blue,
+    bgColor: palette.blue + "15",
   },
   {
     icon: Dumbbell,
     label: "Log Habit",
-    color: Colors.purple,
-    bgColor: Colors.purple + "15",
+    color: palette.purple,
+    bgColor: palette.purple + "15",
   },
   {
     icon: Utensils,
     label: "Log Meal",
-    color: Colors.pink,
-    bgColor: Colors.pink + "15",
+    color: palette.pink,
+    bgColor: palette.pink + "15",
   },
   {
     icon: DollarSign,
     label: "Add Expense",
-    color: Colors.success,
-    bgColor: Colors.success + "15",
+    color: palette.success,
+    bgColor: palette.success + "15",
   },
-];
+]);
 
 export function QuickActions() {
+  const quickActions = useQuickActions();
+
   return (
     <View style={styles.container}>
       <Text variant="subheading" style={styles.sectionTitle}>

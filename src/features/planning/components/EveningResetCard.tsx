@@ -4,8 +4,8 @@ import { Text } from "@/src/components/ui/Text";
 import { ReducedMotionWrapper } from "@/src/features/calmMode/components/ReducedMotionWrapper";
 import { EveningResetCompleteCard } from "@/src/features/planning/components/EveningResetCompleteCard";
 import type { CarryOverItem } from "@/src/features/planning/types/planning";
-import { Colors, Spacing } from "@/src/theme/tokens";
-import { Moon } from "lucide-react-native";
+import { usePalette } from "@/theme/usePalette";
+import { Spacing } from "@/src/theme/tokens";
 import { StyleSheet, View } from "react-native";
 
 interface EveningResetCardProps {
@@ -35,6 +35,8 @@ export function EveningResetCard({
   onBackToDashboard,
   onAdjustReset,
 }: EveningResetCardProps) {
+  const palette = usePalette();
+
   if (eveningCompleted && onBackToDashboard) {
     return (
       <EveningResetCompleteCard
@@ -49,29 +51,18 @@ export function EveningResetCard({
 
   return (
     <ReducedMotionWrapper>
-      <Card variant="gradient" style={styles.card}>
-        <View style={styles.header}>
-          <Moon
-            size={20}
-            color={Colors.primary}
-            accessibilityElementsHidden
-            importantForAccessibility="no"
-          />
-          <Text variant="subheading" style={styles.title}>
-            Evening reset
-          </Text>
-        </View>
-        <Text variant="body" color={Colors.textSecondary}>
+      <Card variant="plain" style={styles.card}>
+        <Text variant="body" color={palette.textSecondary}>
           Close today gently. Tomorrow can start small.
         </Text>
 
         <View style={styles.section}>
-          <Text variant="label" color={Colors.textSecondary}>
+          <Text variant="label" color={palette.textSecondary}>
             What can be carried gently?
           </Text>
           {carryOverItems.length === 0 ? (
             <View style={styles.emptyBlock}>
-              <Text variant="body" color={Colors.textTertiary}>
+              <Text variant="body" color={palette.textTertiary}>
                 There is nothing you need to sort tonight.
               </Text>
             </View>
@@ -109,7 +100,7 @@ export function EveningResetCard({
         </View>
 
         <View style={styles.section}>
-          <Text variant="label" color={Colors.textSecondary}>
+          <Text variant="label" color={palette.textSecondary}>
             Clear your head
           </Text>
           <Button
@@ -141,14 +132,6 @@ const styles = StyleSheet.create({
     padding: Spacing.lg,
     gap: Spacing.lg,
     marginBottom: Spacing.lg,
-  },
-  header: {
-    flexDirection: "row",
-    alignItems: "center",
-    gap: Spacing.sm,
-  },
-  title: {
-    fontWeight: "600",
   },
   section: {
     gap: Spacing.sm,

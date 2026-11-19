@@ -2,7 +2,8 @@ import { Button } from "@/src/components/ui/Button";
 import { Card } from "@/src/components/ui/Card";
 import { Text } from "@/src/components/ui/Text";
 import type { CarryOverItem } from "@/src/features/planning/types/planning";
-import { Colors, Spacing } from "@/src/theme/tokens";
+import { usePalette } from "@/theme/usePalette";
+import { Spacing } from "@/src/theme/tokens";
 import { StyleSheet, View } from "react-native";
 
 interface CarryOverReviewCardProps {
@@ -16,10 +17,12 @@ export function CarryOverReviewCard({
   onCarryOver,
   onPark,
 }: CarryOverReviewCardProps) {
+  const palette = usePalette();
+
   if (items.length === 0) {
     return (
       <Card variant="outlined" style={styles.card}>
-        <Text variant="body" color={Colors.textSecondary}>
+        <Text variant="body" color={palette.textSecondary}>
           Nothing needs carrying right now.
         </Text>
       </Card>
@@ -30,7 +33,7 @@ export function CarryOverReviewCard({
     <View style={styles.list}>
       {items.map((item) => (
         <Card key={item.id} variant="outlined" style={styles.card}>
-          <Text variant="caption" color={Colors.primary}>
+          <Text variant="caption" color={palette.primary}>
             {item.reason}
           </Text>
           <Text variant="body" style={styles.label}>

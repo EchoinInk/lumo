@@ -1,3 +1,7 @@
+import "@/global.css";
+import { useFonts } from "expo-font";
+import { brandFonts } from "@/theme/brandFonts";
+import { MelloAppearance } from "@/theme/MelloAppearance";
 /**
  * Root Layout
  * Handles first-run routing for onboarding
@@ -13,26 +17,30 @@ import { SplashScreen, Stack, router, useSegments } from "expo-router";
 import { useEffect } from "react";
 import { ReminderNotificationLifecycle } from "@/src/features/reminders/components/ReminderNotificationLifecycle";
 
-SplashScreen.preventAutoHideAsync();
+void SplashScreen.preventAutoHideAsync().catch(() => {});
 
 function RootLayoutContent() {
+  const [fontsReady, fontError] = useFonts(brandFonts);
   const segments = useSegments();
   const isComplete = useOnboardingStore((state) => state.isComplete);
   const isOnboardingHydrated = useOnboardingStore((state) => state.isHydrated);
 
   useEffect(() => {
+    if (!fontsReady && !fontError) return;
     const startupMeasurementId =
       observability.performance.startMeasurement("app.startup_duration");
 
-    SplashScreen.hideAsync();
+    void SplashScreen.hideAsync().catch(() => {});
     observability.performance.endMeasurement(startupMeasurementId);
-  }, []);
+  }, [fontsReady, fontError]);
 
   useEffect(() => {
-    if (!isOnboardingHydrated) return;
+    if ((!fontsReady && !fontError) || !isOnboardingHydrated) return;
     const redirect = getOnboardingRedirect(isComplete, segments);
     if (redirect) router.replace(redirect as any);
-  }, [isComplete, isOnboardingHydrated, segments]);
+  }, [isComplete, isOnboardingHydrated, segments, fontsReady, fontError]);
+
+  if (!fontsReady && !fontError) return null;
 
   return (
     <ActiveLocalDataGate>
@@ -49,7 +57,9 @@ function RootLayoutContent() {
 export default function RootLayout() {
   return (
     <GlobalErrorBoundary>
-      <RootLayoutContent />
+      <MelloAppearance>
+        <RootLayoutContent />
+      </MelloAppearance>
     </GlobalErrorBoundary>
   );
 }

@@ -2,7 +2,8 @@ import React from 'react';
 import { View, StyleSheet } from 'react-native';
 import { Text } from '@/components/ui/Text';
 import { Avatar } from '@/components/ui/Avatar';
-import { Colors, Spacing } from '@/theme/tokens';
+import { usePalette } from "@/theme/usePalette";
+import { Spacing } from '@/theme/tokens';
 
 interface DashboardHeaderProps {
   greeting?: string;
@@ -15,13 +16,15 @@ export function DashboardHeader({
   subtitle = "Let's make today productive",
   initials = "LM"
 }: DashboardHeaderProps) {
+  const palette = usePalette();
+
   return (
     <View style={styles.container}>
       <View style={styles.textContainer}>
         <Text variant="title" style={styles.greeting}>
           {greeting}
         </Text>
-        <Text variant="body" color={Colors.textSecondary} style={styles.subtitle}>
+        <Text variant="body" color={palette.textSecondary} style={styles.subtitle}>
           {subtitle}
         </Text>
       </View>

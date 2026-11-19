@@ -31,12 +31,12 @@ export function EveningPlanningScreen() {
 
   return (
     <Screen scrollable padded>
-      <ScreenBackButton fallbackPath="/(tabs)" />
-      <SectionHeader
+      <ScreenBackButton showWordmark fallbackPath="/(tabs)" />
+      <SectionHeader screenTitle
         title="Evening reset"
         subtitle={
           flow.summary.eveningCompleted
-            ? "Today is closed gently"
+            ? undefined
             : "Close the loop without making it a project"
         }
       />
@@ -60,7 +60,7 @@ export function EveningPlanningScreen() {
 export function PlanningHubScreen() {
   return (
     <Screen scrollable padded>
-      <SectionHeader
+      <SectionHeader screenTitle
         title="Daily planning"
         subtitle="Shape your day gently"
       />

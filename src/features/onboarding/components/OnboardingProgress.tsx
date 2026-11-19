@@ -3,7 +3,8 @@
  * Shows current step in onboarding flow
  */
 
-import { Colors, Radius, Spacing } from "@/src/theme/tokens";
+import { createThemedValue } from "@/theme/usePalette";
+import { Radius, Spacing } from "@/src/theme/tokens";
 import React from "react";
 import { StyleSheet, View } from "react-native";
 
@@ -13,6 +14,8 @@ interface OnboardingProgressProps {
 }
 
 export function OnboardingProgress({ current, total }: OnboardingProgressProps) {
+  const styles = useStyles();
+
   return (
     <View style={styles.container}>
       <View style={styles.progressBar}>
@@ -31,7 +34,7 @@ export function OnboardingProgress({ current, total }: OnboardingProgressProps) 
   );
 }
 
-const styles = StyleSheet.create({
+const useStyles = createThemedValue((palette) => StyleSheet.create({
   container: {
     alignItems: "center",
   },
@@ -42,14 +45,14 @@ const styles = StyleSheet.create({
   step: {
     flex: 1,
     height: 4,
-    backgroundColor: Colors.border,
+    backgroundColor: palette.border,
     borderRadius: Radius.sm,
     minWidth: 40,
   },
   stepCompleted: {
-    backgroundColor: Colors.primary,
+    backgroundColor: palette.primary,
   },
   stepActive: {
-    backgroundColor: Colors.primary,
+    backgroundColor: palette.primary,
   },
-});
+}));

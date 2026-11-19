@@ -7,7 +7,7 @@
 
 import { selectionHaptic } from "@/animations/haptics";
 import { ScalePress } from "@/components/animated/ScalePress";
-import { Colors } from "@/theme/colors";
+import { usePalette, createThemedValue } from "@/theme/usePalette";
 import React from "react";
 import { StyleSheet, Text, View } from "react-native";
 
@@ -28,6 +28,9 @@ export const FocusSelectionCard: React.FC<FocusSelectionCardProps> = ({
   onSelect,
   multiSelect = false,
 }) => {
+  const palette = usePalette();
+  const styles = useStyles();
+
   const handlePress = () => {
     selectionHaptic();
     onSelect(id);
@@ -39,8 +42,8 @@ export const FocusSelectionCard: React.FC<FocusSelectionCardProps> = ({
         style={[
           styles.card,
           {
-            backgroundColor: selected ? Colors.primarySoft : Colors.card,
-            borderColor: selected ? Colors.primary : Colors.border,
+            backgroundColor: selected ? palette.primarySoft : palette.card,
+            borderColor: selected ? palette.primary : palette.border,
           },
         ]}
       >
@@ -50,7 +53,7 @@ export const FocusSelectionCard: React.FC<FocusSelectionCardProps> = ({
               style={[
                 styles.label,
                 {
-                  color: Colors.textPrimary,
+                  color: palette.textPrimary,
                   fontWeight: selected ? "600" : "400",
                 },
               ]}
@@ -62,7 +65,7 @@ export const FocusSelectionCard: React.FC<FocusSelectionCardProps> = ({
                 style={[
                   styles.description,
                   {
-                    color: Colors.textSecondary,
+                    color: palette.textSecondary,
                   },
                 ]}
               >
@@ -75,8 +78,8 @@ export const FocusSelectionCard: React.FC<FocusSelectionCardProps> = ({
               style={[
                 styles.checkmark,
                 {
-                  backgroundColor: Colors.primary,
-                  borderColor: Colors.primary,
+                  backgroundColor: palette.primary,
+                  borderColor: palette.primary,
                 },
               ]}
             >
@@ -89,7 +92,7 @@ export const FocusSelectionCard: React.FC<FocusSelectionCardProps> = ({
   );
 };
 
-const styles = StyleSheet.create({
+const useStyles = createThemedValue((palette) => StyleSheet.create({
   card: {
     borderRadius: 16,
     padding: 20,
@@ -123,8 +126,8 @@ const styles = StyleSheet.create({
     marginLeft: 12,
   },
   checkmarkText: {
-    color: "#FFFFFF",
+    color: palette.textInverse,
     fontSize: 16,
     fontWeight: "600",
   },
-});
+}));

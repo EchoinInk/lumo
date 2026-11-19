@@ -8,7 +8,8 @@
 import React from 'react';
 import { Text, StyleSheet } from 'react-native';
 import { TouchableOpacity } from 'react-native';
-import { Colors, Spacing, Typography } from '@/src/theme/tokens';
+import { createThemedValue } from "@/theme/usePalette";
+import { Spacing, Typography } from '@/src/theme/tokens';
 import { UX } from '@/src/constants/ux';
 
 interface FocusExitButtonProps {
@@ -16,6 +17,8 @@ interface FocusExitButtonProps {
 }
 
 export function FocusExitButton({ onPress }: FocusExitButtonProps) {
+  const styles = useStyles();
+
   return (
     <TouchableOpacity
       onPress={onPress}
@@ -30,14 +33,14 @@ export function FocusExitButton({ onPress }: FocusExitButtonProps) {
   );
 }
 
-const styles = StyleSheet.create({
+const useStyles = createThemedValue((palette) => StyleSheet.create({
   button: {
     paddingHorizontal: Spacing.md,
     paddingVertical: Spacing.sm,
     borderRadius: 8,
     backgroundColor: 'transparent',
     borderWidth: 1,
-    borderColor: Colors.border,
+    borderColor: palette.border,
     minHeight: UX.touchTarget,
     minWidth: UX.touchTargetLarge,
     alignItems: 'center',
@@ -45,7 +48,7 @@ const styles = StyleSheet.create({
   },
   text: {
     ...Typography.body,
-    color: Colors.textSecondary,
+    color: palette.textSecondary,
     fontWeight: '500',
   },
-});
+}));

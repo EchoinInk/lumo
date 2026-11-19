@@ -23,7 +23,7 @@ import {
 import { useSettingsStore } from "@/src/store/useSettingsStore";
 import React, { useEffect, useState } from "react";
 import { ActivityIndicator, StyleSheet, View } from "react-native";
-import { Colors } from "@/src/theme/tokens";
+import { usePalette, createThemedValue } from "@/theme/usePalette";
 import { RecoverySheet } from "./RecoverySheet";
 
 interface Props {
@@ -58,17 +58,20 @@ function messageFor(error: PersistenceLoadError): string {
   const label = domainLabels[error.domain];
   switch (error.kind) {
     case "unsupported-schema-version":
-      return `Your ${label} data was created by an unsupported version of Lumo. It has not been changed.`;
+      return `Your ${label} data was created by an unsupported version of Mello. It has not been changed.`;
     case "migration-failure":
-      return `Lumo could not safely finish updating your ${label} data. The original data remains preserved.`;
+      return `Mello could not safely finish updating your ${label} data. The original data remains preserved.`;
     case "unreadable-data":
-      return `Lumo cannot read your ${label} data right now. It has not attempted to replace it.`;
+      return `Mello cannot read your ${label} data right now. It has not attempted to replace it.`;
     default:
-      return `Your ${label} data is not in a form Lumo can safely use. The stored data remains untouched.`;
+      return `Your ${label} data is not in a form Mello can safely use. The stored data remains untouched.`;
   }
 }
 
 export function ActiveLocalDataGate({ children }: Props): React.JSX.Element {
+  const palette = usePalette();
+  const styles = useStyles();
+
   const [attempt, setAttempt] = useState(0);
   const [isLoading, setIsLoading] = useState(true);
   const [issues, setIssues] = useState<PersistenceLoadError[]>([]);
@@ -129,7 +132,7 @@ export function ActiveLocalDataGate({ children }: Props): React.JSX.Element {
   if (isLoading) {
     return (
       <View style={styles.loading} accessibilityLabel="Loading your local data">
-        <ActivityIndicator color={Colors.primary} />
+        <ActivityIndicator color={palette.primary} />
       </View>
     );
   }
@@ -163,11 +166,11 @@ export function ActiveLocalDataGate({ children }: Props): React.JSX.Element {
   return <>{children}</>;
 }
 
-const styles = StyleSheet.create({
+const useStyles = createThemedValue((palette) => StyleSheet.create({
   loading: {
     flex: 1,
     alignItems: "center",
     justifyContent: "center",
-    backgroundColor: Colors.background,
+    backgroundColor: palette.background,
   },
-});
+}));

@@ -11,7 +11,7 @@ import { OnboardingContainer } from "@/components/onboarding/OnboardingContainer
 import { OnboardingProgress } from "@/components/onboarding/OnboardingProgress";
 import { PreferenceSelector } from "@/components/onboarding/PreferenceSelector";
 import { WelcomeHero } from "@/components/onboarding/WelcomeHero";
-import { Colors } from "@/theme/colors";
+import { usePalette, createThemedValue } from "@/theme/usePalette";
 import { ONBOARDING_STEPS } from "@/types/onboarding";
 import { useRouter } from "expo-router";
 import React from "react";
@@ -19,6 +19,9 @@ import { StyleSheet, Text, TouchableOpacity, View } from "react-native";
 import { useOnboardingFlow } from "../hooks/useOnboardingFlow";
 
 export const OnboardingScreen: React.FC = () => {
+  const palette = usePalette();
+  const styles = useStyles();
+
   const router = useRouter();
   const {
     currentStep,
@@ -153,7 +156,7 @@ export const OnboardingScreen: React.FC = () => {
             style={[styles.button, styles.backButton]}
             onPress={handleStepBack}
           >
-            <Text style={[styles.buttonText, { color: Colors.textSecondary }]}>
+            <Text style={[styles.buttonText, { color: palette.textSecondary }]}>
               Back
             </Text>
           </TouchableOpacity>
@@ -183,7 +186,7 @@ export const OnboardingScreen: React.FC = () => {
   );
 };
 
-const styles = StyleSheet.create({
+const useStyles = createThemedValue((palette) => StyleSheet.create({
   optionsContainer: {
     width: "100%",
   },
@@ -205,7 +208,7 @@ const styles = StyleSheet.create({
   },
   primaryButton: {
     flex: 2,
-    backgroundColor: Colors.primary,
+    backgroundColor: palette.primary,
   },
   buttonText: {
     fontSize: 16,
@@ -216,6 +219,6 @@ const styles = StyleSheet.create({
     fontSize: 16,
     fontWeight: "600",
     textAlign: "center",
-    color: Colors.textPrimary,
+    color: palette.textPrimary,
   },
-});
+}));

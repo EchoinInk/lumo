@@ -1,4 +1,5 @@
-import { Colors, Radius, Spacing } from "@/theme/tokens";
+import { usePalette } from "@/theme/usePalette";
+import { Radius, Spacing } from "@/theme/tokens";
 import { LinearGradient } from "expo-linear-gradient";
 import React from "react";
 import { StyleSheet, View } from "react-native";
@@ -27,13 +28,15 @@ export function ProgressBar({
   accessibilityRole,
   ...props
 }: ProgressBarProps) {
+  const palette = usePalette();
+
   const clampedProgress = Math.min(Math.max(progress / 100, 0), 1);
   const progressWidth: DimensionValue = `${clampedProgress * 100}%`;
 
   const barStyle = {
     height,
     borderRadius: Radius.full,
-    backgroundColor: Colors.borderLight,
+    backgroundColor: palette.borderLight,
     overflow: "hidden" as const,
   };
 
@@ -46,13 +49,13 @@ export function ProgressBar({
   const fillContent =
     variant === "gradient" ? (
       <LinearGradient
-        colors={[Colors.gradientStart, Colors.gradientEnd]}
+        colors={[palette.gradientStart, palette.gradientEnd]}
         start={{ x: 0, y: 0 }}
         end={{ x: 1, y: 0 }}
         style={fillStyle}
       />
     ) : (
-      <View style={[fillStyle, { backgroundColor: Colors.primary }]} />
+      <View style={[fillStyle, { backgroundColor: palette.primary }]} />
     );
 
   return (
@@ -67,10 +70,10 @@ export function ProgressBar({
     >
       {(showLabel || label) && (
         <View style={styles.labelRow}>
-          <Text variant="caption" color={Colors.textSecondary}>
+          <Text variant="caption" color={palette.textSecondary}>
             {label || "Progress"}
           </Text>
-          <Text variant="caption" color={Colors.textSecondary}>
+          <Text variant="caption" color={palette.textSecondary}>
             {Math.round(clampedProgress * 100)}%
           </Text>
         </View>

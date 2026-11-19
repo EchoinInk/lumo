@@ -1,3 +1,4 @@
+import { createThemedValue } from "@/theme/usePalette";
 /**
  * Fatal Error Screen
  *
@@ -22,6 +23,8 @@ interface Props {
 }
 
 export function FatalErrorScreen({ error, onReset }: Props): React.JSX.Element {
+  const styles = useStyles();
+
   return (
     <ScrollView style={styles.container} contentContainerStyle={styles.content}>
       <View style={styles.iconContainer}>
@@ -33,7 +36,7 @@ export function FatalErrorScreen({ error, onReset }: Props): React.JSX.Element {
       </Text>
 
       <Text variant="body" style={styles.message}>
-        Lumo encountered an unexpected moment. Let's try again gently.
+        Mello encountered an unexpected moment. Let's try again gently.
       </Text>
 
       {__DEV__ && error && (
@@ -56,10 +59,10 @@ export function FatalErrorScreen({ error, onReset }: Props): React.JSX.Element {
   );
 }
 
-const styles = StyleSheet.create({
+const useStyles = createThemedValue((palette) => StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: "#0a0a0f",
+    backgroundColor: palette.background,
   },
   content: {
     flex: 1,
@@ -77,19 +80,19 @@ const styles = StyleSheet.create({
   title: {
     fontSize: 24,
     fontWeight: "600",
-    color: "#ffffff",
+    color: palette.textPrimary,
     textAlign: "center",
     marginBottom: 16,
   },
   message: {
     fontSize: 16,
-    color: "#a0a0a0",
+    color: palette.textSecondary,
     textAlign: "center",
     marginBottom: 32,
     lineHeight: 24,
   },
   errorContainer: {
-    backgroundColor: "#1a1a1f",
+    backgroundColor: palette.taskPanel,
     borderRadius: 12,
     padding: 16,
     marginBottom: 32,
@@ -98,12 +101,12 @@ const styles = StyleSheet.create({
   errorTitle: {
     fontSize: 14,
     fontWeight: "600",
-    color: "#ff6b6b",
+    color: palette.danger,
     marginBottom: 8,
   },
   errorText: {
     fontSize: 12,
-    color: "#a0a0a0",
+    color: palette.textSecondary,
     fontFamily: Platform.OS === "ios" ? "Courier" : "monospace",
   },
   buttonContainer: {
@@ -112,4 +115,4 @@ const styles = StyleSheet.create({
   button: {
     width: "100%",
   },
-});
+}));

@@ -1,6 +1,7 @@
 import { Text } from "@/src/components/ui/Text";
 import type { EnergyLevel } from "@/src/features/tasks/types/energy";
-import { Colors, Radius, Spacing } from "@/src/theme/tokens";
+import { usePalette, createThemedValue } from "@/theme/usePalette";
+import { Radius, Spacing } from "@/src/theme/tokens";
 import { StyleSheet, TouchableOpacity, View } from "react-native";
 
 interface EnergyPickerProps {
@@ -15,9 +16,12 @@ const options: Array<{ value: EnergyLevel; label: string; hint: string }> = [
 ];
 
 export function EnergyPicker({ value, onChange }: EnergyPickerProps) {
+  const palette = usePalette();
+  const styles = useStyles();
+
   return (
     <View style={styles.container}>
-      <Text variant="label" color={Colors.textSecondary}>
+      <Text variant="label" color={palette.textSecondary}>
         Energy needed
       </Text>
       <View style={styles.options}>
@@ -35,7 +39,7 @@ export function EnergyPicker({ value, onChange }: EnergyPickerProps) {
             >
               <Text
                 variant="caption"
-                color={isSelected ? Colors.textInverse : Colors.textSecondary}
+                color={isSelected ? palette.textInverse : palette.textSecondary}
               >
                 {option.label}
               </Text>
@@ -47,7 +51,7 @@ export function EnergyPicker({ value, onChange }: EnergyPickerProps) {
   );
 }
 
-const styles = StyleSheet.create({
+const useStyles = createThemedValue((palette) => StyleSheet.create({
   container: {
     gap: Spacing.sm,
   },
@@ -60,13 +64,13 @@ const styles = StyleSheet.create({
     minHeight: 44,
     justifyContent: "center",
     borderWidth: 1,
-    borderColor: Colors.border,
+    borderColor: palette.border,
     borderRadius: Radius.full,
     paddingHorizontal: Spacing.md,
-    backgroundColor: Colors.card,
+    backgroundColor: palette.card,
   },
   optionSelected: {
-    backgroundColor: Colors.primary,
-    borderColor: Colors.primary,
+    backgroundColor: palette.primary,
+    borderColor: palette.primary,
   },
-});
+}));

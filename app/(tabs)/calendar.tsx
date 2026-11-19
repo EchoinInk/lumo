@@ -8,7 +8,8 @@ import { useTasks } from "@/src/features/tasks";
 import { TaskFormModal } from "@/src/features/tasks/components/TaskFormModal";
 import type { CreateTaskInput, Task } from "@/src/features/tasks/types/task";
 import { useLocalDay } from "@/src/hooks/useLocalDay";
-import { Colors, Radius, Spacing } from "@/src/theme/tokens";
+import { usePalette, createThemedValue } from "@/theme/usePalette";
+import { Radius, Spacing } from "@/src/theme/tokens";
 import {
   addLocalDays,
   formatLocalDate,
@@ -44,6 +45,9 @@ function buildVisibleWeek(anchor: LocalDateKey, todayKey: LocalDateKey) {
 }
 
 export default function CalendarScreen() {
+  const palette = usePalette();
+  const styles = useStyles();
+
   const todayKey = useLocalDay();
   const [weekAnchor, setWeekAnchor] = useState<LocalDateKey>(todayKey);
   const weekDays = buildVisibleWeek(weekAnchor, todayKey);
@@ -119,7 +123,7 @@ export default function CalendarScreen() {
               accessibilityLabel="Previous week"
               accessibilityHint="Shows the previous week"
             >
-              <ChevronLeft size={20} color={Colors.textSecondary} />
+              <ChevronLeft size={20} color={palette.textSecondary} />
             </TouchableOpacity>
             <TouchableOpacity
               style={styles.controlButton}
@@ -128,7 +132,7 @@ export default function CalendarScreen() {
               accessibilityLabel="Next week"
               accessibilityHint="Shows the next week"
             >
-              <ChevronRight size={20} color={Colors.textSecondary} />
+              <ChevronRight size={20} color={palette.textSecondary} />
             </TouchableOpacity>
             <TouchableOpacity
               style={styles.calendarButton}
@@ -140,7 +144,7 @@ export default function CalendarScreen() {
               accessibilityLabel="Go to today"
               accessibilityHint="Selects today in the current calendar"
             >
-              <CalendarIcon size={18} color={Colors.primary} />
+              <CalendarIcon size={18} color={palette.primary} />
             </TouchableOpacity>
           </View>
         }
@@ -171,8 +175,8 @@ export default function CalendarScreen() {
                   variant="caption"
                   color={
                     item.isToday || isSelected
-                      ? Colors.textInverse
-                      : Colors.textSecondary
+                      ? palette.textInverse
+                      : palette.textSecondary
                   }
                 >
                   {item.day}
@@ -181,8 +185,8 @@ export default function CalendarScreen() {
                   variant="body"
                   color={
                     item.isToday || isSelected
-                      ? Colors.textInverse
-                      : Colors.textPrimary
+                      ? palette.textInverse
+                      : palette.textPrimary
                   }
                   style={styles.dayDate}
                 >
@@ -197,7 +201,7 @@ export default function CalendarScreen() {
       <SectionHeader title={selectedLabel} />
       {mutationError && (
         <Card variant="outlined" style={styles.errorCard}>
-          <Text variant="small" color={Colors.danger} accessibilityRole="alert">
+          <Text variant="small" color={palette.danger} accessibilityRole="alert">
             {mutationError}
           </Text>
         </Card>
@@ -208,7 +212,7 @@ export default function CalendarScreen() {
         style={styles.addTaskButton}
         accessibilityLabel={`Add task for ${selectedLabel}`}
       >
-        <Plus size={16} color={Colors.textInverse} />
+        <Plus size={16} color={palette.textInverse} />
         Add task
       </Button>
       {selectedTasks.length > 0 ? (
@@ -222,13 +226,13 @@ export default function CalendarScreen() {
                 accessibilityLabel={`${task.completed ? "Mark pending" : "Complete"}: ${task.title}`}
               >
                 <View style={[styles.checkbox, task.completed && styles.checkboxCompleted]}>
-                  {task.completed && <Check size={15} color={Colors.textInverse} />}
+                  {task.completed && <Check size={15} color={palette.textInverse} />}
                 </View>
                 <View style={styles.taskDetails}>
                   <Text variant="body" style={[styles.taskTitle, task.completed && styles.taskTitleCompleted]}>
                     {task.title}
                   </Text>
-                  <Text variant="caption" color={Colors.textTertiary}>
+                  <Text variant="caption" color={palette.textTertiary}>
                     {task.dueTime ? `At ${task.dueTime}` : "Any time"}
                   </Text>
                 </View>
@@ -240,7 +244,7 @@ export default function CalendarScreen() {
                   accessibilityRole="button"
                   accessibilityLabel={`Edit task: ${task.title}`}
                 >
-                  <Pencil size={17} color={Colors.textTertiary} />
+                  <Pencil size={17} color={palette.textTertiary} />
                 </TouchableOpacity>
                 <TouchableOpacity
                   onPress={() => confirmDeleteTask(task)}
@@ -248,7 +252,7 @@ export default function CalendarScreen() {
                   accessibilityRole="button"
                   accessibilityLabel={`Delete task: ${task.title}`}
                 >
-                  <Trash2 size={17} color={Colors.textTertiary} />
+                  <Trash2 size={17} color={palette.textTertiary} />
                 </TouchableOpacity>
               </View>
             </Card>
@@ -256,10 +260,10 @@ export default function CalendarScreen() {
         </View>
       ) : (
         <Card variant="outlined" style={styles.emptyCard}>
-          <Text variant="body" color={Colors.textSecondary}>
+          <Text variant="body" color={palette.textSecondary}>
             Nothing needs your attention here yet.
           </Text>
-          <Text variant="caption" color={Colors.textTertiary}>
+          <Text variant="caption" color={palette.textTertiary}>
             Tasks with this date will appear here.
           </Text>
         </Card>
@@ -279,7 +283,7 @@ export default function CalendarScreen() {
   );
 }
 
-const styles = StyleSheet.create({
+const useStyles = createThemedValue((palette) => StyleSheet.create({
   headerControls: {
     flexDirection: "row",
     alignItems: "center",
@@ -296,7 +300,7 @@ const styles = StyleSheet.create({
     minWidth: 44,
     alignItems: "center",
     justifyContent: "center",
-    backgroundColor: Colors.lavender,
+    backgroundColor: palette.lavender,
     borderRadius: Radius.md,
     marginLeft: Spacing.xs,
   },
@@ -317,10 +321,10 @@ const styles = StyleSheet.create({
     minHeight: 44,
   },
   dayItemToday: {
-    backgroundColor: Colors.pink,
+    backgroundColor: palette.pink,
   },
   dayItemSelected: {
-    backgroundColor: Colors.primary,
+    backgroundColor: palette.primary,
   },
   dayDate: {
     marginTop: Spacing.xs,
@@ -343,14 +347,14 @@ const styles = StyleSheet.create({
   },
   taskCompletion: { flex: 1, flexDirection: "row", alignItems: "center", gap: Spacing.md, minHeight: 44 },
   taskDetails: { flex: 1, gap: Spacing.xs },
-  checkbox: { width: 24, height: 24, borderRadius: 12, borderWidth: 2, borderColor: Colors.border, alignItems: "center", justifyContent: "center" },
-  checkboxCompleted: { backgroundColor: Colors.primary, borderColor: Colors.primary },
+  checkbox: { width: 24, height: 24, borderRadius: 12, borderWidth: 2, borderColor: palette.border, alignItems: "center", justifyContent: "center" },
+  checkboxCompleted: { backgroundColor: palette.primary, borderColor: palette.primary },
   taskTitle: {
     fontWeight: "600",
   },
-  taskTitleCompleted: { textDecorationLine: "line-through", color: Colors.textTertiary },
+  taskTitleCompleted: { textDecorationLine: "line-through", color: palette.textTertiary },
   taskActions: { flexDirection: "row", gap: Spacing.xs },
   taskAction: { minWidth: 44, minHeight: 44, alignItems: "center", justifyContent: "center" },
   addTaskButton: { alignSelf: "flex-start", marginBottom: Spacing.md },
-  errorCard: { padding: Spacing.md, marginBottom: Spacing.md, borderColor: Colors.danger },
-});
+  errorCard: { padding: Spacing.md, marginBottom: Spacing.md, borderColor: palette.danger },
+}));

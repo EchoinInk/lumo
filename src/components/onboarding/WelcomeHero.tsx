@@ -6,7 +6,7 @@
  */
 
 import { FadeIn } from "@/components/animated/FadeIn";
-import { Colors } from "@/theme/colors";
+import { usePalette } from "@/theme/usePalette";
 import React from "react";
 import { StyleSheet, Text, View } from "react-native";
 
@@ -19,16 +19,18 @@ export const WelcomeHero: React.FC<WelcomeHeroProps> = ({
   title,
   subtitle,
 }) => {
+  const palette = usePalette();
+
   return (
     <View style={styles.container}>
       <FadeIn delay={0}>
-        <Text style={[styles.title, { color: Colors.textPrimary }]}>
+        <Text style={[styles.title, { color: palette.textPrimary }]}>
           {title}
         </Text>
       </FadeIn>
       {subtitle && (
         <FadeIn delay={100}>
-          <Text style={[styles.subtitle, { color: Colors.textSecondary }]}>
+          <Text style={[styles.subtitle, { color: palette.textSecondary }]}>
             {subtitle}
           </Text>
         </FadeIn>

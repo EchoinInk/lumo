@@ -1,6 +1,8 @@
 #!/usr/bin/env node
 
 const { spawnSync } = require('node:child_process');
+const { existsSync } = require('node:fs');
+const path = require('node:path');
 const easConfig = require('../eas.json');
 
 const env = { ...process.env, EXPO_NO_DOTENV: '1' };
@@ -32,13 +34,25 @@ function assert(condition, message) {
   }
 }
 
-assert(config.name === 'Lumo', 'Expected the resolved app name to be Lumo.');
+assert(config.name === 'Mello', 'Expected the resolved app name to be Mello.');
 assert(config.slug === 'lumo-mobile', 'Expected the resolved app slug to be lumo-mobile.');
 assert(config.ios?.bundleIdentifier === 'com.echoinink.lumo', 'Missing iOS bundle identifier.');
 assert(config.ios?.buildNumber === '1', 'Missing initial iOS build number.');
 assert(config.android?.package === 'com.echoinink.lumo', 'Missing Android package name.');
 assert(config.android?.versionCode === 1, 'Missing initial Android version code.');
 assert(!config.updates?.url, 'EAS Update must not be configured during WP1.3.');
+
+assert(config.scheme === 'lumomobile', 'Existing deep links must continue to resolve.');
+const plugins = new Map(config.plugins.filter(Array.isArray));
+const notification = plugins.get('expo-notifications');
+const splash = plugins.get('expo-splash-screen');
+assert(notification?.defaultChannel === 'lumo-reminders', 'Scheduled reminders use the existing channel.');
+for (const asset of [
+  config.icon, config.android?.adaptiveIcon?.foregroundImage, config.android?.adaptiveIcon?.monochromeImage,
+  config.web?.favicon, notification?.icon, splash?.image, splash?.dark?.image,
+]) {
+  assert(typeof asset === 'string' && existsSync(path.resolve(__dirname, '..', asset)), 'Missing native brand asset: ' + asset);
+}
 
 const profiles = easConfig.build ?? {};
 assert(profiles.development?.developmentClient === true, 'Development profile must create a development client.');

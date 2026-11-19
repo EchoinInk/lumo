@@ -1,6 +1,7 @@
 import { Card } from "@/src/components/ui/Card";
 import { Text } from "@/src/components/ui/Text";
-import { Colors, Radius, Spacing } from "@/src/theme/tokens";
+import { usePalette, createThemedValue } from "@/theme/usePalette";
+import { Radius, Spacing } from "@/src/theme/tokens";
 import { CheckCircle2, Circle, Flame, History, Pencil, Trash2 } from "lucide-react-native";
 import React, { useState } from "react";
 import { StyleSheet, TouchableOpacity, View } from "react-native";
@@ -19,15 +20,15 @@ interface HabitListItemProps {
     canToggle?: boolean;
 }
 
-const colorMap: Record<HabitColor, string> = {
-    blue: Colors.blue,
-    green: Colors.success,
-    yellow: Colors.warning,
+const useColorMap = createThemedValue((palette): Record<HabitColor, string> => ({
+    blue: palette.blue,
+    green: palette.success,
+    yellow: palette.warning,
     orange: "#F97316",
-    pink: Colors.pink,
-    purple: Colors.purple,
+    pink: palette.pink,
+    purple: palette.purple,
     teal: "#14B8A6",
-};
+}));
 
 export function HabitListItem({
     habit,
@@ -40,6 +41,10 @@ export function HabitListItem({
     completionHistory = [],
     canToggle = true,
 }: HabitListItemProps) {
+  const palette = usePalette();
+  const colorMap = useColorMap();
+  const styles = useStyles();
+
     const habitColor = colorMap[habit.color || "blue"];
     const [historyVisible, setHistoryVisible] = useState(false);
 
@@ -68,7 +73,7 @@ export function HabitListItem({
                         ]}
                     >
                         {isCompleted ? (
-                            <CheckCircle2 size={20} color={Colors.textInverse} />
+                            <CheckCircle2 size={20} color={palette.textInverse} />
                         ) : (
                             <Circle size={20} color={habitColor} />
                         )}
@@ -88,7 +93,7 @@ export function HabitListItem({
                         {habit.description && (
                             <Text
                                 variant="caption"
-                                color={Colors.textTertiary}
+                                color={palette.textTertiary}
                                 style={styles.habitDescription}
                                 numberOfLines={1}
                             >
@@ -108,9 +113,9 @@ export function HabitListItem({
 
                             {/* Streak */}
                             {currentStreak > 0 && (
-                                <View style={[styles.streakBadge, { backgroundColor: Colors.warning + "15" }]}>
-                                    <Flame size={12} color={Colors.warning} />
-                                    <Text variant="small" color={Colors.warning}>
+                                <View style={[styles.streakBadge, { backgroundColor: palette.warning + "15" }]}>
+                                    <Flame size={12} color={palette.warning} />
+                                    <Text variant="small" color={palette.warning}>
                                         {currentStreak} current
                                     </Text>
                                 </View>
@@ -128,7 +133,7 @@ export function HabitListItem({
                         accessibilityLabel={`${historyVisible ? "Hide" : "Show"} history for habit: ${habit.title}`}
                         accessibilityRole="button"
                     >
-                        <History size={16} color={Colors.textTertiary} />
+                        <History size={16} color={palette.textTertiary} />
                     </TouchableOpacity>
 
                     <TouchableOpacity
@@ -138,7 +143,7 @@ export function HabitListItem({
                         accessibilityLabel={`Edit habit: ${habit.title}`}
                         accessibilityRole="button"
                     >
-                        <Pencil size={16} color={Colors.textTertiary} />
+                        <Pencil size={16} color={palette.textTertiary} />
                     </TouchableOpacity>
 
                     <TouchableOpacity
@@ -148,20 +153,20 @@ export function HabitListItem({
                         accessibilityLabel={`Delete habit: ${habit.title}`}
                         accessibilityRole="button"
                     >
-                        <Trash2 size={16} color={Colors.textTertiary} />
+                        <Trash2 size={16} color={palette.textTertiary} />
                     </TouchableOpacity>
                 </View>
             </View>
             {historyVisible && (
                 <View style={styles.historyPanel}>
-                    <Text variant="small" color={Colors.textSecondary}>
+                    <Text variant="small" color={palette.textSecondary}>
                         Historical best: {historicalBest} {historicalBest === 1 ? "scheduled completion" : "scheduled completions"}
                     </Text>
                     {completionHistory.length === 0 ? (
-                        <Text variant="small" color={Colors.textTertiary}>No completions recorded yet.</Text>
+                        <Text variant="small" color={palette.textTertiary}>No completions recorded yet.</Text>
                     ) : (
                         completionHistory.map((date) => (
-                            <Text key={date} variant="small" color={Colors.textTertiary}>
+                            <Text key={date} variant="small" color={palette.textTertiary}>
                                 {formatLocalDate(date, { weekday: "short", month: "short", day: "numeric", year: "numeric" })}
                             </Text>
                         ))
@@ -172,7 +177,7 @@ export function HabitListItem({
     );
 }
 
-const styles = StyleSheet.create({
+const useStyles = createThemedValue((palette) => StyleSheet.create({
     habitCard: {
         padding: Spacing.md,
     },
@@ -192,13 +197,13 @@ const styles = StyleSheet.create({
         height: 32,
         borderRadius: Radius.md,
         borderWidth: 2,
-        borderColor: Colors.border,
+        borderColor: palette.border,
         alignItems: "center",
         justifyContent: "center",
     },
     checkboxChecked: {
-        backgroundColor: Colors.success,
-        borderColor: Colors.success,
+        backgroundColor: palette.success,
+        borderColor: palette.success,
     },
     habitInfo: {
         flex: 1,
@@ -209,7 +214,7 @@ const styles = StyleSheet.create({
     },
     habitTitleCompleted: {
         textDecorationLine: "line-through",
-        color: Colors.textTertiary,
+        color: palette.textTertiary,
     },
     habitDescription: {
         marginBottom: Spacing.xs,
@@ -245,6 +250,6 @@ const styles = StyleSheet.create({
         marginTop: Spacing.md,
         paddingTop: Spacing.md,
         borderTopWidth: 1,
-        borderTopColor: Colors.border,
+        borderTopColor: palette.border,
     },
-});
+}));

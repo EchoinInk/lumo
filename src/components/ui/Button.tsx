@@ -1,7 +1,10 @@
+import { brandFont } from "@/theme/brandFonts";
+import tokens from "@/theme/mello-tokens.json";
 import { mediumImpact } from "@/animations/haptics";
 import { UX } from "@/constants/ux";
 import { useReducedMotion } from "@/hooks/useReducedMotion";
-import { Colors, Radius, Shadows, Spacing, Typography } from "@/theme/tokens";
+import { usePalette } from "@/theme/usePalette";
+import { Shadows, Spacing, Typography } from "@/theme/tokens";
 import React from "react";
 import {
   ActivityIndicator,
@@ -50,6 +53,8 @@ export function Button({
   accessibilityState,
   ...props
 }: ButtonProps) {
+  const palette = usePalette();
+
   const prefersReducedMotion = useReducedMotion();
   const handlePress = (event: any) => {
     if (haptic && !disabled && !loading) {
@@ -85,31 +90,33 @@ export function Button({
     switch (variant) {
       case "primary":
         return {
-          backgroundColor: Colors.primary,
-          borderRadius: Radius.lg,
+          backgroundColor: palette.primary,
+          borderRadius: tokens.sizes.buttonRadius,
           ...Shadows.md,
         };
       case "secondary":
         return {
-          backgroundColor: Colors.secondary,
-          borderRadius: Radius.lg,
+          backgroundColor: "transparent",
+          borderWidth: 1,
+          borderColor: palette.primary,
+          borderRadius: tokens.sizes.buttonRadius,
           ...Shadows.md,
         };
       case "ghost":
         return {
           backgroundColor: "transparent",
-          borderRadius: Radius.lg,
+          borderRadius: tokens.sizes.buttonRadius,
         };
       case "danger":
         return {
-          backgroundColor: Colors.danger,
-          borderRadius: Radius.lg,
+          backgroundColor: palette.danger,
+          borderRadius: tokens.sizes.buttonRadius,
           ...Shadows.md,
         };
       default:
         return {
-          backgroundColor: Colors.primary,
-          borderRadius: Radius.lg,
+          backgroundColor: palette.primary,
+          borderRadius: tokens.sizes.buttonRadius,
           ...Shadows.md,
         };
     }
@@ -118,19 +125,21 @@ export function Button({
   const getTextStyle = () => {
     const baseStyle = {
       ...Typography.body,
-      fontWeight: "600" as const,
+      fontWeight: "700" as const,
+      lineHeight: tokens.typography.button.lineHeight,
+      ...brandFont(false, true),
     };
 
     switch (variant) {
       case "primary":
       case "danger":
-        return { ...baseStyle, color: Colors.textInverse };
+        return { ...baseStyle, color: palette.textInverse };
       case "secondary":
-        return { ...baseStyle, color: Colors.textPrimary };
+        return { ...baseStyle, color: palette.primary };
       case "ghost":
-        return { ...baseStyle, color: Colors.primary };
+        return { ...baseStyle, color: palette.primary };
       default:
-        return { ...baseStyle, color: Colors.textInverse };
+        return { ...baseStyle, color: palette.textInverse };
     }
   };
 
@@ -174,10 +183,10 @@ export function Button({
         <ActivityIndicator
           color={
             variant === "ghost"
-              ? Colors.primary
+              ? palette.primary
               : variant === "secondary"
-              ? Colors.textPrimary
-              : Colors.textInverse
+              ? palette.textPrimary
+              : palette.textInverse
           }
           accessibilityLabel="Loading"
         />

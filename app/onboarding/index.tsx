@@ -11,7 +11,8 @@ import {
     STRUGGLE_AREA_LABELS,
     StruggleArea,
 } from "@/src/features/onboarding/types/onboarding";
-import { Colors, Spacing } from "@/src/theme/tokens";
+import { usePalette } from "@/theme/usePalette";
+import { Spacing } from "@/src/theme/tokens";
 import { router } from "expo-router";
 import { ScrollView, StyleSheet, View } from "react-native";
 
@@ -25,6 +26,8 @@ const STRUGGLE_OPTIONS: StruggleArea[] = [
 ];
 
 export default function OnboardingStep1Screen() {
+  const palette = usePalette();
+
   const { preferences, setStruggleAreas } = useOnboarding();
 
   const toggleStruggle = (value: StruggleArea) => {
@@ -66,7 +69,7 @@ export default function OnboardingStep1Screen() {
         {preferences.struggleAreas.length > 0 && (
           <Text
             variant="caption"
-            color={Colors.textSecondary}
+            color={palette.textSecondary}
             style={styles.selectionHint}
           >
             Selected {preferences.struggleAreas.length} option

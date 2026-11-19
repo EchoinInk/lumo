@@ -2,7 +2,8 @@ import { Card } from "@/src/components/ui/Card";
 import { Screen } from "@/src/components/ui/Screen";
 import { SectionHeader } from "@/src/components/ui/SectionHeader";
 import { Text } from "@/src/components/ui/Text";
-import { Colors, Radius, Spacing } from "@/src/theme/tokens";
+import { usePalette } from "@/theme/usePalette";
+import { Radius, Spacing } from "@/src/theme/tokens";
 import { router } from "expo-router";
 import {
     ArrowRight,
@@ -33,6 +34,8 @@ interface FeatureCardProps {
 }
 
 function FeatureCard({ title, icon, color, onPress }: FeatureCardProps) {
+  const palette = usePalette();
+
   return (
     <TouchableOpacity
       onPress={onPress}
@@ -50,7 +53,7 @@ function FeatureCard({ title, icon, color, onPress }: FeatureCardProps) {
           <Text variant="body" style={styles.cardTitle}>
             {title}
           </Text>
-          <ArrowRight size={18} color={Colors.textTertiary} />
+          <ArrowRight size={18} color={palette.textTertiary} />
         </View>
       </Card>
     </TouchableOpacity>
@@ -58,91 +61,93 @@ function FeatureCard({ title, icon, color, onPress }: FeatureCardProps) {
 }
 
 export default function MoreScreen() {
+  const palette = usePalette();
+
   const simplifiedMode = useSimplifiedMode();
   const features = [
     {
       title: "Budget Tracker",
-      icon: <Wallet size={22} color={Colors.success} />,
-      color: Colors.success,
+      icon: <Wallet size={22} color={palette.success} />,
+      color: palette.success,
       route: "/(tabs)/more/budget",
     },
     {
       title: "Payment Logs",
-      icon: <CreditCard size={22} color={Colors.blue} />,
-      color: Colors.blue,
+      icon: <CreditCard size={22} color={palette.blue} />,
+      color: palette.blue,
       route: "/(tabs)/more/payments",
     },
     {
       title: "Weekly Groceries",
-      icon: <ShoppingCart size={22} color={Colors.purple} />,
-      color: Colors.purple,
+      icon: <ShoppingCart size={22} color={palette.purple} />,
+      color: palette.purple,
       route: "/(tabs)/more/groceries",
     },
     {
       title: "My Meals",
-      icon: <Utensils size={22} color={Colors.pink} />,
-      color: Colors.pink,
+      icon: <Utensils size={22} color={palette.pink} />,
+      color: palette.pink,
       route: "/(tabs)/more/meals",
     },
     {
       title: "Recipes",
-      icon: <Utensils size={22} color={Colors.purple} />,
-      color: Colors.purple,
+      icon: <Utensils size={22} color={palette.purple} />,
+      color: palette.purple,
       route: "/(tabs)/more/recipes",
     },
-    { title: "Weekly Meal Planner", icon: <Utensils size={22} color={Colors.purple} />, color: Colors.purple, route: "/(tabs)/more/meal-planner" },
+    { title: "Weekly Meal Planner", icon: <Utensils size={22} color={palette.purple} />, color: palette.purple, route: "/(tabs)/more/meal-planner" },
     {
       title: "Cleaning Schedule",
-      icon: <Home size={22} color={Colors.warning} />,
-      color: Colors.warning,
+      icon: <Home size={22} color={palette.warning} />,
+      color: palette.warning,
       route: "/(tabs)/more/cleaning",
     },
     {
       title: "Weight Tracker",
-      icon: <Scale size={22} color={Colors.primary} />,
-      color: Colors.primary,
+      icon: <Scale size={22} color={palette.primary} />,
+      color: palette.primary,
       route: "/(tabs)/more/weight",
     },
     {
       title: "My Workout Log",
-      icon: <Dumbbell size={22} color={Colors.pink} />,
-      color: Colors.pink,
+      icon: <Dumbbell size={22} color={palette.pink} />,
+      color: palette.pink,
       route: "/(tabs)/more/workouts",
     },
     {
       title: "Body Measurements",
-      icon: <Ruler size={22} color={Colors.purple} />,
-      color: Colors.purple,
+      icon: <Ruler size={22} color={palette.purple} />,
+      color: palette.purple,
       route: "/(tabs)/more/measurements",
     },
     {
       title: "Morning planning",
-      icon: <Sunrise size={22} color={Colors.primary} />,
-      color: Colors.primary,
+      icon: <Sunrise size={22} color={palette.primary} />,
+      color: palette.primary,
       route: "/planning/morning",
     },
     {
       title: "Evening reset",
-      icon: <Moon size={22} color={Colors.purple} />,
-      color: Colors.purple,
+      icon: <Moon size={22} color={palette.purple} />,
+      color: palette.purple,
       route: "/planning/evening",
     },
     {
       title: "Routine Bundles",
-      icon: <Layers size={22} color={Colors.blue} />,
-      color: Colors.blue,
+      icon: <Layers size={22} color={palette.blue} />,
+      color: palette.blue,
       route: "/routine-bundles",
     },
     {
       title: "Parked items",
-      icon: <Archive size={22} color={Colors.textSecondary} />,
-      color: Colors.textSecondary,
+      icon: <Archive size={22} color={palette.textSecondary} />,
+      color: palette.textSecondary,
       route: "/parked",
     },
     {
       title: "Settings",
-      icon: <Settings size={22} color={Colors.textSecondary} />,
-      color: Colors.textSecondary,
+      icon: <Settings size={22} color={palette.textSecondary} />,
+      color: palette.textSecondary,
       route: "/(tabs)/more/settings",
     },
   ];
@@ -172,10 +177,10 @@ export default function MoreScreen() {
       {/* Support Card */}
       {!simplifiedMode && <Card variant="gradient" style={styles.supportCard}>
         <View style={styles.supportContent}>
-          <Sparkles size={20} color={Colors.textInverse} />
+          <Sparkles size={20} color={palette.textInverse} />
           <Text
             variant="body"
-            color={Colors.textInverse}
+            color={palette.textInverse}
             style={styles.supportText}
           >
             Need help? We&apos;re here for you.

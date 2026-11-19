@@ -6,7 +6,7 @@
  */
 
 import { getSuccessMessage } from "@/constants/feedbackMessages";
-import { Colors } from "@/theme/colors";
+import { usePalette, createThemedValue } from "@/theme/usePalette";
 import React from "react";
 import { StyleSheet, Text, View } from "react-native";
 
@@ -23,18 +23,21 @@ export const SuccessState: React.FC<SuccessStateProps> = ({
   description,
   testID,
 }) => {
+  const palette = usePalette();
+  const styles = useStyles();
+
   const message = getSuccessMessage(successKey);
 
   return (
     <View style={styles.container} testID={testID}>
       <View style={styles.content}>
-        <View style={[styles.checkmark, { backgroundColor: Colors.success }]}>
+        <View style={[styles.checkmark, { backgroundColor: palette.success }]}>
           <Text style={styles.checkmarkText}>✓</Text>
         </View>
-        <Text style={[styles.title, { color: Colors.textPrimary }]}>
+        <Text style={[styles.title, { color: palette.textPrimary }]}>
           {title || message.title}
         </Text>
-        <Text style={[styles.description, { color: Colors.textSecondary }]}>
+        <Text style={[styles.description, { color: palette.textSecondary }]}>
           {description || message.description}
         </Text>
       </View>
@@ -42,7 +45,7 @@ export const SuccessState: React.FC<SuccessStateProps> = ({
   );
 };
 
-const styles = StyleSheet.create({
+const useStyles = createThemedValue((palette) => StyleSheet.create({
   container: {
     flex: 1,
     justifyContent: "center",
@@ -64,7 +67,7 @@ const styles = StyleSheet.create({
   checkmarkText: {
     fontSize: 24,
     fontWeight: "600",
-    color: Colors.textPrimary,
+    color: palette.textPrimary,
   },
   title: {
     fontSize: 18,
@@ -77,4 +80,4 @@ const styles = StyleSheet.create({
     textAlign: "center",
     lineHeight: 20,
   },
-});
+}));

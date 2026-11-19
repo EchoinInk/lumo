@@ -1,3 +1,5 @@
+import { useReducedMotion } from "@/hooks/useReducedMotion";
+import tokens from "@/theme/mello-tokens.json";
 import { useEnvironmentalSoftening } from "@/src/features/calmMode/hooks/useEnvironmentalSoftening";
 import { type ReactNode, useEffect, useRef } from "react";
 import { Animated, StyleSheet, ViewStyle } from "react-native";
@@ -8,7 +10,9 @@ interface PlanningGentleFadeProps {
 }
 
 export function PlanningGentleFade({ children, style }: PlanningGentleFadeProps) {
-  const { shouldReduceMotion } = useEnvironmentalSoftening();
+  const { shouldReduceMotion: calmMotion } = useEnvironmentalSoftening();
+  const reducedMotion = useReducedMotion();
+  const shouldReduceMotion = reducedMotion || calmMotion;
   const opacity = useRef(new Animated.Value(shouldReduceMotion ? 1 : 0)).current;
 
   useEffect(() => {
@@ -17,11 +21,13 @@ export function PlanningGentleFade({ children, style }: PlanningGentleFadeProps)
       return;
     }
 
-    Animated.timing(opacity, {
+    const animation = Animated.timing(opacity, {
       toValue: 1,
-      duration: 220,
+      duration: tokens.motion.selectionFadeMs,
       useNativeDriver: true,
-    }).start();
+    });
+    animation.start();
+    return () => animation.stop();
   }, [opacity, shouldReduceMotion]);
 
   return (

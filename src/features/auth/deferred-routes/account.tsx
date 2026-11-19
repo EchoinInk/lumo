@@ -228,7 +228,7 @@ export default function AccountScreen() {
       <Screen scrollable>
         <View className="flex-1 justify-center py-12">
           <Text variant="heading" className="mb-2 text-center">
-            You're using Lumo as a guest
+            You're using Mello as a guest
           </Text>
           <Text
             variant="body"

@@ -1,5 +1,6 @@
 import { UX } from "@/constants/ux";
-import { Colors, Padding, Spacing } from "@/theme/tokens";
+import { usePalette } from "@/theme/usePalette";
+import { Padding, Spacing } from "@/theme/tokens";
 import React from "react";
 import {
     KeyboardAvoidingView,
@@ -33,7 +34,7 @@ export function Screen({
   scrollable = false,
   padded = true,
   keyboardAvoiding = false,
-  backgroundColor = Colors.background,
+  backgroundColor: customBackground,
   className = "",
   scrollViewProps,
   centered = false,
@@ -42,6 +43,9 @@ export function Screen({
   style,
   ...props
 }: ScreenProps) {
+  const palette = usePalette();
+
+  const backgroundColor = customBackground ?? palette.background;
   const paddingValue =
     typeof padded === "boolean"
       ? padded

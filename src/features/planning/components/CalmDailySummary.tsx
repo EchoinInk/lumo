@@ -6,7 +6,8 @@ import type {
   PlanningNextStep,
 } from "@/src/features/planning/types/planning";
 import { getPlanningNextStepDisplayLabel } from "@/src/features/planning/services/planningDisplay";
-import { Colors, Spacing } from "@/src/theme/tokens";
+import { usePalette } from "@/theme/usePalette";
+import { Spacing } from "@/src/theme/tokens";
 import { StyleSheet, View } from "react-native";
 
 export type PlanningDashboardState =
@@ -53,6 +54,8 @@ export function CalmDailySummary({
   onAdjustPlan,
   onViewParked,
 }: CalmDailySummaryProps) {
+  const palette = usePalette();
+
   const state = resolveDashboardState(
     morningComplete,
     eveningCompleted,
@@ -100,27 +103,27 @@ export function CalmDailySummary({
       </Text>
 
       <View style={styles.lines}>
-        <Text variant="body" color={Colors.textSecondary}>
+        <Text variant="body" color={palette.textSecondary}>
           {shapeLine}
         </Text>
         {supportLine && (
-          <Text variant="caption" color={Colors.textTertiary}>
+          <Text variant="caption" color={palette.textTertiary}>
             {supportLine}
           </Text>
         )}
         {energyLevel && morningComplete && (
-          <Text variant="caption" color={Colors.textTertiary}>
+          <Text variant="caption" color={palette.textTertiary}>
             Energy: {energyLevel}
           </Text>
         )}
         {carryOverCount > 0 && (
-          <Text variant="caption" color={Colors.textTertiary}>
+          <Text variant="caption" color={palette.textTertiary}>
             {carryOverCount} thing{carryOverCount === 1 ? "" : "s"} carried
             gently
           </Text>
         )}
         {brainDumpCount > 0 && (
-          <Text variant="caption" color={Colors.textTertiary}>
+          <Text variant="caption" color={palette.textTertiary}>
             {brainDumpCount} thought{brainDumpCount === 1 ? "" : "s"} waiting
             in Brain Dump
           </Text>

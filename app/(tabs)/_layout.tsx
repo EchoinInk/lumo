@@ -1,4 +1,5 @@
-import { Colors, Spacing } from "@/src/theme/tokens";
+import { usePalette } from "@/theme/usePalette";
+import { Spacing } from "@/src/theme/tokens";
 import { Tabs } from "expo-router";
 import {
     Calendar,
@@ -10,13 +11,15 @@ import {
 import { Platform } from "react-native";
 
 export default function TabLayout() {
+  const palette = usePalette();
+
   return (
     <Tabs
       screenOptions={{
         headerShown: false,
         // Soft, calm color scheme
-        tabBarActiveTintColor: Colors.primary,
-        tabBarInactiveTintColor: Colors.textTertiary,
+        tabBarActiveTintColor: palette.primary,
+        tabBarInactiveTintColor: palette.textTertiary,
         // Clean label styling
         tabBarLabelStyle: {
           fontSize: 12,
@@ -25,7 +28,7 @@ export default function TabLayout() {
         },
         // Premium soft tab bar styling
         tabBarStyle: {
-          backgroundColor: Colors.background,
+          backgroundColor: palette.background,
           borderTopWidth: 0,
           elevation: 0,
           shadowOpacity: 0,

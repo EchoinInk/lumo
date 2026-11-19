@@ -1,5 +1,6 @@
-import { Colors, Radius, Shadows, Spacing } from "@/theme/tokens";
-import { LinearGradient } from "expo-linear-gradient";
+import { usePalette } from "@/theme/usePalette";
+import { Shadows, Spacing } from "@/theme/tokens";
+import tokens from "@/theme/mello-tokens.json";
 import React from "react";
 import {
     TouchableOpacity,
@@ -17,7 +18,8 @@ type CardVariant =
   | "outlined"
   | "glass"
   | "interactive"
-  | "compact";
+  | "compact"
+  | "plain";
 
 interface CardProps extends ViewProps {
   children: React.ReactNode;
@@ -47,56 +49,61 @@ export function Card({
   accessibilityState,
   ...props
 }: CardProps) {
+  const palette = usePalette();
+
   const paddingValue = variant === "compact" ? Spacing.md : Spacing[padding];
 
   const getVariantStyles = () => {
     switch (variant) {
       case "elevated":
         return {
-          backgroundColor: Colors.card,
-          borderRadius: Radius["3xl"],
+          backgroundColor: palette.card,
+          borderRadius: tokens.sizes.panelRadius,
           ...Shadows.card,
           overflow: "hidden" as const,
         };
+      case "plain":
+        return { backgroundColor: palette.background, borderRadius: tokens.sizes.panelRadius };
       case "gradient":
         return {
-          borderRadius: Radius["3xl"],
+          backgroundColor: palette.primary,
+          borderRadius: tokens.sizes.panelRadius,
           ...Shadows.card,
           overflow: "hidden" as const,
         };
       case "outlined":
         return {
-          backgroundColor: Colors.card,
-          borderRadius: Radius["3xl"],
+          backgroundColor: palette.card,
+          borderRadius: tokens.sizes.panelRadius,
           borderWidth: 1,
-          borderColor: Colors.border,
+          borderColor: palette.border,
           overflow: "hidden" as const,
         };
       case "glass":
         return {
-          backgroundColor: Colors.cardGlass,
-          borderRadius: Radius["3xl"],
+          backgroundColor: palette.cardGlass,
+          borderRadius: tokens.sizes.panelRadius,
           ...Shadows.soft,
           overflow: "hidden" as const,
         };
       case "interactive":
         return {
-          backgroundColor: Colors.card,
-          borderRadius: Radius["3xl"],
+          backgroundColor: palette.card,
+          borderRadius: tokens.sizes.panelRadius,
           ...Shadows.card,
           overflow: "hidden" as const,
         };
       case "compact":
         return {
-          backgroundColor: Colors.card,
-          borderRadius: Radius["2xl"],
+          backgroundColor: palette.card,
+          borderRadius: tokens.sizes.panelRadius,
           ...Shadows.sm,
           overflow: "hidden" as const,
         };
       default:
         return {
-          backgroundColor: Colors.card,
-          borderRadius: Radius["3xl"],
+          backgroundColor: palette.card,
+          borderRadius: tokens.sizes.panelRadius,
           ...Shadows.soft,
           overflow: "hidden" as const,
         };
@@ -115,21 +122,7 @@ export function Card({
       accessibilityRole={accessibilityRole}
       {...props}
     >
-      {variant === "gradient" ? (
-        <LinearGradient
-          colors={[Colors.gradientStart, Colors.gradientEnd]}
-          start={{ x: 0, y: 0 }}
-          end={{ x: 1, y: 1 }}
-          style={{
-            margin: -paddingValue,
-            padding: paddingValue,
-          }}
-        >
-          {children}
-        </LinearGradient>
-      ) : (
-        children
-      )}
+      {children}
     </View>
   );
 
@@ -153,21 +146,7 @@ export function Card({
           ...interactiveTargetStyle,
         })}
       >
-        {variant === "gradient" ? (
-          <LinearGradient
-            colors={[Colors.gradientStart, Colors.gradientEnd]}
-            start={{ x: 0, y: 0 }}
-            end={{ x: 1, y: 1 }}
-            style={{
-              margin: -paddingValue,
-              padding: paddingValue,
-            }}
-          >
-            {children}
-          </LinearGradient>
-        ) : (
-          children
-        )}
+        {children}
       </TouchableOpacity>
     );
   }

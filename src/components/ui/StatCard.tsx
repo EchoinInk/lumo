@@ -1,6 +1,7 @@
 import { Card } from "@/components/ui/Card";
 import { Text } from "@/components/ui/Text";
-import { Colors, Spacing } from "@/theme/tokens";
+import { usePalette } from "@/theme/usePalette";
+import { Spacing } from "@/theme/tokens";
 import React from "react";
 import { StyleSheet, View } from "react-native";
 
@@ -13,11 +14,13 @@ interface StatCardProps {
 }
 
 export function StatCard({ label, value, change, positive = true, icon }: StatCardProps) {
+  const palette = usePalette();
+
   return (
     <Card variant="elevated" padding="lg" style={styles.container}>
       <View style={styles.header}>
         {icon && <View style={styles.iconContainer}>{icon}</View>}
-        <Text variant="caption" color={Colors.textSecondary} style={styles.label}>
+        <Text variant="caption" color={palette.textSecondary} style={styles.label}>
           {label}
         </Text>
       </View>
@@ -27,7 +30,7 @@ export function StatCard({ label, value, change, positive = true, icon }: StatCa
       {change && (
         <Text
           variant="small"
-          color={positive ? Colors.success : Colors.danger}
+          color={positive ? palette.success : palette.danger}
           style={styles.change}
         >
           {change}

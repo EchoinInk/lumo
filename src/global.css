@@ -3,8 +3,9 @@
 @tailwind utilities;
 
 :root {
+  --mello-focus: #3C6582;
   --font-display:
-    Spline Sans, Inter, ui-sans-serif, system-ui, sans-serif, Apple Color Emoji,
+    "MelloDisplay", ui-sans-serif, system-ui, sans-serif, Apple Color Emoji,
     Segoe UI Emoji, Segoe UI Symbol, Noto Color Emoji;
   --font-mono:
     ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, Liberation Mono,
@@ -13,4 +14,22 @@
     "SF Pro Rounded", "Hiragino Maru Gothic ProN", Meiryo, "MS PGothic",
     sans-serif;
   --font-serif: Georgia, "Times New Roman", serif;
+}
+
+:root[data-mello-theme="dark"] {
+  --mello-focus: #A7C8E5;
+}
+:focus-visible {
+  outline: 2px solid var(--mello-focus);
+  outline-offset: 2px;
+}
+@media (prefers-contrast: more) {
+  :focus-visible {
+    outline-width: 3px;
+  }
+}
+@media (forced-colors: active) {
+  :focus-visible {
+    outline-color: Highlight;
+  }
 }

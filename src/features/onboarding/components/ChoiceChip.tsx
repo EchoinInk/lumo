@@ -5,7 +5,8 @@
 
 import { Card } from "@/src/components/ui/Card";
 import { Text } from "@/src/components/ui/Text";
-import { Colors, Radius, Spacing } from "@/src/theme/tokens";
+import { usePalette, createThemedValue } from "@/theme/usePalette";
+import { Radius, Spacing } from "@/src/theme/tokens";
 import { Check } from "lucide-react-native";
 import React from "react";
 import { StyleSheet, TouchableOpacity, View } from "react-native";
@@ -23,6 +24,9 @@ export function ChoiceChip({
   onPress,
   disabled = false,
 }: ChoiceChipProps) {
+  const palette = usePalette();
+  const styles = useStyles();
+
   return (
     <TouchableOpacity
       onPress={onPress}
@@ -44,13 +48,13 @@ export function ChoiceChip({
           <Text
             variant="body"
             style={[styles.label, selected && styles.labelSelected]}
-            color={selected ? Colors.primary : Colors.textPrimary}
+            color={selected ? palette.primary : palette.textPrimary}
           >
             {label}
           </Text>
           {selected && (
             <View style={styles.checkmark}>
-              <Check size={16} color={Colors.primary} />
+              <Check size={16} color={palette.primary} />
             </View>
           )}
         </View>
@@ -59,16 +63,16 @@ export function ChoiceChip({
   );
 }
 
-const styles = StyleSheet.create({
+const useStyles = createThemedValue((palette) => StyleSheet.create({
   container: {
     paddingVertical: Spacing.md,
     paddingHorizontal: Spacing.lg,
     marginBottom: Spacing.md,
   },
   containerSelected: {
-    borderColor: Colors.primary,
+    borderColor: palette.primary,
     borderWidth: 2,
-    backgroundColor: Colors.lavender,
+    backgroundColor: palette.lavender,
   },
   containerDisabled: {
     opacity: 0.5,
@@ -88,8 +92,8 @@ const styles = StyleSheet.create({
     width: 24,
     height: 24,
     borderRadius: Radius.sm,
-    backgroundColor: Colors.lavender,
+    backgroundColor: palette.lavender,
     alignItems: "center",
     justifyContent: "center",
   },
-});
+}));

@@ -1,9 +1,11 @@
+import { MelloLogo } from "@/components/ui/MelloLogo";
 import { Card } from "@/src/components/ui/Card";
 import { Screen } from "@/src/components/ui/Screen";
 import { Text } from "@/src/components/ui/Text";
 import { MoreScreenHeader } from "@/src/features/more/components";
-import { Colors, Spacing } from "@/src/theme/tokens";
-import { Heart, Sparkles } from "lucide-react-native";
+import { usePalette, createThemedValue } from "@/theme/usePalette";
+import { Spacing } from "@/src/theme/tokens";
+import { Heart } from "lucide-react-native";
 import { ScrollView, StyleSheet, View } from "react-native";
 
 const appInfo = [
@@ -13,26 +15,29 @@ const appInfo = [
 ];
 
 export default function AboutScreen() {
+  const palette = usePalette();
+  const styles = useStyles();
+
   return (
     <Screen scrollable padded>
-      <MoreScreenHeader title="About Lumo" subtitle="App Information" />
+      <MoreScreenHeader title="About Mello" subtitle="App Information" />
 
       {/* App Info Cards */}
       <ScrollView showsVerticalScrollIndicator={false}>
         {/* Welcome Card */}
-        <Card variant="gradient" style={styles.welcomeCard}>
+        <Card style={styles.welcomeCard}>
           <View style={styles.welcomeContent}>
-            <Sparkles size={32} color={Colors.textInverse} />
+            <MelloLogo />
             <Text
               variant="title"
-              color={Colors.textInverse}
+              color={palette.textPrimary}
               style={styles.welcomeTitle}
             >
-              Welcome to Lumo
+              Welcome to Mello
             </Text>
             <Text
               variant="body"
-              color={Colors.textInverse}
+              color={palette.textPrimary}
               style={styles.welcomeText}
             >
               Your gentle companion for a calmer, more organized life. Built
@@ -51,7 +56,7 @@ export default function AboutScreen() {
                 index < appInfo.length - 1 && styles.infoRowBorder,
               ]}
             >
-              <Text variant="body" color={Colors.textSecondary}>
+              <Text variant="body" color={palette.textSecondary}>
                 {item.label}
               </Text>
               <Text variant="body" style={styles.infoValue}>
@@ -63,8 +68,8 @@ export default function AboutScreen() {
 
         {/* Made with Love */}
         <View style={styles.madeWithLove}>
-          <Heart size={16} color={Colors.pink} />
-          <Text variant="caption" color={Colors.textSecondary}>
+          <Heart size={16} color={palette.pink} />
+          <Text variant="caption" color={palette.textSecondary}>
             Made with care for you
           </Text>
         </View>
@@ -73,7 +78,7 @@ export default function AboutScreen() {
   );
 }
 
-const styles = StyleSheet.create({
+const useStyles = createThemedValue((palette) => StyleSheet.create({
   welcomeCard: {
     marginBottom: Spacing.xl,
     padding: Spacing.xl,
@@ -101,7 +106,7 @@ const styles = StyleSheet.create({
   },
   infoRowBorder: {
     borderBottomWidth: 1,
-    borderBottomColor: Colors.border,
+    borderBottomColor: palette.border,
   },
   infoValue: {
     fontWeight: "500",
@@ -113,4 +118,4 @@ const styles = StyleSheet.create({
     gap: Spacing.xs,
     marginBottom: Spacing.xl,
   },
-});
+}));

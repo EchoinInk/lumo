@@ -11,7 +11,8 @@ import {
     PLANNING_STYLE_LABELS,
     PlanningStyle,
 } from "@/src/features/onboarding/types/onboarding";
-import { Colors, Spacing } from "@/src/theme/tokens";
+import { usePalette } from "@/theme/usePalette";
+import { Spacing } from "@/src/theme/tokens";
 import { router } from "expo-router";
 import { ScrollView, StyleSheet, View } from "react-native";
 
@@ -23,6 +24,8 @@ const PLANNING_OPTIONS: PlanningStyle[] = [
 ];
 
 export default function OnboardingStep2Screen() {
+  const palette = usePalette();
+
   const { preferences, setPlanningStyle } = useOnboarding();
 
   const handleNext = () => {
@@ -37,7 +40,7 @@ export default function OnboardingStep2Screen() {
   return (
     <OnboardingShell
       title="How do you prefer to plan?"
-      subtitle="This helps Lumo show you the right tools."
+      subtitle="This helps Mello show you the right tools."
       currentStep={2}
       totalSteps={4}
       onNext={handleNext}
@@ -62,7 +65,7 @@ export default function OnboardingStep2Screen() {
         {preferences.planningStyle && (
           <Text
             variant="caption"
-            color={Colors.textSecondary}
+            color={palette.textSecondary}
             style={styles.selectionHint}
           >
             Selected: {PLANNING_STYLE_LABELS[preferences.planningStyle]}

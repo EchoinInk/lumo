@@ -1,7 +1,8 @@
 import { Card } from "@/src/components/ui/Card";
 import { Text } from "@/src/components/ui/Text";
 import { UX } from "@/src/constants/ux";
-import { Colors, Spacing } from "@/src/theme/tokens";
+import { usePalette, createThemedValue } from "@/theme/usePalette";
+import { Spacing } from "@/src/theme/tokens";
 import { formatLocalDate } from "@/src/utils/dateTime";
 import React from "react";
 import { StyleSheet, TouchableOpacity, View } from "react-native";
@@ -18,17 +19,17 @@ interface TaskRowProps {
   showMetadata?: boolean;
 }
 
-const priorityColors: Record<TaskPriority, string> = {
-  high: Colors.dangerSoft,
-  medium: Colors.warningSoft,
-  low: Colors.infoSoft,
-};
+const usePriorityColors = createThemedValue((palette): Record<TaskPriority, string> => ({
+  high: palette.dangerSoft,
+  medium: palette.warningSoft,
+  low: palette.infoSoft,
+}));
 
-const priorityTextColors: Record<TaskPriority, string> = {
-  high: Colors.danger,
-  medium: Colors.warning,
-  low: Colors.info,
-};
+const usePriorityTextColors = createThemedValue((palette): Record<TaskPriority, string> => ({
+  high: palette.danger,
+  medium: palette.warning,
+  low: palette.info,
+}));
 
 export const TaskRow = React.memo<TaskRowProps>(
   ({
@@ -41,6 +42,11 @@ export const TaskRow = React.memo<TaskRowProps>(
     showSecondaryActions = true,
     showMetadata = true,
   }) => {
+  const palette = usePalette();
+  const styles = useStyles();
+  const priorityColors = usePriorityColors();
+  const priorityTextColors = usePriorityTextColors();
+
     const handlePress = React.useCallback(() => {
       onPress?.(task);
     }, [onPress, task]);
@@ -99,7 +105,7 @@ export const TaskRow = React.memo<TaskRowProps>(
               {showMetadata && task.description && (
                 <Text
                   variant="caption"
-                  color={Colors.textSecondary}
+                  color={palette.textSecondary}
                   style={styles.description}
                   numberOfLines={1}
                 >
@@ -157,7 +163,7 @@ export const TaskRow = React.memo<TaskRowProps>(
         {showMetadata && (task.dueDate || task.dueTime) && (
           <Text
             variant="caption"
-            color={Colors.textTertiary}
+            color={palette.textTertiary}
             style={styles.dueDate}
           >
             Due: {task.dueDate ? formatLocalDate(task.dueDate, {}) : "No date"}
@@ -187,7 +193,7 @@ export const TaskRow = React.memo<TaskRowProps>(
 
 TaskRow.displayName = "TaskRow";
 
-const styles = StyleSheet.create({
+const useStyles = createThemedValue((palette) => StyleSheet.create({
   header: {
     flexDirection: "row",
     alignItems: "flex-start",
@@ -219,17 +225,17 @@ const styles = StyleSheet.create({
     height: 24,
     borderRadius: 6,
     borderWidth: 2,
-    borderColor: Colors.border,
-    backgroundColor: Colors.card,
+    borderColor: palette.border,
+    backgroundColor: palette.card,
     alignItems: "center",
     justifyContent: "center",
   },
   checkboxChecked: {
-    backgroundColor: Colors.primary,
-    borderColor: Colors.primary,
+    backgroundColor: palette.primary,
+    borderColor: palette.primary,
   },
   checkmark: {
-    color: Colors.textInverse,
+    color: palette.textInverse,
     fontSize: 14,
     fontWeight: "bold",
   },
@@ -241,7 +247,7 @@ const styles = StyleSheet.create({
   },
   completedTitle: {
     textDecorationLine: "line-through",
-    color: Colors.textTertiary,
+    color: palette.textTertiary,
   },
   focusTitle: {
     fontWeight: "600",
@@ -263,12 +269,12 @@ const styles = StyleSheet.create({
     minHeight: UX.touchTarget,
     justifyContent: "center",
     borderRadius: 8,
-    backgroundColor: Colors.lavender,
+    backgroundColor: palette.lavender,
     borderWidth: 1,
-    borderColor: Colors.border,
+    borderColor: palette.border,
   },
   focusText: {
-    color: Colors.primary,
+    color: palette.primary,
     fontSize: 12,
     fontWeight: "600",
   },
@@ -276,12 +282,12 @@ const styles = StyleSheet.create({
     width: UX.touchTarget,
     height: UX.touchTarget,
     borderRadius: 22,
-    backgroundColor: Colors.dangerSoft,
+    backgroundColor: palette.dangerSoft,
     alignItems: "center",
     justifyContent: "center",
   },
   deleteText: {
-    color: Colors.danger,
+    color: palette.danger,
     fontSize: 14,
     fontWeight: "600",
   },
@@ -291,6 +297,6 @@ const styles = StyleSheet.create({
   },
   focusTask: {
     borderWidth: 2,
-    borderColor: Colors.primary,
+    borderColor: palette.primary,
   },
-});
+}));

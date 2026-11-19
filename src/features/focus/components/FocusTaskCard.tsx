@@ -7,7 +7,8 @@
 
 import { Button } from "@/src/components/ui/Button";
 import { Card } from "@/src/components/ui/Card";
-import { Colors, Spacing, Typography } from "@/src/theme/tokens";
+import { createThemedValue } from "@/theme/usePalette";
+import { Spacing, Typography } from "@/src/theme/tokens";
 import { StyleSheet, Text, View } from "react-native";
 
 interface Task {
@@ -27,6 +28,8 @@ export function FocusTaskCard({
   onComplete,
   onTaskPress,
 }: FocusTaskCardProps) {
+  const styles = useStyles();
+
   return (
     <Card padding="lg" pressable={!!onTaskPress} onPress={onTaskPress}>
       <View style={styles.container}>
@@ -57,17 +60,17 @@ export function FocusTaskCard({
   );
 }
 
-const styles = StyleSheet.create({
+const useStyles = createThemedValue((palette) => StyleSheet.create({
   container: {
     gap: Spacing.lg,
   },
   title: {
     ...Typography.heading,
-    color: Colors.textPrimary,
+    color: palette.textPrimary,
     lineHeight: 28,
   },
   titleCompleted: {
-    color: Colors.textSecondary,
+    color: palette.textSecondary,
     textDecorationLine: "line-through",
   },
-});
+}));

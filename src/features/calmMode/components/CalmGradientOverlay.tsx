@@ -5,7 +5,7 @@
  * reduces brightness spikes, smooths transitions, and calms decorative overlays.
  */
 
-import { Colors } from "@/theme/tokens";
+import { usePalette } from "@/theme/usePalette";
 import { LinearGradient } from "expo-linear-gradient";
 import React from "react";
 import { StyleSheet, View, ViewStyle } from "react-native";
@@ -22,9 +22,11 @@ interface CalmGradientOverlayProps {
 export function CalmGradientOverlay({
   children,
   style,
-  colors = [Colors.lavender, Colors.background],
+  colors,
   disabled = false,
 }: CalmGradientOverlayProps) {
+  const palette = usePalette();
+
   const { shouldReduceGradientContrast, environmentalProfile } =
     useEnvironmentalSoftening();
 
@@ -34,8 +36,8 @@ export function CalmGradientOverlay({
 
   // When gradient contrast is reduced, we use softer, more subtle colors
   const adjustedColors = shouldApplySoftening
-    ? ([Colors.borderLight, Colors.background] as const)
-    : colors;
+    ? ([palette.borderLight, palette.background] as const)
+    : colors ?? ([palette.lavender, palette.background] as const);
 
   return (
     <View style={[styles.container, style]}>

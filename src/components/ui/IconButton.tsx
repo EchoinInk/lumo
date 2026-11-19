@@ -1,4 +1,5 @@
-import { Colors, Radius, Shadows } from '@/theme/tokens';
+import { usePalette } from "@/theme/usePalette";
+import { Radius, Shadows } from '@/theme/tokens';
 import { UX } from '@/constants/ux';
 import { softImpact } from '@/animations/haptics';
 import { useReducedMotion } from '@/hooks/useReducedMotion';
@@ -28,6 +29,8 @@ export function IconButton({
   onPress,
   ...props 
 }: IconButtonProps) {
+  const palette = usePalette();
+
   const prefersReducedMotion = useReducedMotion();
   const handlePress = (event: any) => {
     if (haptic) {
@@ -60,17 +63,17 @@ export function IconButton({
     switch (variant) {
       case 'primary':
         return {
-          backgroundColor: Colors.primary,
+          backgroundColor: palette.primary,
           ...Shadows.sm,
         };
       case 'secondary':
         return {
-          backgroundColor: Colors.secondary,
+          backgroundColor: palette.secondary,
           ...Shadows.sm,
         };
       case 'danger':
         return {
-          backgroundColor: Colors.danger,
+          backgroundColor: palette.danger,
           ...Shadows.sm,
         };
       case 'ghost':

@@ -5,7 +5,7 @@
  * Soft shimmer, no flashing, layout-preserving.
  */
 
-import { Colors } from "@/theme/colors";
+import { usePalette, createThemedValue } from "@/theme/usePalette";
 import React from "react";
 import { StyleSheet, View } from "react-native";
 import Animated, {
@@ -27,6 +27,9 @@ export const SkeletonCard: React.FC<SkeletonCardProps> = ({
   lines = 3,
   testID,
 }) => {
+  const palette = usePalette();
+  const styles = useStyles();
+
   const opacity = useSharedValue(0.5);
 
   React.useEffect(() => {
@@ -51,13 +54,13 @@ export const SkeletonCard: React.FC<SkeletonCardProps> = ({
       style={[styles.container, style, animatedStyle]}
       testID={testID}
     >
-      <View style={[styles.title, { backgroundColor: Colors.border }]} />
+      <View style={[styles.title, { backgroundColor: palette.border }]} />
       {Array.from({ length: lines }).map((_, index) => (
         <View
           key={index}
           style={[
             styles.line,
-            { backgroundColor: Colors.border },
+            { backgroundColor: palette.border },
             index === lines - 1 && styles.lastLine,
           ]}
         />
@@ -66,11 +69,11 @@ export const SkeletonCard: React.FC<SkeletonCardProps> = ({
   );
 };
 
-const styles = StyleSheet.create({
+const useStyles = createThemedValue((palette) => StyleSheet.create({
   container: {
     borderRadius: 16,
     padding: 16,
-    backgroundColor: Colors.card,
+    backgroundColor: palette.card,
   },
   title: {
     width: "60%",
@@ -87,4 +90,4 @@ const styles = StyleSheet.create({
   lastLine: {
     width: "80%",
   },
-});
+}));
